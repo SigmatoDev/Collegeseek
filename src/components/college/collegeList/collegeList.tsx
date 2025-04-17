@@ -1,0 +1,91 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { api_url } from "@/utils/apiCall";
+import FilterCollegeCard from "../collegeCard/filterCollgedata";
+
+interface College {
+  _id: string;
+  name: string;
+  image: string;
+  state: string;
+  city: string;
+  rank: number;
+  fees: number;
+}
+
+interface AppliedFilters {
+  degrees: string[];
+  states: string[];
+  cities: string[];
+  ranks: string[];
+  fees: string[];
+}
+
+interface CollegeListProps {
+  appliedFilters: AppliedFilters;
+}
+
+const CollegeList = ({ appliedFilters }: CollegeListProps) => {
+  const [colleges, setColleges] = useState<College[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchColleges = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.post(
+          `${api_url}filter/colleges`,
+          appliedFilters
+        );
+
+        console.log("college filter response", response);
+        if (response.data && response.data.success) {
+          setColleges(response.data.data);
+        } else {
+          setError("No colleges found.");
+        }
+      } catch (error: any) {
+        setError("Failed to load college list.");
+        console.error(
+          "Error fetching data:",
+          error?.response?.data || error?.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchColleges();
+  }, [appliedFilters]);
+
+  useEffect(() => {
+    console.log("Received filters:", appliedFilters);
+  }, [appliedFilters]);
+
+  const filteredColleges = colleges; // already filtered by backend
+
+  if (loading)
+    return <div className="text-center p-4">Loading colleges...</div>;
+  if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
+
+  return (
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="flex flex-col gap-6">
+        {filteredColleges.length > 0 ? (
+          filteredColleges.map((college) => (
+<FilterCollegeCard key={college._id} collegeId={college._id} />
+          ))
+        ) : (
+          <div className="text-center text-gray-500">
+            No colleges available.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CollegeList;
