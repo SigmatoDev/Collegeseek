@@ -15,6 +15,8 @@ interface CollegeData {
   slug: string;
   rating: number;
   location: string;
+  city:string;
+  state:string
   rank: number;
   fees: string;
   accreditation: string;
@@ -116,7 +118,7 @@ export default function FilterCollegeCard({ collegeId }: Props) {
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mt-1">
             <div className="flex items-center gap-1">
               <MapPinIcon className="w-5 h-5 text-blue-500" />
-              {collegeData.location}
+              {collegeData.city} ({collegeData.state})
             </div>
             <div className="text-orange-500 font-semibold">#{collegeData.rank} NIRF</div>
             <div className="flex items-center gap-1">

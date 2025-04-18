@@ -19,6 +19,7 @@
     "draft-js": "^0.11.7",
     "framer-motion": "^12.4.4",
     "grapesjs": "^0.22.6",
+    "install": "^0.13.0",
     "lucide-react": "^0.475.0",
     "next": "15.1.7",
     "quill": "^2.0.3",

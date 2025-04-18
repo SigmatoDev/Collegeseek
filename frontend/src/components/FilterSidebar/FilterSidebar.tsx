@@ -192,7 +192,7 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
   };
 
   return (
-    <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
+    <div className="w-[300px] max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
       <h1 className="text-xl font-semibold text-gray-800">Filter Colleges</h1>
 
       <div className="space-y-5 overflow-y-auto max-h-[calc(150vh-50px)] pr-2">

@@ -116,7 +116,7 @@ export default function CollegeDetailsPage() {
           />{" "}
           <div className="flex items-center gap-4">
             <span className="text-blue-700 font-semibold">
-              📍 {collegeData.location}
+              📍   {collegeData.location?.split(" ")[0]}
             </span>
 
             <div className="flex -space-x-3 overflow-x-auto scrollbar-hide p-1">

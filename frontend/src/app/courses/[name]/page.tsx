@@ -53,8 +53,32 @@ const CourseDetail = () => {
   return (
     <>
     <Header/>
-    <div className="max-w-7xl  mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-center">Courses: {name}</h1>
+    <div
+  className="relative bg-cover bg-center bg-no-repeat py-28 px-6 mb-12 shadow-2xl"
+  style={{
+    backgroundImage: "url('/image/6.avif')",
+  }}
+>
+  {/* Enhanced dark overlay with gradient for depth */}
+  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 "></div>
+
+  <div className="relative z-10 flex flex-col items-center text-center text-white max-w-3xl mx-auto">
+    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
+      <span className="inline-block px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg shadow-md">
+        Courses: {name}
+      </span>
+    </h1>
+
+    {/* Optional subheading */}
+    <p className="text-lg md:text-xl text-white/90 font-medium">
+      Explore top colleges, fees, and eligibility for your selected course
+    </p>
+
+  </div>
+</div>
+
+    <div className="max-w-7xl mx-auto p-6">
+      
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border-collapse border border-gray-300">
           <thead>

@@ -3,7 +3,6 @@ import axios from "axios";
 import { api_url, img_url } from "@/utils/apiCall";
 import { CurrencyRupeeIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Modal from "@/components/counselling/model/page";
 import CounsellingForm from "@/components/counselling/counsellingForm/page";
 

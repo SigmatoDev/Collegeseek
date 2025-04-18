@@ -8,7 +8,7 @@ const {
   getUserShortlistById,
   getUserShortlists,
   removeShortlistedCollege,
-} = require('../../controllers/users/shortlistcontroller');
+} = require('../../controllers/users/shortlistController');
 
 // 🔐 Create a shortlist (Requires login)
 router.post('/shortlist', authenticateUser, createShortlistForUser);
