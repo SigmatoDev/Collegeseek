@@ -47,12 +47,12 @@ export default function HeroSection() {
         </div>
 
         {/* Watch Video Link */}
-        <p
+        {/* <p
           className="mt-6 text-yellow-700 underline cursor-pointer hover:text-yellow-500 transition duration-300 text-lg"
           onClick={() => setIsOpen(true)}
         >
           ▶ Watch our brand film
-        </p>
+        </p> */}
       </div>
 
       {/* Video Modal */}

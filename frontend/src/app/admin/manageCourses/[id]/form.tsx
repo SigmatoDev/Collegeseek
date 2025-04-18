@@ -4,12 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import { api_url } from "@/utils/apiCall";
-import { Loader } from "lucide-react";
 import { College, Course } from "@/components/model/models";
+import { Loader } from "lucide-react";
 
 const CourseForm = () => {
   const [isClient, setIsClient] = useState(false);
-
   useEffect(() => setIsClient(true), []);
   if (!isClient) return null;
 
@@ -20,9 +19,9 @@ const ActualCourseForm = () => {
   const router = useRouter();
   const { id: courseId } = useParams();
   const [courseList, setCourseList] = useState<{ name: string }[]>([]);
-
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(false);
+
   const [course, setCourse] = useState<Course>({
     name: "",
     description: "",
@@ -43,7 +42,7 @@ const ActualCourseForm = () => {
 
   useEffect(() => {
     axios
-      .get(`${api_url}colleges`)
+      .get(`${api_url}f/college`)
       .then((res) => setColleges(res.data.data || []))
       .catch((err) => console.error("Error fetching colleges:", err));
   }, []);
@@ -52,10 +51,9 @@ const ActualCourseForm = () => {
     const fetchCourseList = async () => {
       try {
         const response = await axios.get(`${api_url}course-list`);
-        console.log("Course list response:", response.data?.data);
         setCourseList(response.data?.data || []);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching course categories:", error);
       }
     };
 
@@ -100,7 +98,7 @@ const ActualCourseForm = () => {
     []
   );
 
-  const handleCancel = useCallback(() => router.push("/courses"), [router]);
+  const handleCancel = useCallback(() => router.push("/admin/manageCourses"), [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,10 +109,8 @@ const ActualCourseForm = () => {
       }`;
       const method = courseId && courseId !== "new" ? axios.put : axios.post;
       const res = await method(url, course);
-  
-      console.log("Response from API:", res.data);
-  
-      if (res.data?.success || res.status === 200) {
+
+      if (res.status >= 200 && res.status < 300) {
         alert(
           `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
         );
@@ -129,7 +125,6 @@ const ActualCourseForm = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <form
@@ -151,7 +146,7 @@ const ActualCourseForm = () => {
         />
         <select
           name="college_id"
-          value={course.college_id}
+          value={course.college_id ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
         >
@@ -181,11 +176,10 @@ const ActualCourseForm = () => {
         >
           <option value="">Select Degree</option>
           {courseList.map((cat) => (
-  <option key={cat.name} value={cat.name}>
-    {cat.name}
-  </option>
-))}
-
+            <option key={cat.name} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
         </select>
 
         <input
@@ -282,44 +276,72 @@ const ActualCourseForm = () => {
       </Section>
 
       <Section title="Ratings" cols={2}>
-        <input
-          type="number"
-          name="score"
-          placeholder="Score"
-          min="0"
-          max="5"
-          value={course.ratings.score}
-          onChange={(e) => handleNestedChange(e, "ratings")}
-          className="p-2 border rounded"
-        />
-        <input
-          type="number"
-          name="reviews_count"
-          placeholder="Reviews Count"
-          value={course.ratings.reviews_count}
-          onChange={(e) => handleNestedChange(e, "ratings")}
-          className="p-2 border rounded"
-        />
-      </Section>
+  <div className="flex flex-col">
+    <label htmlFor="score" className="mb-1 font-medium text-sm text-gray-700">
+      Score (0–5)
+    </label>
+    <input
+      id="score"
+      type="number"
+      name="score"
+      placeholder="Enter Score"
+      min="0"
+      max="5"
+      value={course.ratings.score}
+      onChange={(e) => handleNestedChange(e, "ratings")}
+      className="p-2 border rounded"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label htmlFor="reviews_count" className="mb-1 font-medium text-sm text-gray-700">
+      Reviews Count
+    </label>
+    <input
+      id="reviews_count"
+      type="number"
+      name="reviews_count"
+      placeholder="Enter Reviews Count"
+      value={course.ratings.reviews_count}
+      onChange={(e) => handleNestedChange(e, "ratings")}
+      className="p-2 border rounded"
+    />
+  </div>
+</Section>
+
 
       <Section title="Placements" cols={3}>
-        <input
-          type="number"
-          name="median_salary"
-          placeholder="Median Salary"
-          value={course.placements.median_salary}
-          onChange={(e) => handleNestedChange(e, "placements")}
-          className="p-2 border rounded"
-        />
-        <input
-          type="number"
-          name="placement_rate"
-          placeholder="Placement Rate (%)"
-          value={course.placements.placement_rate}
-          onChange={(e) => handleNestedChange(e, "placements")}
-          className="p-2 border rounded"
-        />
-      </Section>
+  <div className="flex flex-col">
+    <label htmlFor="median_salary" className="mb-1 font-medium text-sm text-gray-700">
+      Median Salary
+    </label>
+    <input
+      id="median_salary"
+      type="number"
+      name="median_salary"
+      placeholder="Enter Median Salary"
+      value={course.placements.median_salary}
+      onChange={(e) => handleNestedChange(e, "placements")}
+      className="p-2 border rounded"
+    />
+  </div>
+
+  <div className="flex flex-col">
+    <label htmlFor="placement_rate" className="mb-1 font-medium text-sm text-gray-700">
+      Placement Rate (%)
+    </label>
+    <input
+      id="placement_rate"
+      type="number"
+      name="placement_rate"
+      placeholder="Enter Placement Rate (%)"
+      value={course.placements.placement_rate}
+      onChange={(e) => handleNestedChange(e, "placements")}
+      className="p-2 border rounded"
+    />
+  </div>
+</Section>
+
 
       <label className="block font-medium mt-4">Entrance Exam</label>
       <input
@@ -332,19 +354,29 @@ const ActualCourseForm = () => {
 
       <Section title="Intake Capacity" cols={3}>
         {["male", "female", "total"].map((field) => (
-          <input
-            key={field}
-            type="number"
-            name={field}
-            placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-            value={
-              course.intake_capacity[
-                field as keyof typeof course.intake_capacity
-              ]
-            }
-            onChange={(e) => handleNestedChange(e, "intake_capacity")}
-            className="p-2 border rounded"
-          />
+          <div key={field} className="flex flex-col">
+            <label
+              htmlFor={field}
+              className="mb-1 font-medium text-sm text-gray-700"
+            >
+              {field.charAt(0).toUpperCase() + field.slice(1)}
+            </label>
+            <input
+              id={field}
+              type="number"
+              name={field}
+              placeholder={`Enter ${
+                field.charAt(0).toUpperCase() + field.slice(1)
+              } Intake`}
+              value={
+                course.intake_capacity[
+                  field as keyof typeof course.intake_capacity
+                ]
+              }
+              onChange={(e) => handleNestedChange(e, "intake_capacity")}
+              className="p-2 border rounded"
+            />
+          </div>
         ))}
       </Section>
 

@@ -58,7 +58,7 @@ export default function CollegeCourses({ college_id }: Props) {
       setLoading(true);
       setError(null);
       try {
-        const url = `${api_url}/courses?college_id=${college_id}`;
+        const url = `${api_url}c/courses?college_id=${college_id}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Failed to fetch courses: ${response.statusText}`);
 

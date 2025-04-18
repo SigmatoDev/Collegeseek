@@ -29,6 +29,9 @@ const CollegeList = ({ appliedFilters }: CollegeListProps) => {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const limit = 10;
 
   useEffect(() => {
     const fetchColleges = async () => {
@@ -36,14 +39,16 @@ const CollegeList = ({ appliedFilters }: CollegeListProps) => {
       setError(null);
 
       try {
-        const response = await axios.post(
-          `${api_url}filter/colleges`,
-          appliedFilters
-        );
+        const response = await axios.post(`${api_url}filter/colleges`, {
+          ...appliedFilters,
+          page,
+          limit,
+        });
 
         console.log("college filter response", response);
         if (response.data && response.data.success) {
           setColleges(response.data.data);
+          setTotalPages(response.data.pagination.totalPages);
         } else {
           setError("No colleges found.");
         }
@@ -59,7 +64,15 @@ const CollegeList = ({ appliedFilters }: CollegeListProps) => {
     };
 
     fetchColleges();
-  }, [appliedFilters]);
+  }, [appliedFilters, page]);
+
+  const handlePrev = () => {
+    if (page > 1) setPage((prev) => prev - 1);
+  };
+
+  const handleNext = () => {
+    if (page < totalPages) setPage((prev) => prev + 1);
+  };
 
   useEffect(() => {
     console.log("Received filters:", appliedFilters);
@@ -76,7 +89,7 @@ const CollegeList = ({ appliedFilters }: CollegeListProps) => {
       <div className="flex flex-col gap-6">
         {filteredColleges.length > 0 ? (
           filteredColleges.map((college) => (
-<FilterCollegeCard key={college._id} collegeId={college._id} />
+            <FilterCollegeCard key={college._id} collegeId={college._id} />
           ))
         ) : (
           <div className="text-center text-gray-500">
@@ -84,6 +97,31 @@ const CollegeList = ({ appliedFilters }: CollegeListProps) => {
           </div>
         )}
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+        <button
+          onClick={handlePrev}
+          disabled={page === 1}
+          className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          ⬅ Prev
+        </button>
+      
+        <span className="text-gray-700 font-medium">
+          Page <span className="font-bold text-blue-600">{page}</span> of{" "}
+          <span className="font-bold">{totalPages}</span>
+        </span>
+      
+        <button
+          onClick={handleNext}
+          disabled={page === totalPages}
+          className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          Next ➡
+        </button>
+      </div>
+      
+      )}
     </div>
   );
 };

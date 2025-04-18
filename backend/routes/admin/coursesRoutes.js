@@ -10,6 +10,7 @@ const {
   updateCourse,
   deleteCourse,
   getCourseBySlug,
+  getCourse,
 } = require('../../controllers/admin/coursesController');
 
 const {
@@ -27,6 +28,7 @@ const {
 // Define routes
 router.post("/courses", upload.single('image'), createCourse); // <--- Update here
 router.get("/courses", getCourses);
+router.get("/c/courses", getCourse);
 router.get("/courses/:id", getCourseById);
 router.put("/courses/:id", updateCourse);
 router.delete("/courses/:id", deleteCourse);

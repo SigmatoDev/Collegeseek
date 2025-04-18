@@ -113,7 +113,8 @@ export default function CollegeDetailsPage() {
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(collegeData.description || ""),
             }}
-          />          <div className="flex items-center gap-4">
+          />{" "}
+          <div className="flex items-center gap-4">
             <span className="text-blue-700 font-semibold">
               📍 {collegeData.location}
             </span>
@@ -138,7 +139,6 @@ export default function CollegeDetailsPage() {
               View Gallery
             </button>
           </div>
-
           <div className="flex gap-4">
             <button
               onClick={() =>
@@ -189,21 +189,21 @@ export default function CollegeDetailsPage() {
       <Courses college_id={collegeData.id || (collegeData as any)._id} />
 
       {/* Tabs */}
-     <nav className="flex space-x-6 border-b pb-2 mt-6 text-gray-600 overflow-x-auto scrollbar-hide">
-  {collegeData.tabs.map((tab, index) => (
-    <button
-      key={index}
-      onClick={() => setSelectedTab(tab)}
-      className={`font-medium px-2 py-1 border-b-2 focus:outline-none ${
-        selectedTab?.title === tab.title
-          ? "border-blue-600 text-blue-600"
-          : "border-transparent hover:text-blue-600"
-      }`}
-    >
-      {tab.title}
-    </button>
-  ))}
-</nav>
+      <nav className="flex space-x-6 border-b pb-2 mt-6 text-gray-600 overflow-x-auto scrollbar-hide">
+        {collegeData.tabs.map((tab, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedTab(tab)}
+            className={`font-medium px-2 py-1 border-b-2 focus:outline-none ${
+              selectedTab?.title === tab.title
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent hover:text-blue-600"
+            }`}
+          >
+            {tab.title}
+          </button>
+        ))}
+      </nav>
 
       {selectedTab && (
         <div className="mt-6">

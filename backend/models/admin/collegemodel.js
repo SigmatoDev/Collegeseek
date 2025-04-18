@@ -11,17 +11,17 @@ const collegeSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, unique: true, required: true }, // ✅ Add unique slug
 
-    description: { type: String, required: true, trim: true },
-    about: { type: String, required: true, default: "", trim: true },
+    description: { type: String, required: false, trim: true },
+    about: { type: String, required: false, default: "", trim: true },
 
     // ✅ Location Details
     state: { type: String, required: true, trim: true, index: true },
     city: { type: String, required: true, trim: true, index: true },
-    address: { type: String, required: true, trim: true },
+    address: { type: String, required: false, trim: true },
     location: { type: String, required: false, trim: true },
 
     // ✅ Ranking & Fees
-    rank: { type: Number, required: true, min: 0, index: true },
+    rank: { type: Number, required: false, min: 0, index: true },
     fees: { type: Number, default: 0, min: 0 },
     avgPackage: { type: Number, default: 0, min: 0 },
     // established_year:{ type: Number, default: 0, min: 0 },
@@ -32,8 +32,8 @@ const collegeSchema = new mongoose.Schema(
     tabs: {
       type: [
         {
-          title: { type: String, required: true, trim: true },
-          description: { type: String, required: true, trim: true },
+          title: { type: String, required: false, trim: true },
+          description: { type: String, required: false, trim: true },
         },
       ],
       default: [],
@@ -41,7 +41,7 @@ const collegeSchema = new mongoose.Schema(
 
     website: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       // validate: {
       //   validator: (v) =>
@@ -51,7 +51,7 @@ const collegeSchema = new mongoose.Schema(
     },
     contact: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       // validate: {
       //   validator: (v) => /^(\+?\d{10,15})$/.test(v),
@@ -60,7 +60,7 @@ const collegeSchema = new mongoose.Schema(
     },
     contactEmail: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       trim: true,
       lowercase: false,

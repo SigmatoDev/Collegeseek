@@ -6,7 +6,7 @@ const CoursesList = require("../../models/admin/coursesList"); // Adjust path if
 
 
 // Get all courses
-const getCourses = async (req, res) => {
+const getCourse = async (req, res) => {
   try {
     const courses = await Course.find().populate("category", "name"); // Only populate the name field
     res.json(courses);
@@ -16,6 +16,30 @@ const getCourses = async (req, res) => {
   }
 };
 
+const getCourses = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Now you can use skip and limit safely
+    const courses = await Course.find()
+      .populate("category", "name")
+      .skip(skip)
+      .limit(limit);
+
+    const totalCourses = await Course.countDocuments(); // Assuming you want to calculate the total number of courses
+
+    res.json({
+      courses,
+      totalPages: Math.ceil(totalCourses / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res.status(500).json({ message: "Failed to fetch courses" });
+  }
+};
 
 // Get course by ID
 const getCourseById = async (req, res) => {
@@ -58,7 +82,16 @@ const createCourse = async (req, res) => {
       return res.status(400).json({ message: "Category not found" });
     }
 
-    const slug = slugify(name, { lower: true, strict: true });
+    let slug = slugify(name, { lower: true, strict: true });
+
+    // Check for duplicate slug and modify it if necessary
+    let existingCourse = await Course.findOne({ slug });
+    let counter = 1;
+    while (existingCourse) {
+      slug = `${slugify(name, { lower: true, strict: true })}-${counter}`;
+      existingCourse = await Course.findOne({ slug });
+      counter++;
+    }
 
     const imageUrl = req.file ? `/uploads/courses/${req.file.filename}` : null;
 
@@ -78,6 +111,7 @@ const createCourse = async (req, res) => {
     res.status(500).json({ message: "Failed to create course" });
   }
 };
+
 
 
 // Update a course
@@ -176,6 +210,7 @@ module.exports = {
   getCourses,
   getCourseById,
   createCourse,
+  getCourse,
   updateCourse,
   deleteCourse,
   getCourseBySlug,

@@ -39,7 +39,7 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const courseRes = await fetch(`${api_url}courses`);
+        const courseRes = await fetch(`${api_url}c/courses`);
         const courseData = await courseRes.json();
 
         const degreeMap = new Map<string, string>();
@@ -55,7 +55,7 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
         }));
         setDegrees(degreeList);
 
-        const collegeRes = await fetch(`${api_url}colleges`);
+        const collegeRes = await fetch(`${api_url}f/college`);
         const { data } = await collegeRes.json();
 
         const stateSet = new Set<string>();
@@ -120,32 +120,34 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
       <div className="space-y-2">{children}</div>
     </div>
   );
-
   const renderDegreeFilterSection = () => (
     <FilterSectionWrapper title="Degree">
-      {degrees.map(({ _id, name }) => (
-        <label
-          key={_id}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
-        >
-          <input
-            type="checkbox"
-            checked={selectedDegrees.includes(_id)}
-            onChange={() =>
-              handleCheckboxChange<string>(
-                _id,
-                selectedDegrees,
-                setSelectedDegrees,
-                (updated) => handleFilterChange({ degrees: updated })
-              )
-            }
-            className="accent-blue-600 h-4 w-4 rounded"
-          />
-          {name}
-        </label>
-      ))}
+      <div className="max-h-40 overflow-y-auto"> {/* Added scrollable area here */}
+        {degrees.map(({ _id, name }) => (
+          <label
+            key={_id}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+          >
+            <input
+              type="checkbox"
+              checked={selectedDegrees.includes(_id)}
+              onChange={() =>
+                handleCheckboxChange<string>(
+                  _id,
+                  selectedDegrees,
+                  setSelectedDegrees,
+                  (updated) => handleFilterChange({ degrees: updated })
+                )
+              }
+              className="accent-blue-600 h-4 w-4 rounded"
+            />
+            {name}
+          </label>
+        ))}
+      </div>
     </FilterSectionWrapper>
   );
+  
 
   const renderFilterSection = <T extends string | number>(
     title: string,
@@ -155,27 +157,29 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
     filterKey: keyof typeof filterHandlers
   ) => (
     <FilterSectionWrapper title={title}>
-      {items.map((item, index) => (
-        <label
-          key={index}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
-        >
-          <input
-            type="checkbox"
-            checked={selected.includes(item)}
-            onChange={() =>
-              handleCheckboxChange<T>(
-                item,
-                selected,
-                setSelected,
-                (updated) => handleFilterChange({ [filterKey]: updated })
-              )
-            }
-            className="accent-blue-600 h-4 w-4 rounded"
-          />
-          {String(item)}
-        </label>
-      ))}
+      <div className="max-h-40 overflow-y-auto"> {/* Added scrollable area here */}
+        {items.map((item, index) => (
+          <label
+            key={index}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+          >
+            <input
+              type="checkbox"
+              checked={selected.includes(item)}
+              onChange={() =>
+                handleCheckboxChange<T>(
+                  item,
+                  selected,
+                  setSelected,
+                  (updated) => handleFilterChange({ [filterKey]: updated })
+                )
+              }
+              className="accent-blue-600 h-4 w-4 rounded"
+            />
+            {String(item)}
+          </label>
+        ))}
+      </div>
     </FilterSectionWrapper>
   );
 
@@ -191,7 +195,7 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
     <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
       <h1 className="text-xl font-semibold text-gray-800">Filter Colleges</h1>
 
-      <div className="space-y-5 overflow-y-auto max-h-[calc(100vh-50px)] pr-2">
+      <div className="space-y-5 overflow-y-auto max-h-[calc(150vh-50px)] pr-2">
         {renderDegreeFilterSection()}
         {renderFilterSection("State", states, selectedStates, setSelectedStates, "states")}
         {renderFilterSection("City", cities, selectedCities, setSelectedCities, "cities")}

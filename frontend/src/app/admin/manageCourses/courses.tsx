@@ -16,59 +16,57 @@ interface Course {
   name: string;
   description: string;
   duration: string;
-  fees: number | { amount: number; currency: string }; // Handle object case
+  fees: number;
 }
 
 const AdminCourses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const coursesPerPage = 10;
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        console.log("Fetching from:", `${api_url}/courses`);
-        const { data } = await axios.get(`${api_url}/courses`);
+  const fetchCourses = async (page: number) => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(
+        `${api_url}/courses?page=${page}&limit=${coursesPerPage}`
+      );
 
-        if (!Array.isArray(data)) {
-          console.error("Unexpected API response format:", data);
-          setError("Invalid data format received.");
-          return;
-        }
+      const fetchedCourses = data?.courses || [];
 
-        setCourses(
-          data.map((course) => ({
-            ...course,
-            fees:
-              typeof course.fees === "object"
-                ? course.fees.amount
-                : course.fees,
-          }))
-        );
-      } catch (err: any) {
-        console.error("API Fetch Error:", err);
-        setError(err.response?.data?.message || "Failed to load courses.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      setCourses(
+        fetchedCourses.map((course: any) => ({
+          ...course,
+          fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
+        }))
+      );
 
-    if (typeof window !== "undefined") {
-      fetchCourses();
+      setTotalPages(data?.totalPages || 1);
+    } catch (err: any) {
+      console.error("Error fetching courses:", err);
+      setError(err.response?.data?.message || "Failed to fetch courses.");
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchCourses(currentPage);
+  }, [currentPage]);
 
   const handleDelete = async (courseId: string) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
 
     try {
       await axios.delete(`${api_url}/courses/${courseId}`);
-      setCourses((prev) => prev.filter((course) => course._id !== courseId));
       toast.success("Course deleted successfully!");
+      fetchCourses(currentPage); // Refresh the current page after deletion
     } catch (err) {
       console.error("Error deleting course:", err);
-      toast.error("Error deleting course. Please try again.");
+      toast.error("Failed to delete course.");
     }
   };
 
@@ -106,25 +104,13 @@ const AdminCourses = () => {
               {courses.length > 0 ? (
                 courses.map((course) => (
                   <tr key={course._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {course.name}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {course.description}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {course.duration}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {typeof course.fees === "object"
-                        ? `₹ ${course.fees.amount} ${course.fees.currency}`
-                        : `₹${course.fees}`}
-                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-700">{course.name}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">{course.description}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">{course.duration}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">₹{course.fees}</td>
                     <td className="px-6 py-3 flex space-x-2">
                       <button
-                        onClick={() =>
-                          router.push(`/admin/manageCourses/${course._id}`)
-                        }
+                        onClick={() => router.push(`/admin/manageCourses/${course._id}`)}
                         className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                       >
                         <PencilSquareIcon className="h-5 w-5" />
@@ -149,6 +135,33 @@ const AdminCourses = () => {
               )}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Previous
+            </button>
+            <span className="text-gray-700 text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

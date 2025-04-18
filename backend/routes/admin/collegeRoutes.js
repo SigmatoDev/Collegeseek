@@ -11,6 +11,7 @@ const {
   updateCollege,
   deleteCollege,
   getCollegeBySlug,
+  getCollege,
 } = require("../../controllers/admin/collegeController");
 
 const router = express.Router();
@@ -52,6 +53,7 @@ const uploadHandler = (req, res, next) => {
 
 // ✅ Routes
 router.get("/colleges", getColleges);
+router.get("/f/college", getCollege);
 router.get("/colleges/:id", getCollegeById);
 router.post("/colleges", uploadHandler, createCollege);
 router.put("/colleges/:id", uploadHandler, updateCollege);

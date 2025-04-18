@@ -145,10 +145,34 @@ const createCollege = async (req, res) => {
 
 
 // ✅ Get All Colleges
-const getColleges = async (req, res) => {
+const getCollege = async (req, res) => {
   try {
     const colleges = await College.find();
     res.status(200).json({ success: true, data: colleges });
+  } catch (error) {
+    console.error("Error fetching colleges:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch colleges" });
+  }
+};
+
+const getColleges = async (req, res) => {
+  try {
+ const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+    const skip = (page - 1) * limit;
+
+        const total = await College.countDocuments(); // Total number of colleges
+        const colleges = await College.find().skip(skip).limit(limit); // Apply pagination
+        res.status(200).json({
+      success: true,
+      data: colleges,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        limit,
+      },
+    });
   } catch (error) {
     console.error("Error fetching colleges:", error);
     res.status(500).json({ success: false, error: "Failed to fetch colleges" });
@@ -336,6 +360,7 @@ module.exports = {
   createCollege,
   getColleges,
   getCollegeById,
+  getCollege,
   updateCollege,
   deleteCollege,
   getCollegeBySlug,
