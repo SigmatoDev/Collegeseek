@@ -6,7 +6,6 @@ import Footer from "@/components/footer/page";
 import NewsletterForm from "@/components/newsletters/page";
 import ContactHero from "@/components/contactUs/contactHero";
 import ContactDetails from "@/components/contactUs/contactDetails";
-import Loader from "@/components/loader/loader";
 
 const ContactPage = () => {
   const [loading, setLoading] = useState(true);
@@ -20,7 +19,6 @@ const ContactPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <Loader />;
 
   return (
     <div>

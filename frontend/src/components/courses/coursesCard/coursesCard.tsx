@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
-import { Clock, DollarSign, ArrowRightCircle } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowRightCircle } from "lucide-react";
 import Link from "next/link";
+import { ClockIcon, CurrencyRupeeIcon } from "@heroicons/react/24/outline";
 
 interface CourseCardProps {
   title: string;
@@ -11,6 +12,7 @@ interface CourseCardProps {
   fees: string;
   id: string;
   slug: string;
+  image: string; // Add image prop
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -20,49 +22,98 @@ const CourseCard: React.FC<CourseCardProps> = ({
   fees,
   id,
   slug,
+  image,
 }) => {
-  console.log("slug" , slug)
+  // Use the useState hook inside the component
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  console.log("slug", slug);
+
   return (
-    <div className="relative max-w-3xl w-full bg-gray-50 border border-gray-200 rounded-2xl shadow-xl hover:shadow-2xl p-8 transition-all duration-300 group">
-      {/* Title */}
-      <h2 className="text-2xl font-semibold text-gray-900 mb-6 group-hover:text-blue-700 transition-colors duration-300">
-        {title}
-      </h2>
-  
-      {/* Info Boxes */}
-      <div className="flex flex-wrap gap-5 mb-6">
-        {/* Duration */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-100 rounded-xl w-48 transition hover:shadow-sm">
-          <Clock className="text-blue-600" size={20} />
-          <div>
-            <p className="text-xs text-gray-500">Duration</p>
-            <p className="text-sm font-medium text-gray-800">{duration}</p>
-          </div>
+    <div className="border rounded-lg shadow-md p-4 bg-white">
+      <div className="flex gap-4">
+        {/* Image Section */}
+        <div className="w-48 h-32">
+          <img
+            src={image}
+            alt={title}
+            width={192}
+            height={128}
+            className="w-full h-full rounded-lg object-cover cursor-pointer"
+            loading="lazy"
+            onError={(e) =>
+              (e.currentTarget.src = "/logo/logo-removebg-preview.png")
+            }
+          />
         </div>
-  
-        {/* Fees */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-100 rounded-xl w-48 transition hover:shadow-sm">
-          <DollarSign className="text-green-600" size={20} />
-          <div>
-            <p className="text-xs text-gray-500">Fees</p>
-            <p className="text-sm font-medium text-gray-800">{fees}</p>
+        <div className="flex flex-col justify-between flex-1">
+          <h2 className="text-xl font-semibold">{title}</h2>
+
+          <div className="flex flex-wrap gap-4 mb-2 mt-3">
+            {/* Duration Box */}
+            <div className="flex px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl w-fit transition hover:shadow-sm">
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
+                  <ClockIcon className="h-4 w-4" />
+                  <span>Duration</span>
+                </div>
+                <p className="text-sm font-medium text-gray-800 ml-6">
+                  {duration}
+                </p>
+              </div>
+            </div>
+
+            {/* Fees Box */}
+            <div className="flex px-4 py-2.5 bg-green-50 border border-green-100 rounded-xl w-fit transition hover:shadow-sm">
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
+                  <CurrencyRupeeIcon className="h-4 w-4" />
+                  <span>Fees</span>
+                </div>
+                <p className="text-sm font-medium text-gray-800 ml-6">
+                  Rs. {fees}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-2 text-sm text-gray-600">
+            {/* Description */}
+            {/* <p className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-3">
+            {description}
+          </p> */}
+            <div className="mt-2 text-sm text-gray-600">
+              <p>
+                {isExpanded ? description : `${description.slice(0, 150)}...`}
+              </p>
+              {description.length > 150 && (
+                <button
+                  className="text-blue-500 text-xs font-semibold focus:outline-none"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded ? "Read Less" : "Read More"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
-  
-      {/* Description */}
-      <p className="text-gray-600 text-sm leading-relaxed mb-8 line-clamp-3">
-        {description}
-      </p>
-  
-      {/* View Details Button */}
-      <div className="flex">
-        <Link href={`/courses/${encodeURIComponent(title)}`} className="group inline-block">
-          <button className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-full transition-all duration-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-md hover:shadow-lg">
-            View Details
-            <ArrowRightCircle size={18} className="transition-transform group-hover:translate-x-1" />
-          </button>
-        </Link>
+
+      <div className="border-t mt-4 pt-2 flex justify-between text-sm text-[#441A6B]">
+        <div className="flex gap-2">
+          <Link
+            href={`/courses/${encodeURIComponent(title)}`}
+            className="group inline-block"
+          >
+            <button className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg transition-all duration-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-md hover:shadow-lg">
+              View Details
+              <ArrowRightCircle
+                size={18}
+                className="transition-transform group-hover:translate-x-1"
+              />
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );

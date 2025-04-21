@@ -8,7 +8,6 @@ import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
 import NewsletterForm from "@/components/newsletters/page";
-import Loader from "@/components/loader/loader";
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
@@ -22,7 +21,6 @@ const HomePage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <Loader />;
 
   return (
     <div className="bg-[#fffdff]">

@@ -25,7 +25,7 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await axios.get(`${api_url}colleges`);
+        const response = await axios.get(`${api_url}f/college`);
         setColleges(response.data.data || []);
       } catch (error) {
         console.error("Error fetching colleges:", error);

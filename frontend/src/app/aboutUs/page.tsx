@@ -7,7 +7,6 @@ import TeamSection from "@/components/aboutUs/teamSection";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import NewsletterForm from "@/components/newsletters/page";
-import Loader from "@/components/loader/loader";
 
 const AboutPage = () => {
   const [loading, setLoading] = useState(true);
@@ -21,7 +20,6 @@ const AboutPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <Loader />;
 
   return (
     <div>

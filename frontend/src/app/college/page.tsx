@@ -5,7 +5,6 @@ import CollegeList from "@/components/college/collegeList/collegeList";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import Image from "next/image";
-import Loader from "@/components/loader/loader";
 import CombinedFilterSidebar from "@/components/FilterSidebar/FilterSidebar";
 
 const AdBox = ({ imageSrc }: { imageSrc: string }) => {
@@ -42,7 +41,6 @@ const CollegesPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return <Loader />;
 
   return (
     <>

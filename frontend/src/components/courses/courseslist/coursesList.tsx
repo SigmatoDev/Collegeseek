@@ -67,8 +67,8 @@ const CoursesList: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="max-w-6xl mx-auto px-6 pb-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {courses.length > 0 ? (
           courses.map((course) => (
             <CourseCard
@@ -78,8 +78,7 @@ const CoursesList: React.FC = () => {
               description={course.description}
               slug={course.slug}
               duration={course.durationRange || course.duration || "N/A"}
-              fees={course.feesRange || "N/A"}
-            />
+              fees={course.feesRange || "N/A"} image={'/image/14.jpg'}            />
           ))
         ) : (
           <div className="text-center text-gray-500">No courses available.</div>

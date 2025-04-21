@@ -1,7 +1,7 @@
 'use client';
 
 import { api_url } from '@/utils/apiCall';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -10,7 +10,13 @@ export default function ContactForm() {
     phone: '',
     message: '',
   });
-  const [status, setStatus] = useState<string>(''); // To manage form submission status
+  const [status, setStatus] = useState<string>('');
+  const [isClient, setIsClient] = useState(false); // NEW: track client-side rendering
+
+  // NEW: detect when the component is mounted on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,23 +24,22 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus('Submitting...'); // Update status during submission
+    setStatus('Submitting...');
 
     try {
-      const response = await fetch(`${api_url}/contact`, { // Fixed string interpolation
+      const response = await fetch(`${api_url}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // Send form data to the backend
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         console.log('Form Submitted:', data);
-        setStatus('Message sent successfully!'); // Success message
-        // Optionally, reset form data after successful submission
+        setStatus('Message sent successfully!');
         setFormData({
           name: '',
           email: '',
@@ -43,13 +48,15 @@ export default function ContactForm() {
         });
       } else {
         console.error('Error submitting form:', data.message);
-        setStatus('Failed to send message. Please try again.'); // Error message
+        setStatus('Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      setStatus('Error sending message. Please try again.'); // Network error message
+      setStatus('Error sending message. Please try again.');
     }
   };
+
+  if (!isClient) return null; // 👈 Prevent server-side render
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow-md p-8 rounded-xl space-y-6">
@@ -102,7 +109,9 @@ export default function ContactForm() {
         </button>
         {status && (
           <div
-            className={`mt-4 text-center p-3 rounded-xl ${status.includes('success') ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
+            className={`mt-4 text-center p-3 rounded-xl ${
+              status.includes('success') ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`}
           >
             {status}
           </div>

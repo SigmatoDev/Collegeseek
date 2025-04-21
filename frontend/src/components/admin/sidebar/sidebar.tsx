@@ -64,6 +64,7 @@ const Sidebar = () => {
         { href: "/admin/leads/newletter", icon: <FileText size={18} />, text: "Newsletter", isOpen },
         { href: "/admin/leads/getFreeCounselling", icon: <Users size={18} />, text: "Counseling", isOpen },
         { href: "/admin/leads/enrolledStudents", icon: <GraduationCap size={18} />, text: "Enrolled students", isOpen },
+        { href: "/admin/leads/contactUs", icon: <ShieldCheck size={18} />, text: "Contact Us", isOpen }, // Added Contact Us submenu
       ],
     },
     {

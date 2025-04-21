@@ -1,16 +1,16 @@
 "use client";
 
-import ChangePassword from "@/app/admin/changePassword/changePassword";
 import UserLayout from "@/components/users/userLayout";
+import ChangePassword from "./changePassword";
 
-const ChangePasswordpage = () => {
+const ChangePasswordPage = () => {
   return (
     <UserLayout>
       <div>
-        <ChangePassword />
+        <ChangePassword /> {/* This should render your ChangePassword form */}
       </div>
     </UserLayout>
   );
 };
 
-export default ChangePasswordpage;
+export default ChangePasswordPage;

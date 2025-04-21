@@ -54,18 +54,18 @@ const CourseDetail = () => {
     <>
     <Header/>
     <div
-  className="relative bg-cover bg-center bg-no-repeat py-28 px-6 mb-12 shadow-2xl"
+  className="relative bg-cover bg-center bg-no-repeat py-20 px-6 mb-12 shadow-1xl"
   style={{
-    backgroundImage: "url('/image/6.avif')",
+    backgroundImage: "url('/image/14.jpg')",
   }}
 >
   {/* Enhanced dark overlay with gradient for depth */}
-  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 "></div>
+  <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/30 to-black/25 "></div>
 
   <div className="relative z-10 flex flex-col items-center text-center text-white max-w-3xl mx-auto">
-    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
-      <span className="inline-block px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg shadow-md">
-        Courses: {name}
+    <h1 className="text-[38px] font-extrabold tracking-tight leading-tight mb-4">
+    <span className="inline-block px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg shadow-md whitespace-nowrap overflow-hidden text-ellipsis">
+    Courses: {name}
       </span>
     </h1>
 
@@ -79,47 +79,84 @@ const CourseDetail = () => {
 
     <div className="max-w-7xl mx-auto p-6">
       
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-auto border-collapse border border-gray-300">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 border border-gray-300 text-left">NIRF</th>
-              <th className="px-4 py-2 border border-gray-300 text-left w-[30%]">College</th>
-              <th className="px-4 py-2 border border-gray-300 text-left">Degree</th>
-              <th className="px-4 py-2 border border-gray-300 text-left">Fees</th>
-              <th className="px-4 py-2 border border-gray-300 text-left">Eligibility</th>
-              <th className="px-4 py-2 border border-gray-300 text-left">Duration</th>
-              <th className="px-4 py-2 border border-gray-300 text-left">Mode</th>
-              <th className="px-4 py-2 border border-gray-300 text-left">Enroll Now</th>
+    <div className="overflow-x-auto rounded-2xl shadow-lg border border-gray-200">
+  <table className="min-w-full table-auto text-sm ">
+    <thead className="bg-gradient-to-r from-gray-100 to-gray-200 sticky top-0 z-10">
+      <tr className="text-gray-700 text-[13px] uppercase tracking-wide font-semibold">
+        <th className="px-4 py-3 text-left w-[1%] border-b border-gray-300">NIRF</th>
+        <th className="px-4 py-3 text-left w-[23%] border-b border-gray-300">College</th>
+        <th className="px-4 py-3 text-left w-[16%] border-b border-gray-300">Degree</th>
+        <th className="px-4 py-3 text-left w-[11%] border-b border-gray-300">Fees</th>
+        <th className="px-4 py-3 text-left border-b border-gray-300">Eligibility</th>
+        <th className="px-4 py-3 text-left border-b border-gray-300">Duration</th>
+        <th className="px-4 py-3 text-left w-[9%] border-b border-gray-300">Mode</th>
+        <th className="px-4 py-3 text-left w-[11%] border-b border-gray-300">Enroll</th>
+      </tr>
+    </thead>
+    <tbody className="text-gray-800">
+      {courses.map((course, index) => (
+        <React.Fragment key={course._id}>
+          <tr
+            className={`hover:bg-blue-50 transition duration-150  ${
+              index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+            }`}
+          >
+            <td className="px-4 py-3 border-b border-gray-200 rounded-l-xl">{course.college_id?.rank}</td>
+            <td className="px-4 py-3 border-b border-gray-200 font-semibold">{course.college_id?.name}</td>
+            <td className="px-4 py-3 border-b border-gray-200">
+              <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-medium px-2.5 py-1 rounded-full">
+                {course.category?.name}
+              </span>
+            </td>
+            <td className="px-4 py-3 border-b border-gray-200 text-green-700 font-semibold">
+              ₹{course.fees.amount.toLocaleString()} {course.fees.currency}
+            </td>
+            <td className="px-4 py-3 border-b border-gray-200">{course.eligibility}</td>
+            <td className="px-4 py-3 border-b border-gray-200">{course.duration}</td>
+            <td className="px-4 py-3 border-b border-gray-200">
+              <span
+                className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${
+                  course.mode.toLowerCase() === 'online'
+                    ? 'bg-blue-100 text-blue-700'
+                    : course.mode.toLowerCase() === 'offline'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}
+              >
+                {course.mode}
+              </span>
+            </td>
+            <td className="px-4 py-3 border-b border-gray-200 rounded-r-xl">
+              <a
+                href={course.enrollmentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-md shadow-sm"
+              >
+                Enroll Now
+              </a>
+            </td>
+          </tr>
+
+          {course.image && (
+            <tr key={`${course._id}-image`}>
+              <td colSpan={8} className="px-4 py-5 text-center bg-white border-b border-gray-200 rounded-xl shadow-inner">
+                <img
+                  src={course.image}
+                  alt={course.name}
+                  className="mx-auto rounded-lg shadow max-h-64 object-contain transition-transform duration-300 hover:scale-105"
+                />
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {courses.map((course) => (
-              <tr key={course._id}>
-                <td className="px-4 py-2 border border-gray-300">{course.college_id?.rank}</td>
-                <td className="px-4 py-2 border border-gray-300">{course.college_id?.name}</td>
-                <td className="px-4 py-2 border border-gray-300">{course.category?.name}</td>
-                <td className="px-4 py-2 border border-gray-300">{course.fees.amount} {course.fees.currency}</td>
-                <td className="px-4 py-2 border border-gray-300">{course.eligibility}</td>
-                <td className="px-4 py-2 border border-gray-300">{course.duration}</td>
-                <td className="px-4 py-2 border border-gray-300">{course.mode}</td>
-                <td className="px-4 py-2 border border-gray-300">
-                  <a href={course.enrollmentLink} target="_blank" className="text-blue-600 hover:text-blue-800">Click here</a>
-                </td>
-              </tr>
-            ))}
-            {courses.map((course) => (
-              course.image && (
-                <tr key={course._id}>
-                  <td colSpan={6} className="px-4 py-2 border border-gray-300 text-center">
-                    <img src={course.image} alt={course.name} className="mt-4 max-w-full" />
-                  </td>
-                </tr>
-              )
-            ))}
-          </tbody>
-        </table>
-      </div>
+          )}
+        </React.Fragment>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+
+
     </div>
     <>
     <Footer/>

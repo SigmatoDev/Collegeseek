@@ -98,7 +98,12 @@ const ActualCourseForm = () => {
     []
   );
 
-  const handleCancel = useCallback(() => router.push("/admin/manageCourses"), [router]);
+  const handleCancel = useCallback(
+    () => router.push("/admin/manageCourses"),
+    [router]
+  );
+
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,29 +144,29 @@ const ActualCourseForm = () => {
         <input
           name="name"
           placeholder="Course Name"
-          value={course.name}
+          value={course.name ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
           required
         />
-        <select
-          name="college_id"
-          value={course.college_id ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        >
-          <option value="">Select College</option>
-          {colleges.map(({ _id, name }) => (
-            <option key={_id} value={_id}>
-              {name}
-            </option>
-          ))}
-        </select>
+       <select
+  name="college_id"
+  value={course.college_id ?? ""}
+  onChange={handleChange}
+  className="p-2 border rounded"
+>
+  <option value="">Select College</option>
+  {colleges.map(({ _id, name }) => (
+    <option key={_id} value={_id}>
+      {name}
+    </option>
+  ))}
+</select>
 
         <textarea
           name="description"
           placeholder="Description"
-          value={course.description}
+          value={course.description ?? ""}
           onChange={handleChange}
           className="p-2 border rounded col-span-2"
           rows={3}
@@ -185,14 +190,14 @@ const ActualCourseForm = () => {
         <input
           name="duration"
           placeholder="Duration"
-          value={course.duration}
+          value={course.duration ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
           required
         />
         <select
           name="mode"
-          value={course.mode}
+          value={course.mode ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
         >
@@ -206,7 +211,7 @@ const ActualCourseForm = () => {
         <input
           name="eligibility"
           placeholder="Eligibility"
-          value={course.eligibility}
+          value={course.eligibility ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
           required
@@ -214,7 +219,7 @@ const ActualCourseForm = () => {
         <input
           name="enrollmentLink"
           placeholder="Enrollment Link"
-          value={course.enrollmentLink}
+          value={course.enrollmentLink ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
           required
@@ -222,7 +227,7 @@ const ActualCourseForm = () => {
         <input
           name="brochure_link"
           placeholder="Brochure Link"
-          value={course.brochure_link}
+          value={course.brochure_link ?? ""}
           onChange={handleChange}
           className="p-2 border rounded"
         />
@@ -233,14 +238,14 @@ const ActualCourseForm = () => {
           type="number"
           name="amount"
           placeholder="Amount"
-          value={course.fees.amount}
+          value={course?.fees?.amount ?? ""}
           onChange={(e) => handleNestedChange(e, "fees")}
           className="p-2 border rounded"
           required
         />
         <select
           name="currency"
-          value={course.fees.currency}
+          value={course.fees.currency ?? ""}
           onChange={(e) => handleNestedChange(e, "fees")}
           className="p-2 border rounded"
         >
@@ -251,13 +256,12 @@ const ActualCourseForm = () => {
           type="number"
           name="year"
           placeholder="Year"
-          value={course.fees.year}
+          value={course.fees.year ?? ""}
           onChange={(e) => handleNestedChange(e, "fees")}
           className="p-2 border rounded"
           required
         />
       </Section>
-
       <Section title="Application Dates" cols={2}>
         {["start_date", "end_date"].map((date) => (
           <input
@@ -265,7 +269,7 @@ const ActualCourseForm = () => {
             type="date"
             name={date}
             value={
-              course.application_dates[
+              course?.application_dates?.[
                 date as keyof typeof course.application_dates
               ]?.split("T")[0] || ""
             }
@@ -276,82 +280,91 @@ const ActualCourseForm = () => {
       </Section>
 
       <Section title="Ratings" cols={2}>
-  <div className="flex flex-col">
-    <label htmlFor="score" className="mb-1 font-medium text-sm text-gray-700">
-      Score (0–5)
-    </label>
-    <input
-      id="score"
-      type="number"
-      name="score"
-      placeholder="Enter Score"
-      min="0"
-      max="5"
-      value={course.ratings.score}
-      onChange={(e) => handleNestedChange(e, "ratings")}
-      className="p-2 border rounded"
-    />
-  </div>
+        <div className="flex flex-col">
+          <label
+            htmlFor="score"
+            className="mb-1 font-medium text-sm text-gray-700"
+          >
+            Score (0–5)
+          </label>
+          <input
+            id="score"
+            type="number"
+            name="score"
+            placeholder="Enter Score"
+            min="0"
+            max="5"
+            value={course.ratings.score ?? ""}
+            onChange={(e) => handleNestedChange(e, "ratings")}
+            className="p-2 border rounded"
+          />
+        </div>
 
-  <div className="flex flex-col">
-    <label htmlFor="reviews_count" className="mb-1 font-medium text-sm text-gray-700">
-      Reviews Count
-    </label>
-    <input
-      id="reviews_count"
-      type="number"
-      name="reviews_count"
-      placeholder="Enter Reviews Count"
-      value={course.ratings.reviews_count}
-      onChange={(e) => handleNestedChange(e, "ratings")}
-      className="p-2 border rounded"
-    />
-  </div>
-</Section>
-
+        <div className="flex flex-col">
+          <label
+            htmlFor="reviews_count"
+            className="mb-1 font-medium text-sm text-gray-700"
+          >
+            Reviews Count
+          </label>
+          <input
+            id="reviews_count"
+            type="number"
+            name="reviews_count"
+            placeholder="Enter Reviews Count"
+            value={course.ratings.reviews_count ?? ""}
+            onChange={(e) => handleNestedChange(e, "ratings")}
+            className="p-2 border rounded"
+          />
+        </div>
+      </Section>
 
       <Section title="Placements" cols={3}>
-  <div className="flex flex-col">
-    <label htmlFor="median_salary" className="mb-1 font-medium text-sm text-gray-700">
-      Median Salary
-    </label>
-    <input
-      id="median_salary"
-      type="number"
-      name="median_salary"
-      placeholder="Enter Median Salary"
-      value={course.placements.median_salary}
-      onChange={(e) => handleNestedChange(e, "placements")}
-      className="p-2 border rounded"
-    />
-  </div>
+        <div className="flex flex-col">
+          <label
+            htmlFor="median_salary"
+            className="mb-1 font-medium text-sm text-gray-700"
+          >
+            Median Salary
+          </label>
+          <input
+            id="median_salary"
+            type="number"
+            name="median_salary"
+            placeholder="Enter Median Salary"
+            value={course.placements.median_salary ?? ""}
+            onChange={(e) => handleNestedChange(e, "placements")}
+            className="p-2 border rounded"
+          />
+        </div>
 
-  <div className="flex flex-col">
-    <label htmlFor="placement_rate" className="mb-1 font-medium text-sm text-gray-700">
-      Placement Rate (%)
-    </label>
-    <input
-      id="placement_rate"
-      type="number"
-      name="placement_rate"
-      placeholder="Enter Placement Rate (%)"
-      value={course.placements.placement_rate}
-      onChange={(e) => handleNestedChange(e, "placements")}
-      className="p-2 border rounded"
-    />
-  </div>
-</Section>
-
+        <div className="flex flex-col">
+          <label
+            htmlFor="placement_rate"
+            className="mb-1 font-medium text-sm text-gray-700"
+          >
+            Placement Rate (%)
+          </label>
+          <input
+            id="placement_rate"
+            type="number"
+            name="placement_rate"
+            placeholder="Enter Placement Rate (%)"
+            value={course.placements.placement_rate ?? ""}
+            onChange={(e) => handleNestedChange(e, "placements")}
+            className="p-2 border rounded"
+          />
+        </div>
+      </Section>
 
       <label className="block font-medium mt-4">Entrance Exam</label>
       <input
         name="entrance_exam"
-        value={course.entrance_exam}
+        value={course.entrance_exam ?? ""}
         onChange={handleChange}
         placeholder="Enter entrance exam name"
         className="p-2 border rounded w-full"
       />
-
       <Section title="Intake Capacity" cols={3}>
         {["male", "female", "total"].map((field) => (
           <div key={field} className="flex flex-col">
@@ -369,9 +382,9 @@ const ActualCourseForm = () => {
                 field.charAt(0).toUpperCase() + field.slice(1)
               } Intake`}
               value={
-                course.intake_capacity[
+                course?.intake_capacity?.[
                   field as keyof typeof course.intake_capacity
-                ]
+                ] ?? ""
               }
               onChange={(e) => handleNestedChange(e, "intake_capacity")}
               className="p-2 border rounded"

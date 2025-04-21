@@ -211,7 +211,7 @@ export default function CollegeCard({ collegeId }: Props) {
           
           <button
   onClick={() => router.push(`/colleges/${collegeData.slug}`)}
-  className="border px-4 py-2 rounded-lg hover:bg-gray-100 "
+  className="border px-4 py-2 rounded-lg hover:bg-gray-100"
 >
   View Details
 </button>

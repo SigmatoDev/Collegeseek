@@ -27,7 +27,7 @@ const forgotPassword = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "15m" });
-    const resetLink = `${process.env.FRONTEND_URL}/user/auth/resetPassword/[token]${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/user/auth/resetPassword/${token}`; // Fixed link
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -73,11 +73,10 @@ const resetPassword = async (req, res) => {
 
     return res.status(200).json({ message: "Password reset successfully." });
   } catch (error) {
-    console.error(error);
+    console.error("Token verification failed:", error);
     return res.status(400).json({ message: "Invalid or expired token." });
   }
 };
-
 
 module.exports = {
   forgotPassword,

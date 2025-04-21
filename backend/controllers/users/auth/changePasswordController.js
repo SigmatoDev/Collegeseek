@@ -1,41 +1,46 @@
-// controllers/users/auth/changePassword.js
-const bcrypt = require("bcryptjs");
-const User = require("../../../models/users/auth/usersModel");
+const bcrypt = require('bcryptjs');
+const User = require('../../../models/users/auth/usersModel');  // Assuming the correct path
 
+// Change Password Function
 const changePassword = async (req, res) => {
-  console.log("🔐 Incoming body:", req.body);
-
   const { currentPassword, newPassword, confirmPassword } = req.body;
+  const userId = req.user.id;  // Get the user ID from the JWT token (stored in req.user)
 
   if (!currentPassword || !newPassword || !confirmPassword) {
-    return res.status(400).json({ success: false, message: "All fields are required." });
+    return res.status(400).json({ success: false, message: 'Please provide all required fields.' });
   }
 
+  // Check if new password matches confirm password
   if (newPassword !== confirmPassword) {
-    return res.status(400).json({ success: false, message: "New passwords do not match." });
+    return res.status(400).json({ success: false, message: 'New password and confirmation password do not match.' });
   }
 
   try {
-    const userId = req.user.id; // From protect middleware
+    // Fetch user from the database
     const user = await User.findById(userId);
-
+    
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found." });
+      return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
+    // Compare current password with the stored password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Current password is incorrect." });
+      return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await user.save();
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    return res.status(200).json({ success: true, message: "Password changed successfully." });
+    // Update the user's password in the database
+    user.password = hashedPassword;
+    await user.save();  // Save the updated user
+
+    // Send success response
+    return res.status(200).json({ success: true, message: 'Password changed successfully.' });
   } catch (error) {
-    console.error("Password change error:", error);
-    return res.status(500).json({ success: false, message: "Server error." });
+    console.error('Change Password Error:', error);
+    return res.status(500).json({ success: false, message: 'Server error, please try again later.' });
   }
 };
 
