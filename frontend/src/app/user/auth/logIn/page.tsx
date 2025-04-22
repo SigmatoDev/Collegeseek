@@ -144,7 +144,7 @@ const LogIn = () => {
           </Link>
         </div>
 
-        {showModal && (
+        {/* {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg w-80 text-center shadow-xl">
               {error ? (
@@ -166,7 +166,7 @@ const LogIn = () => {
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

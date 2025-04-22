@@ -17,7 +17,9 @@ import {
   User,
   Grid,
   Book,
+  PhoneIcon,
 } from "lucide-react";
+import { BookOpenIcon, ChatBubbleLeftIcon, DocumentIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 
 interface SidebarLinkProps {
   href: string;
@@ -62,9 +64,9 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/leads/newletter", icon: <FileText size={18} />, text: "Newsletter", isOpen },
-        { href: "/admin/leads/getFreeCounselling", icon: <Users size={18} />, text: "Counseling", isOpen },
-        { href: "/admin/leads/enrolledStudents", icon: <GraduationCap size={18} />, text: "Enrolled students", isOpen },
-        { href: "/admin/leads/contactUs", icon: <ShieldCheck size={18} />, text: "Contact Us", isOpen }, // Added Contact Us submenu
+        { href: "/admin/leads/getFreeCounselling", icon: <ChatBubbleLeftIcon className="h-5 w-5" />, text: "Counseling", isOpen },
+        { href: "/admin/leads/enrolledStudents", icon: <UserGroupIcon className="h-5 w-5" />, text: "Enrolled students", isOpen },
+        { href: "/admin/leads/contactUs", icon: <PhoneIcon size={18} />, text: "Contact Us", isOpen }, // Added Contact Us submenu
       ],
     },
     {
@@ -74,7 +76,7 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/manageColleges", icon: <School size={18} />, text: "Manage Colleges", isOpen },
-        { href: "/admin/addBrochure", icon: <GraduationCap size={18} />, text: "Add Brochure", isOpen },
+        { href: "/admin/addBrochure", icon: <DocumentIcon className="h-5 w-5" />, text: "Add Brochure", isOpen },
       ],
     },
     { href: "/admin/manageCourses", icon: <GraduationCap size={20} />, text: "Courses", isOpen },
@@ -105,7 +107,7 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/settings", icon: <Settings size={18} />, text: "General Settings", isOpen },
-        { href: "/admin/coursesList", icon: <GraduationCap size={18} />, text: "Courses List", isOpen }, // Added Courses List submenu item
+        { href: "/admin/coursesList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen }, // Added Courses List submenu item
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen }, // New Terms & Conditions submenu
         { href: "/admin/privacy-policy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen }, // New Privacy Policy submenu
       ]

@@ -103,6 +103,40 @@ const getAllBlogs = async (req, res) => {
   }
 };
 
+const getAllBlog = async (req, res) => {
+  try {
+    // Extract page and limit from query parameters (defaults if not provided)
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate the skip value based on the page and limit
+    const skip = (page - 1) * limit;
+
+    // Fetch blogs with pagination
+    const blogs = await Blog.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Count total blogs for pagination metadata
+    const totalBlogs = await Blog.countDocuments();
+
+    // Send response with pagination info
+    res.status(200).json({
+      blogs,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalBlogs / limit),
+        totalBlogs
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error fetching blogs:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
 // ✅ Get a single blog by ID
 const getBlogById = async (req, res) => {
   try {
@@ -209,6 +243,7 @@ const deleteBlog = async (req, res) => {
 module.exports = {
   createBlog,
   getAllBlogs,
+  getAllBlog,
   getBlogById,
   updateBlog,
   getBlogBySlug,

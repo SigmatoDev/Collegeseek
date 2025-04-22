@@ -8,9 +8,10 @@ const generateToken = (userId, userEmail) => {
   return jwt.sign(
     { id: userId, email: userEmail },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '7d' }  // Extend to 7 days
   );
 };
+
 
 // ✅ Signup
 const signup = async (req, res) => {

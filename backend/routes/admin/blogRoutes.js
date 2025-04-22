@@ -6,12 +6,14 @@ const {
   getBlogBySlug,
   updateBlog,
   deleteBlog,
+  getAllBlog,
 } = require("../../controllers/admin/blogController");
 
 const router = express.Router();
 
 router.post("/blog", createBlog);
 router.get("/blog", getAllBlogs);
+router.get("/b/blog",   getAllBlog);
 router.get("/blog/:id", getBlogById);
 router.put("/blog/:id", updateBlog);
 router.delete("/blog/:id", deleteBlog);

@@ -42,7 +42,7 @@ export default function CollegeDetailsPage() {
   const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isShortlistOpen, setIsShortlistOpen] = useState(false); // ✅ Shortlist modal state
+  const [isShortlistOpen, setIsShortlistOpen] = useState(false);
 
   useEffect(() => {
     const fetchCollege = async () => {
@@ -113,10 +113,10 @@ export default function CollegeDetailsPage() {
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(collegeData.description || ""),
             }}
-          />{" "}
+          />
           <div className="flex items-center gap-4">
             <span className="text-blue-700 font-semibold">
-              📍   {collegeData.location?.split(" ")[0]}
+              📍 {collegeData.location?.split(" ")[0]}
             </span>
 
             <div className="flex -space-x-3 overflow-x-auto scrollbar-hide p-1">
@@ -132,12 +132,14 @@ export default function CollegeDetailsPage() {
               ))}
             </div>
 
-            <button
-              onClick={() => setIsGalleryOpen(true)}
-              className="text-blue-600 underline font-semibold hover:text-blue-800"
-            >
-              View Gallery
-            </button>
+            {imageGalleryUrls.length > 1 && (
+              <button
+                onClick={() => setIsGalleryOpen(true)}
+                className="text-blue-600 underline font-semibold hover:text-blue-800"
+              >
+                View Gallery
+              </button>
+            )}
           </div>
           <div className="flex gap-4">
             <button
@@ -156,7 +158,6 @@ export default function CollegeDetailsPage() {
               Shortlist
             </button>
 
-            {/* ✅ Shortlist Modal */}
             {collegeData && (
               <Modal
                 isOpen={isShortlistOpen}
@@ -164,7 +165,7 @@ export default function CollegeDetailsPage() {
               >
                 <ShortlistForm
                   college={{
-                    id: collegeData._id, // convert _id to id
+                    id: collegeData._id,
                     name: collegeData.name,
                     location: collegeData.location,
                   }}
@@ -233,7 +234,7 @@ export default function CollegeDetailsPage() {
       </div>
 
       {/* Gallery Modal */}
-      {isGalleryOpen && (
+      {isGalleryOpen && imageGalleryUrls.length > 1 && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-xl transition-opacity duration-300 ease-in-out">
           <div className="bg-[#E5E7EB] p-6 rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden">
             <button

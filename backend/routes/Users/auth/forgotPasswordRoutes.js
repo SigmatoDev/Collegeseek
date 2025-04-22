@@ -14,6 +14,6 @@ const {
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
-router.post("/user/change-password", protect, changePassword);
+router.put("/user/change-password", protect, changePassword);
 
 module.exports = router;

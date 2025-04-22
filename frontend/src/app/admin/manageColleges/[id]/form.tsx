@@ -480,7 +480,7 @@ const ActualCollegeForm = () => {
           />
         </div>
 
-        <div className="flex flex-col p-4">
+        <div className="flex flex-col">
           <label className="text-gray-700 font-medium mb-2">Location</label>
           <LocationAutocomplete onLocationSelect={handleLocationSelect} />
           {collegeData.latitude && collegeData.longitude && (

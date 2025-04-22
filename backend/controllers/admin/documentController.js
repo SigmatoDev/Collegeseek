@@ -84,27 +84,6 @@ const getUploadFileById = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // @desc Upload a new file
 // @route POST /api/uploads/documents
 // @access Public

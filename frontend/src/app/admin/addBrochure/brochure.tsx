@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -14,8 +14,9 @@ import {
 interface Upload {
   _id: string;
   fileName: string;
-  fileUrl: string;
-  uploadedAt: string;
+  filePath: string;
+  college_id: { _id: string; name: string }; // Updated type for college_id to include name
+  createdAt: string;
 }
 
 const AdminUploads = () => {
@@ -24,14 +25,15 @@ const AdminUploads = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Fetch uploads data
   useEffect(() => {
-    const fetchUploads = async () => {
+    const fetchData = async () => {
       try {
-        console.log("Fetching from:", `${api_url}/brochure`);
+        console.log("Fetching uploads from:", `${api_url}/brochure`);
         const { data } = await axios.get(`${api_url}/brochure`);
 
         if (!Array.isArray(data)) {
-          console.error("Unexpected API response format:", data);
+          console.error("Unexpected API response format");
           setError("Invalid data format received.");
           return;
         }
@@ -46,9 +48,14 @@ const AdminUploads = () => {
     };
 
     if (typeof window !== "undefined") {
-      fetchUploads();
+      fetchData();
     }
   }, []);
+
+  // Get college name from the upload's college_id
+  const getCollegeName = (collegeId: { _id: string; name: string }): string => {
+    return collegeId?.name || "Unknown College";
+  };
 
   const handleDelete = async (uploadId: string) => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
@@ -87,11 +94,10 @@ const AdminUploads = () => {
           <table className="table-auto w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-600">
               <tr>
-                {["File Name", "Uploaded At", "Actions"].map((header) => (
-                  <th key={header} className="px-6 py-3 text-sm font-semibold">
-                    {header}
-                  </th>
-                ))}
+                <th className="px-6 py-3 text-sm font-semibold">College</th>
+                <th className="px-6 py-3 text-sm font-semibold">File Name</th>
+                <th className="px-6 py-3 text-sm font-semibold">Uploaded At</th>
+                <th className="px-6 py-3 text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -99,8 +105,11 @@ const AdminUploads = () => {
                 uploads.map((upload) => (
                   <tr key={upload._id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm text-gray-700">
+                      {getCollegeName(upload.college_id)} {/* Display the college name first */}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
                       <a
-                        href={upload.fileUrl}
+                        href={`${api_url}${upload.filePath}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:underline"
@@ -109,7 +118,7 @@ const AdminUploads = () => {
                       </a>
                     </td>
                     <td className="px-6 py-3 text-sm text-gray-700">
-                      {new Date(upload.uploadedAt).toLocaleString()}
+                      {new Date(upload.createdAt).toLocaleString()}
                     </td>
                     <td className="px-6 py-3 flex space-x-2">
                       <button
@@ -131,7 +140,7 @@ const AdminUploads = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="text-center py-4 text-gray-500">
+                  <td colSpan={4} className="text-center py-4 text-gray-500">
                     No files uploaded.
                   </td>
                 </tr>

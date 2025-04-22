@@ -67,7 +67,7 @@ const CoursesList: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 pb-6">
+    <div className="max-w-6xl mx-auto px-4 pb-6">
       <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         {courses.length > 0 ? (
           courses.map((course) => (
