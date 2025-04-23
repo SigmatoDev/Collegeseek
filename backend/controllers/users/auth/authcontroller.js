@@ -75,31 +75,32 @@ const login = async (req, res) => {
 
 // Get User by ID
 const getUserById = async (req, res) => {
-  const { userId } = req.params;  // Grab the userId from the URL params
-  console.log("Received userId:", userId);  // Debugging line to check what userId we are receiving
+  const { id: userId } = req.params;  // Correct param name based on route
+  console.log(`Received userId: ${userId}`);  // Log the received userId
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'User ID is missing' });
+  }
 
   // Check if the provided userId is a valid ObjectId
-  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-    console.error("Invalid user ID format or missing ID");  // Debugging error log
-    return res.status(400).json({ success: false, message: 'Invalid or missing user ID' });
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    console.log(`Invalid user ID: ${userId}`);  // Log invalid userId
+    return res.status(400).json({ success: false, message: 'Invalid user ID' });
   }
 
   try {
-    // Query to find user by _id
+    console.log(`Searching for user with ID: ${userId}`);
     const user = await User.findById(userId).exec();
 
-    // If the user doesn't exist, return a 404 error
     if (!user) {
-      console.error("User not found with ID:", userId);  // Debugging line to log when user is not found
+      console.log(`User with ID: ${userId} not found`);
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Return the user if found
-    console.log("User found:", user);  // Debugging line to log the found user
+    console.log(`User found: ${JSON.stringify(user)}`);
     res.status(200).json({ success: true, data: user });
   } catch (error) {
-    // Log any unexpected errors for debugging
-    console.error("Error fetching user:", error);  // More detailed error log
+    console.error('Error occurred while fetching user:', error);
     res.status(500).json({ success: false, message: 'Failed to retrieve user' });
   }
 };

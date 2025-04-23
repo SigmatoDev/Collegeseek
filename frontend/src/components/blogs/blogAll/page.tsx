@@ -26,7 +26,7 @@ export default function BlogAll() {
   }, []);
 
   return (
-    <section className="container mx-auto px-6 py-[70px] bg-blue-50">
+    <section className="container-1 mx-auto px-6 py-[70px] bg-blue-50">
       <h2 className="text-4xl font-extrabold text-center text-gray-900 mb-8 pb-[20px]">
         College Blog & News
       </h2>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";  // Check this import for Next.js 13 app directory
+import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { api_url } from "@/utils/apiCall";
@@ -15,35 +15,41 @@ interface User {
 }
 
 export default function UserEditForm() {
-  const { id: userId } = useParams();  // Grabbing the userId from the URL parameter
-  console.log("User ID from useParams:", userId); // Ensure this is the expected value
+  const { id } = useParams();
   const router = useRouter();
-
+  
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", email: "", role: "user" });
 
   useEffect(() => {
-    if (!userId) {
-      setError("User ID is missing.");
-      setLoading(false);
-      return;
-    }
-
-    console.log("User ID from useParams:", userId);  // Debugging line to log the received userId
-
     const fetchUser = async () => {
+      console.log("User ID from URL:", id);
+  
+      if (!id) {
+        setError("User ID is missing.");
+        setLoading(false);
+        return;
+      }
+  
       try {
-        const { data } = await axios.get(`${api_url}id/user/${userId}`);
-        console.log(`Requesting user data for ID: ${userId}`);
-
-
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+          toast.error("Session expired. Please log in again.");
+          router.replace("/login");
+          return;
+        }
+  
+        const { data } = await axios.get(`${api_url}id/user/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+  
         if (!data.data) {
           setError("User not found.");
           return;
         }
-
+  
         setUser(data.data);
         setFormData({
           name: data.data.name,
@@ -57,9 +63,9 @@ export default function UserEditForm() {
         setLoading(false);
       }
     };
-
+  
     fetchUser();
-  }, [userId]);  // Fetch user data when userId changes
+  }, [id, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -80,12 +86,12 @@ export default function UserEditForm() {
         return;
       }
 
-      await axios.put(`${api_url}user/${userId}`, formData, {
+      await axios.put(`${api_url}/user/${id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       toast.success("User updated successfully!");
-      router.push("/admin/users");
+      router.push("/admin/users/users");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to update user.");
     }
@@ -144,7 +150,7 @@ export default function UserEditForm() {
             className="mt-1 p-2 border w-full rounded"
           >
             <option value="user">User</option>
-            <option value="admin">Admin</option>
+            {/* <option value="admin">Admin</option> */}
           </select>
         </div>
 
@@ -159,7 +165,7 @@ export default function UserEditForm() {
 
           <button
             type="button"
-            onClick={() => router.push("/admin/users")}
+            onClick={() => router.push("/admin/users/users")}
             className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
           >
             <ArrowLeftIcon className="w-5 h-5" />

@@ -103,7 +103,7 @@ export default function CollegeDetailsPage() {
   );
 
   return (
-    <div className="container mx-auto p-6 py-[80px] px-[70px] w-full">
+    <div className="container-1 mx-auto p-6 py-[80px] px-[70px] w-full">
       <div className="flex flex-col lg:flex-row items-start gap-8">
         {/* Left */}
         <div className="lg:w-2/3 space-y-6">

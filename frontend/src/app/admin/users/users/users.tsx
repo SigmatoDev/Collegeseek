@@ -49,7 +49,7 @@ const Users = () => {
       // No token required for delete action (admin access)
       const config = {}; // No Authorization header needed for admin
 
-      await axios.delete(`${api_url}users/${id}`, config); // Send delete request
+      await axios.delete(`${api_url}user/${id}`, config); // Send delete request
       setUsers(users.filter((user) => user._id !== id)); // Update state after deleting
       toast.success("User deleted successfully!");
     } catch (err) {
