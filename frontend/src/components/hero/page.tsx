@@ -11,48 +11,38 @@ export default function HeroSection() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative h-screen flex items-center justify-start bg-gradient-to-r from-yellow-200 to-orange-200 px-6 md:px-16 lg:px-24">
+    <div className="relative h-screen pt-[env(safe-area-inset-top)] flex items-center justify-start bg-gradient-to-r from-yellow-200 to-orange-200 px-4 sm:px-6 md:px-16 lg:px-24">
       {/* Background Image */}
       <Image
         src="/image/2.png"
         alt="Hero Image"
-        layout="fill"
-        objectFit="cover"
-        className="opacity-40"
+        fill
+        className="object-cover opacity-40"
       />
 
       {/* Content */}
-      <div className="relative text-left text-black max-w-2xl">
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-6 drop-shadow-lg">
-          Guidance Shapes, <br /> Brighter Future.
+      <div className="relative text-left text-black max-w-4xl w-full ml-0 sm:ml-8">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-6 font-extrabold leading-tight drop-shadow-[0_4px_6px_rgba(0,0,0,0.2)] tracking-tight">
+          Guidance Shapes,<br />
+          Brighter Future.
         </h1>
-        <p className="text-lg md:text-2xl mb-6 font-light leading-relaxed">
-          Helping students and parents find the right college. <br />
+
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 font-light leading-relaxed text-gray-800">
+          Helping students and parents find the right college.<br className="hidden sm:block" />
           Shaping India’s future,{" "}
-          <span className="text-yellow-600 font-semibold">
-            one student at a time.
-          </span>
+          <br className="sm:hidden" />
+  <span className="text-yellow-700 font-semibold">
+    one student at a time.
+  </span>
         </p>
 
-        {/* Buttons */}
-        <div className="flex space-x-4">
+        <div className="pt-4 mb-[110px]">
           <Link href="/college">
-             <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 font-semibold rounded-lg shadow-xl transition-all duration-300">
-             Find Your College
-             </Button>
+            <Button className="bg-yellow-600 hover:bg-yellow-700 text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300">
+              Find Your College
+            </Button>
           </Link>
-          {/* <Button className="border border-yellow-600 text-yellow-600 px-6 py-3 font-semibold rounded-lg shadow-xl hover:bg-yellow-600 hover:text-white transition-all duration-300">
-            Get Job Ready Degree
-          </Button> */}
         </div>
-
-        {/* Watch Video Link */}
-        {/* <p
-          className="mt-6 text-yellow-700 underline cursor-pointer hover:text-yellow-500 transition duration-300 text-lg"
-          onClick={() => setIsOpen(true)}
-        >
-          ▶ Watch our brand film
-        </p> */}
       </div>
 
       {/* Video Modal */}
@@ -83,7 +73,7 @@ export default function HeroSection() {
 
               {/* Embedded Video */}
               <iframe
-                className="w-full h-[250px] md:h-[400px] lg:h-[500px] rounded-2xl"
+                className="w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] rounded-2xl"
                 src="https://www.youtube.com/embed/your-video-id"
                 title="Brand Film"
                 frameBorder="0"

@@ -121,9 +121,9 @@ export default function CallbackForm() {
       <p className="text-sm text-gray-500 mt-6 max-w-md">
         By proceeding, you agree to our
         <span> </span>
-        <a href="/terms" className="text-blue-500 underline">Terms of Use</a>
+        <a href="/terms&Conditions" className="text-blue-500 underline">Terms of Use</a>
         <span> and </span>
-        <a href="/privacy" className="text-blue-500 underline">Privacy Policy</a>.
+        <a href="/privacyPolicy" className="text-blue-500 underline">Privacy Policy</a>.
       </p>
     </div>
   );

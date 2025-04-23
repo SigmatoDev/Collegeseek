@@ -7,7 +7,7 @@ import CollegeConsultationPopup from "@/components/CollegeConsultationPopup/Coll
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
-import NewsletterForm from "@/components/newsletters/page";
+import CallbackForm from "@/components/newsletters/page";
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ const HomePage = () => {
       <HeroSection />
       <CollegeApplication />
       <BlogList />
-      <NewsletterForm />
+      <CallbackForm/>
       <CollegeConsultationPopup />
       <Footer />
     </div>

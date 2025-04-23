@@ -56,10 +56,8 @@ export default function FilterCollegeCard({ collegeId }: Props) {
 
       try {
         const response = await axios.get(`${api_url}/colleges/${collegeId}`);
-        console.log("college", response);
         if (response.data?.success) {
           setCollegeData(response.data.data);
-          console.log("co", collegeData);
         } else {
           setError("College data not found.");
         }
@@ -89,7 +87,6 @@ export default function FilterCollegeCard({ collegeId }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your form submission logic here (e.g., API call)
     console.log("Form Data:", formData);
     setIsModalOpen(false);
     alert("Counseling request submitted!");
@@ -105,7 +102,10 @@ export default function FilterCollegeCard({ collegeId }: Props) {
     : "/logo/logo1.png";
 
   return (
-    <div className="border rounded-lg shadow-md p-4 bg-white">
+    <div
+      className="border rounded-lg shadow-md p-4 bg-white cursor-pointer hover:shadow-lg transition-shadow"
+      onClick={() => router.push(`/colleges/${collegeData.slug}`)}
+    >
       <div className="flex gap-4">
         <img
           src={imageUrlFinal}
@@ -117,7 +117,10 @@ export default function FilterCollegeCard({ collegeId }: Props) {
           onError={(e) =>
             (e.currentTarget.src = "/logo/logo-removebg-preview.png")
           }
-          onClick={() => setSelectedImage(imageUrlFinal)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedImage(imageUrlFinal);
+          }}
         />
         <div className="flex flex-col justify-between flex-1">
           <h2 className="text-xl font-semibold">{collegeData.name}</h2>
@@ -139,8 +142,6 @@ export default function FilterCollegeCard({ collegeId }: Props) {
                 Rs. {Number(collegeData.fees).toLocaleString("en-IN")}
               </div>
             </div>
-
-            {/* Avg Package */}
             <div>
               <div className="flex items-center gap-1 font-semibold text-gray-800 mb-1">
                 <CurrencyRupeeIcon className="w-[18px] h-[18px] text-purple-500" />
@@ -161,16 +162,18 @@ export default function FilterCollegeCard({ collegeId }: Props) {
             {collegeData.description.length > 150 && (
               <button
                 className="text-blue-500 text-xs font-semibold focus:outline-none"
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
               >
                 {isExpanded ? "Read Less" : "Read More"}
               </button>
             )}
           </div>
 
-          {/* Modal for Enlarged Image */}
           {selectedImage && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70">
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
               <div className="relative p-4 bg-white rounded-lg">
                 <button
                   onClick={() => setSelectedImage(null)}
@@ -189,7 +192,6 @@ export default function FilterCollegeCard({ collegeId }: Props) {
             </div>
           )}
 
-          {/* Shortlisted Users Section */}
           {Array.isArray(collegeData.shortlistedUsers) &&
             collegeData.shortlistedUsers.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
@@ -223,20 +225,25 @@ export default function FilterCollegeCard({ collegeId }: Props) {
       <div className="border-t mt-4 pt-2 flex justify-between text-sm text-[#441A6B]">
         <div className="flex gap-2">
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsModalOpen(true);
+            }}
             className="bg-[#D35B42] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
           >
             Get Free Counselling
           </button>
 
-          {/* Modal with Form */}
           <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <CounsellingForm collegeId={collegeId} />
           </Modal>
 
           <button
-            onClick={() => router.push(`/colleges/${collegeData.slug}`)}
-            className="border px-4 py-2 rounded-lg hover:bg-gray-100 "
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/colleges/${collegeData.slug}`);
+            }}
+            className="border px-4 py-2 rounded-lg hover:bg-gray-100"
           >
             View Details
           </button>
