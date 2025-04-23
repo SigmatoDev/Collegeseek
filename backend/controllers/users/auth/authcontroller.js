@@ -75,11 +75,13 @@ const login = async (req, res) => {
 
 // Get User by ID
 const getUserById = async (req, res) => {
-  const { userId } = req.params;  // Assuming you're getting userId from the route parameters
+  const { userId } = req.params;  // Grab the userId from the URL params
+  console.log("Received userId:", userId);  // Debugging line to check what userId we are receiving
 
   // Check if the provided userId is a valid ObjectId
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ success: false, message: 'Invalid user ID' });
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    console.error("Invalid user ID format or missing ID");  // Debugging error log
+    return res.status(400).json({ success: false, message: 'Invalid or missing user ID' });
   }
 
   try {
@@ -88,16 +90,21 @@ const getUserById = async (req, res) => {
 
     // If the user doesn't exist, return a 404 error
     if (!user) {
+      console.error("User not found with ID:", userId);  // Debugging line to log when user is not found
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     // Return the user if found
+    console.log("User found:", user);  // Debugging line to log the found user
     res.status(200).json({ success: true, data: user });
   } catch (error) {
-    console.error(error);
+    // Log any unexpected errors for debugging
+    console.error("Error fetching user:", error);  // More detailed error log
     res.status(500).json({ success: false, message: 'Failed to retrieve user' });
   }
 };
+
+
 
 
 // Get All Users

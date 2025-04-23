@@ -1,6 +1,7 @@
 import { api_url } from "@/utils/apiCall";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";  // Import useRouter
 
 interface College {
   _id: string;
@@ -20,6 +21,8 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
   const [colleges, setColleges] = useState<College[]>([]);
   const [existingFile, setExistingFile] = useState<UploadFile | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const router = useRouter(); // Initialize useRouter
 
   // Fetching colleges
   useEffect(() => {
@@ -93,6 +96,9 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
       setFile(null);
       setCollegeId("");
       setExistingFile(null);
+
+      // Redirect to /admin/addBrochure
+      router.push("/admin/addBrochure"); // Redirection after successful submission
     } catch (error) {
       console.error("Upload failed:", error);
       alert("File upload/update failed. Please try again.");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";  // Check this import for Next.js 13 app directory
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { api_url } from "@/utils/apiCall";
@@ -15,33 +15,29 @@ interface User {
 }
 
 export default function UserEditForm() {
-  const { id: userId } = useParams();
+  const { id: userId } = useParams();  // Grabbing the userId from the URL parameter
+  console.log("User ID from useParams:", userId); // Ensure this is the expected value
   const router = useRouter();
-  
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", email: "", role: "user" });
 
   useEffect(() => {
+    if (!userId) {
+      setError("User ID is missing.");
+      setLoading(false);
+      return;
+    }
+
+    console.log("User ID from useParams:", userId);  // Debugging line to log the received userId
+
     const fetchUser = async () => {
-      if (!userId) {
-        setError("User ID is missing.");
-        setLoading(false);
-        return;
-      }
-
       try {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-          toast.error("Session expired. Please log in again.");
-          router.replace("/login");
-          return;
-        }
+        const { data } = await axios.get(`${api_url}id/user/${userId}`);
+        console.log(`Requesting user data for ID: ${userId}`);
 
-        const { data } = await axios.get(`${api_url}user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
 
         if (!data.data) {
           setError("User not found.");
@@ -55,6 +51,7 @@ export default function UserEditForm() {
           role: data.data.role,
         });
       } catch (err: any) {
+        console.error("Error fetching user:", err);
         setError(err.response?.data?.message || "Failed to fetch user.");
       } finally {
         setLoading(false);
@@ -62,7 +59,7 @@ export default function UserEditForm() {
     };
 
     fetchUser();
-  }, [userId, router]);
+  }, [userId]);  // Fetch user data when userId changes
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -83,7 +80,7 @@ export default function UserEditForm() {
         return;
       }
 
-      await axios.put(`${api_url}/user/${userId}`, formData, {
+      await axios.put(`${api_url}user/${userId}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

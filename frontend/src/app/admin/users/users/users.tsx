@@ -22,20 +22,11 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       console.log("Fetching users...");
-      // Retrieve the token from sessionStorage (or localStorage if applicable)
-      const token = sessionStorage.getItem('authToken');
-      
-      // Set up headers if the token exists
-      const config = token
-        ? {
-            headers: {
-              Authorization: `Bearer ${token}`, // Add token to Authorization header
-            },
-          }
-        : {};
+      // No token required for admin
+      const config = {}; // No Authorization header needed for admin
 
-      // Fetch users from the API with the authorization token (if available)
-      const res = await axios.get(`${api_url}users`, config);
+      // Fetch users from the API
+      const res = await axios.get(`${api_url}get/users`, config);
       console.log("Users fetched successfully:", res.data); // Log the response
       setUsers(res.data.data); // Set the users data into state
     } catch (err) {
@@ -55,16 +46,10 @@ const Users = () => {
     if (!confirm) return;
 
     try {
-      const token = sessionStorage.getItem('authToken');
-      const config = token
-        ? {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        : {};
+      // No token required for delete action (admin access)
+      const config = {}; // No Authorization header needed for admin
 
-      await axios.delete(`${api_url}users/${id}`, config); // Send delete request with token
+      await axios.delete(`${api_url}users/${id}`, config); // Send delete request
       setUsers(users.filter((user) => user._id !== id)); // Update state after deleting
       toast.success("User deleted successfully!");
     } catch (err) {
