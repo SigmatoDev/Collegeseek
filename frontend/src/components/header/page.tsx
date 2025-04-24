@@ -3,11 +3,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { img_url, api_url } from "@/utils/apiCall";
-import {
-  PhoneIcon,
-  Bars3Icon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { PhoneIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import debounce from "lodash.debounce";
 import MegaMenu from "../coursesMegaMenu/page";
@@ -89,14 +85,36 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
 
           {/* Social Icons */}
           <div className="flex items-center space-x-4 pr-3 mr-4 sm:mr-[40px]">
-            <span className="hidden md:block">We're on your favorite socials!</span>
+            <span className="hidden md:block">
+              We're on your favorite socials!
+            </span>
             <div className="flex space-x-3">
-              {[ 
-                { href: "#", src: "/svg/facebook-svgrepo-com (5).svg", alt: "Facebook" },
-                { href: "#", src: "/svg/instagram-svgrepo-com (1).svg", alt: "Instagram" },
-                { href: "#", src: "/svg/linkedin-svgrepo-com.svg", alt: "LinkedIn" },
-                { href: "#", src: "/svg/twitter-154-svgrepo-com.svg", alt: "Twitter" },
-                { href: "#", src: "/svg/youtube-168-svgrepo-com.svg", alt: "YouTube" },
+              {[
+                {
+                  href: "#",
+                  src: "/svg/facebook-svgrepo-com (5).svg",
+                  alt: "Facebook",
+                },
+                {
+                  href: "#",
+                  src: "/svg/instagram-svgrepo-com (1).svg",
+                  alt: "Instagram",
+                },
+                {
+                  href: "#",
+                  src: "/svg/linkedin-svgrepo-com.svg",
+                  alt: "LinkedIn",
+                },
+                {
+                  href: "#",
+                  src: "/svg/twitter-154-svgrepo-com.svg",
+                  alt: "Twitter",
+                },
+                {
+                  href: "#",
+                  src: "/svg/youtube-168-svgrepo-com.svg",
+                  alt: "YouTube",
+                },
               ].map((icon, index) => (
                 <a key={index} href={icon.href}>
                   <img src={icon.src} alt={icon.alt} className="h-4 w-4" />
@@ -113,7 +131,13 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
           <div className="flex justify-between h-16 items-center w-full">
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <img src={siteLogo!} alt="Site Logo" className="h-10 w-auto" />
+              <Link href="/">
+                <img
+                  src={siteLogo!}
+                  alt="Site Logo"
+                  className="h-10 w-auto cursor-pointer"
+                />
+              </Link>
             </div>
 
             {/* Desktop Search Bar */}
@@ -123,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex space-x-4 items-center">
-              {[ 
+              {[
                 { name: "Home", href: "/" },
                 { name: "Colleges", href: "/college" },
               ].map((item, index) => (
@@ -148,7 +172,10 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
             {/* Profile & Hamburger */}
             <div className="flex items-center space-x-4 md:ml-6">
               <ProfileDropdown />
-              <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <button
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
                 {mobileMenuOpen ? (
                   <XMarkIcon className="h-6 w-6 text-gray-800" />
                 ) : (
@@ -163,7 +190,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-md z-50">
             <div className="flex flex-col px-4 pt-4 pb-2 space-y-2 text-center">
-              {[ 
+              {[
                 { name: "Home", href: "/" },
                 { name: "Colleges", href: "/college" },
                 { name: "Latest Updates", href: "/latestUpdate" },

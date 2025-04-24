@@ -58,67 +58,78 @@ export default function CallbackForm() {
 
   return (
     <div className="flex flex-col items-center bg-yellow-50 py-12 px-4 text-center">
-      <h2 className="text-3xl font-semibold text-gray-800">Enhance Your College Experience</h2>
-      <h3 className="text-4xl font-bold text-[#0a0536] mt-2">Expert Career & Academic Guidance</h3>
-      <p className="text-gray-600 mt-3 mb-8 max-w-lg">
+<h2 className="text-xl sm:text-2xl font-semibold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">
+  Enhance Your College Experience
+</h2>      <h3 className="text-3xl sm:text-4xl font-bold text-[#0a0536] mt-2">Expert Career & Academic Guidance</h3>
+  
+      <p className="text-gray-600 mt-3 mb-8 max-w-lg text-sm sm:text-base">
         Connect with our mentors to navigate your academic journey, internships, and career opportunities.
       </p>
-
-      <form onSubmit={handleSubmit} className="flex flex-wrap justify-center gap-4 mb-6 w-full max-w-2xl">
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          className="p-3 border border-gray-300 rounded-lg w-full sm:w-60 focus:ring-2 focus:ring-blue-500"
-          required
-        />
-        <input
-          type="tel"
-          name="mobile"
-          placeholder="Mobile Number"
-          value={formData.mobile}
-          onChange={handleChange}
-          className="p-3 border border-gray-300 rounded-lg w-full sm:w-60 focus:ring-2 focus:ring-blue-500"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          value={formData.email}
-          onChange={handleChange}
-          className="p-3 border border-gray-300 rounded-lg w-full sm:w-60 focus:ring-2 focus:ring-blue-500"
-          required
-        />
-        <select
-          name="stream"
-          value={formData.stream}
-          onChange={handleChange}
-          className="p-3 border border-gray-300 rounded-lg w-full sm:w-60 focus:ring-2 focus:ring-blue-500"
-          required
-        >
-          <option value="" disabled>Select Your Course</option>
-          <option value="Engineering">Engineering</option>
-          <option value="Business">Business</option>
-          <option value="Medical">Medical</option>
-          <option value="Arts">Arts & Humanities</option>
-          <option value="Science">Science</option>
-        </select>
-
-        <button
-          type="submit"
-          className="bg-[#0a0536] text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Submitting..." : "Get Career Advice"}
-        </button>
+  
+      <form onSubmit={handleSubmit} className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2">
+        <div className="w-full">
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div className="w-full">
+          <input
+            type="tel"
+            name="mobile"
+            placeholder="Mobile Number"
+            value={formData.mobile}
+            onChange={handleChange}
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div className="w-full">
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div className="w-full">
+          <select
+            name="stream"
+            value={formData.stream}
+            onChange={handleChange}
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="" disabled>Select Your Course</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Business">Business</option>
+            <option value="Medical">Medical</option>
+            <option value="Arts">Arts & Humanities</option>
+            <option value="Science">Science</option>
+          </select>
+        </div>
+        <div className="col-span-full flex justify-center mt-2">
+          <button
+            type="submit"
+            className="bg-[#0a0536] text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto max-w-xs sm:max-w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Submitting..." : "Get Career Advice"}
+          </button>
+        </div>
       </form>
-
+  
       {message && <p className="text-sm text-gray-600 mt-4">{message}</p>}
-
-      <p className="text-sm text-gray-500 mt-6 max-w-md">
+  
+      <p className="text-sm text-gray-500 mt-6 max-w-md px-2">
         By proceeding, you agree to our
         <span> </span>
         <a href="/terms&Conditions" className="text-blue-500 underline">Terms of Use</a>
@@ -127,4 +138,5 @@ export default function CallbackForm() {
       </p>
     </div>
   );
+  
 }
