@@ -12,16 +12,21 @@ const generateToken = (userId, userEmail) => {
   );
 };
 
-
 // ✅ Signup
 const signup = async (req, res) => {
-  const name = req.body.name?.trim();
-  const email = req.body.email?.trim().toLowerCase();
-  const password = req.body.password?.trim();
-  const phone = req.body.phone?.trim();
+  const { name, email, password, phone } = req.body;
+
+  // Input validation
+  if (!name || !email || !password || !phone) {
+    return res.status(400).json({ success: false, message: "Please provide all required fields" });
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  const trimmedName = name.trim();
+  const trimmedPhone = phone.trim();
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: trimmedEmail });
     if (existingUser) {
       return res.status(400).json({ success: false, message: "User already exists" });
     }
@@ -29,7 +34,13 @@ const signup = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = new User({ name, email, password: hashedPassword, phone });
+    const newUser = new User({
+      name: trimmedName,
+      email: trimmedEmail,
+      password: hashedPassword,
+      phone: trimmedPhone
+    });
+
     await newUser.save();
 
     res.status(201).json({
@@ -46,15 +57,31 @@ const signup = async (req, res) => {
 
 // ✅ Login
 const login = async (req, res) => {
+  console.log("req body",req.body)
   const { email, password } = req.body;
 
+  // Input validation
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Please provide both email and password" });
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: trimmedEmail });
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid credentials" });
+      return res.status(400).json({ success: false, message: "User not found" });
     }
+    // 🔍 Debug logs
+    console.log("Input password:", password);
+    console.log("Stored hash:", user.password);
 
     const isMatch = await bcrypt.compare(password, user.password);
+
+    // 🔍 More debug
+    console.log("Password match result:", isMatch);
+
+    // const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
@@ -62,14 +89,15 @@ const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful",
-      token: generateToken(user._id, user.email),
       user: { id: user._id, name: user.name, email: user.email },
+      token: generateToken(user._id, user.email),
     });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 
 

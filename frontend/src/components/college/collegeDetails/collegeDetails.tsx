@@ -115,7 +115,7 @@ export default function CollegeDetailsPage() {
             }}
           />
           <div className="flex items-center gap-4">
-            <span className="text-blue-700 font-semibold">
+            <span className="text-[#403A83] font-semibold">
               📍 {collegeData.location?.split(" ")[0]}
             </span>
 
@@ -135,7 +135,7 @@ export default function CollegeDetailsPage() {
             {imageGalleryUrls.length > 1 && (
               <button
                 onClick={() => setIsGalleryOpen(true)}
-                className="text-blue-600 underline font-semibold hover:text-blue-800"
+                className="text-[#403A83] underline font-semibold hover:text-blue-800"
               >
                 View Gallery
               </button>
@@ -195,10 +195,10 @@ export default function CollegeDetailsPage() {
           <button
             key={index}
             onClick={() => setSelectedTab(tab)}
-            className={`font-medium px-2 py-1 border-b-2 focus:outline-none ${
-              selectedTab?.title === tab.title
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent hover:text-blue-600"
+            className={`font-bold px-2 py-1 border-b-2 focus:outline-none ${
+            selectedTab?.title === tab.title
+                ? "border-[#403A83] text-[#403A83]"
+                : "border-transparent hover:text-blue-700"
             }`}
           >
             {tab.title}

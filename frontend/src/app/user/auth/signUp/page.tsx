@@ -71,7 +71,7 @@ const Register = () => {
       if (res.ok) {
         setSuccess("Account created successfully!");
         setShowModal(true);
-        setTimeout(() => router.push("/user/logIn"), 2000);
+        setTimeout(() => router.push("/user/auth/logIn"), 2000);
       } else {
         setError(data.message || "Something went wrong.");
         setShowModal(true);
@@ -86,7 +86,7 @@ const Register = () => {
   if (!mounted) return null;
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-white">
       <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
         <div className="flex justify-center">
           <Image src="/logo/logo.jpg" alt="Logo" width={120} height={50} />
@@ -207,6 +207,11 @@ const Register = () => {
             </div>
           </div>
         )}
+      </div>
+      <div className="mt-4 text-sm text-center ml-[300px] p-2">
+        <Link href="/" className="text-[#581845] hover:text-[#441137] font-medium">
+          ← Go Back
+        </Link>
       </div>
     </div>
   );

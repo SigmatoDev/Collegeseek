@@ -56,7 +56,7 @@ const LogIn = () => {
       if (res.ok && data.token && data.user) {
         // Storing the token in sessionStorage
         sessionStorage.setItem("authToken", data.token);
-        
+
         // Set user state with token in useUserStore
         useUserStore.getState().setUser({
           ...data.user,
@@ -65,7 +65,7 @@ const LogIn = () => {
 
         setSuccess("Login successful!");
         setShowModal(true);
-        setTimeout(() => router.push("/user/profile"), 2000);
+        setTimeout(() => router.push("/user/profile"), 2000);  // Redirect to profile after success
       } else {
         setError(data.message || "Invalid credentials.");
         setShowModal(true);
@@ -80,17 +80,17 @@ const LogIn = () => {
   if (!mounted) return null;
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-white">
       <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
         <div className="flex justify-center">
           <Image src="/logo/logo.jpg" alt="Logo" width={120} height={50} />
         </div>
-
+  
         <div className="text-center mt-4">
           <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
           <p className="text-gray-500">Login to your account</p>
         </div>
-
+  
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600">Email</label>
@@ -103,7 +103,7 @@ const LogIn = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-
+  
           <div className="relative">
             <label className="block text-sm font-medium text-gray-600">Password</label>
             <input
@@ -122,13 +122,13 @@ const LogIn = () => {
               {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
           </div>
-
+  
           <div className="text-right text-sm">
             <Link href="/user/auth/forgotPassword" className="text-[#581845] hover:text-[#441137] font-medium">
               Forgot Password?
             </Link>
           </div>
-
+  
           <button
             type="submit"
             className="w-full bg-[#581845] text-white p-3 rounded-md hover:bg-[#441137] transition duration-200"
@@ -136,40 +136,22 @@ const LogIn = () => {
             Log In
           </button>
         </form>
-
+  
         <div className="mt-4 text-center text-sm">
           <p className="text-gray-600">Don't have an account?</p>
           <Link href="/user/auth/signUp" className="text-[#581845] hover:text-[#441137] font-medium">
             Register here
           </Link>
         </div>
-
-        {/* {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg w-80 text-center shadow-xl">
-              {error ? (
-                <>
-                  <h3 className="text-xl font-semibold text-red-500">Login Failed</h3>
-                  <p className="text-gray-600 mt-2">{error}</p>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-xl font-semibold text-green-500">Success!</h3>
-                  <p className="text-gray-600 mt-2">{success}</p>
-                </>
-              )}
-              <button
-                className="mt-4 bg-[#581845] text-white p-2 rounded-md"
-                onClick={() => setShowModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )} */}
+      </div>
+  
+      <div className="mt-4 text-sm text-center ml-[300px] p-2">
+        <Link href="/" className="text-[#581845] hover:text-[#441137] font-medium">
+          ← Go Back
+        </Link>
       </div>
     </div>
-  );
+  );  
 };
 
 export default LogIn;

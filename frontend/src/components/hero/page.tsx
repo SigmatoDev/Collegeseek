@@ -23,22 +23,23 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative text-left text-black max-w-4xl w-full ml-0 sm:ml-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-6 font-extrabold leading-tight drop-shadow-[0_4px_6px_rgba(0,0,0,0.2)] tracking-tight">
-          Guidance Shapes,<br />
+          Guidance Shapes,
+          <br />
           Brighter Future.
         </h1>
 
         <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 font-light leading-relaxed text-gray-800">
-          Helping students and parents find the right college.<br className="hidden sm:block" />
-          Shaping India’s future,{" "}
-          <br className="sm:hidden" />
-  <span className="text-yellow-700 font-semibold">
-    one student at a time.
-  </span>
+          Helping students and parents find the right college.
+          <br className="hidden sm:block" />
+          Shaping India’s future, <br className="sm:hidden" />
+          <span className="text-[#D25C40] font-semibold">
+            one student at a time.
+          </span>
         </p>
 
         <div className="pt-4 mb-[110px]">
           <Link href="/college">
-            <Button className="bg-yellow-600 hover:bg-yellow-700 text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300">
+            <Button className="bg-[#D25C40]  hover:bg-[#e78168]  text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300">
               Find Your College
             </Button>
           </Link>

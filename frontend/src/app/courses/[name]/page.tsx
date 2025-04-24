@@ -10,14 +10,13 @@ interface Course {
   _id: string;
   name: string;
   description: string;
-  college_id: { name: string; rank: number }; // For college name
-  fees: { amount: number; currency: string }; // For fees
-  eligibility: string; // Eligibility
-  category: { name: string }; // Category name
+  college_id: { name: string; rank: number };
+  fees: { amount: number; currency: string };
+  eligibility: string;
+  category: { name: string };
   duration: string;
   mode: string;
   enrollmentLink: string;
-  image: string | null;
 }
 
 const CourseDetail = () => {
@@ -28,170 +27,176 @@ const CourseDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [appliedFilters, setAppliedFilters] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const handleFilterChange = (newFilters: string[]) => {
     setAppliedFilters(newFilters);
   };
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const res = await fetch(
-          `${api_url}courses/all/get/with/same/name?name=${encodeURIComponent(
-            name
-          )}`
-        );
-        if (!res.ok) {
-          throw new Error("Failed to fetch courses");
-        }
-        const data = await res.json();
-        setCourses(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
+  const fetchCourses = async (page: number) => {
+    try {
+      const res = await fetch(
+        `${api_url}courses/all/get/with/same/name?name=${encodeURIComponent(name)}&page=${page}&limit=10`
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch courses");
       }
-    };
+      const data = await res.json();
+      setCourses(data.courses);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (name) fetchCourses();
-  }, [name]);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchCourses(page);
+  };
 
-  if (loading) return <p className="text-center">Loading courses...</p>;
+  useEffect(() => {
+    if (name) fetchCourses(currentPage);
+  }, [name, currentPage]);
+
+  if (loading) return <p className="text-center text-lg">Loading courses...</p>;
   if (error) return <p className="text-red-500 text-center">{error}</p>;
-  if (courses.length === 0)
-    return <p className="text-center">No courses found.</p>;
+  if (courses.length === 0) return <p className="text-center">No courses found.</p>;
 
   return (
     <>
       <Header />
 
+      {/* Hero Section */}
       <div
-        className="relative bg-cover bg-center bg-no-repeat py-20 px-6 mb-12 shadow-2xl"
-        style={{
-          backgroundImage: "url('/image/14.jpg')",
-        }}
+        className="relative bg-cover bg-center bg-no-repeat py-32 px-6 mb-20 shadow-lg"
+        style={{ backgroundImage: "url('/image/14.jpg')" }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-black/30 to-black/25 backdrop-blur-sm"></div>
-
-        <div className="relative z-10 flex flex-col items-center text-center text-white max-w-3xl mx-auto px-4">
-          <h1 className="text-[38px] font-extrabold tracking-tight leading-tight mb-4">
-            <span className="inline-block px-6 py-3 bg-white/10 backdrop-blur-md rounded-lg shadow-lg whitespace-nowrap overflow-hidden text-ellipsis">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
+        <div className="relative z-10 flex flex-col items-center text-center text-white max-w-4xl mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
+            <span className="inline-block px-6 py-4 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg">
               Courses: {name}
             </span>
           </h1>
-
-          <p className="text-lg md:text-xl text-white/90 font-medium">
+          <p className="text-lg md:text-xl text-white/90 font-medium mb-8">
             Explore top colleges, fees, and eligibility for your selected course
           </p>
         </div>
       </div>
 
-      <div className="max-w-8xl mx-[50px] p-4 md:p-6 flex flex-col lg:flex-row gap-6">
-        <CoursesFilterSidebar onFilterChange={handleFilterChange} />
+      {/* Content Section */}
+      <div id="courses-section" className="max-w-screen-2xl mx-auto px-4 mb-[110px] md:px-8 flex flex-col lg:flex-row gap-8">
+        {/* Sidebar */}
+        <aside className="w-full lg:w-1/4 sticky top-20">
+          <CoursesFilterSidebar onFilterChange={handleFilterChange} />
+        </aside>
 
-        <div className="overflow-x-auto rounded-2xl shadow-xl border border-gray-200 bg-white w-full">
-          <table className="min-w-full table-auto text-sm">
-            <thead className="bg-gradient-to-r from-gray-100 to-gray-200 sticky top-0 z-10 shadow-sm">
-              <tr className="text-gray-700 text-[13px] uppercase tracking-wide font-semibold">
-                <th className="px-4 py-3 text-left w-[1%] border-b border-gray-300">
-                  NIRF
-                </th>
-                <th className="px-4 py-3 text-left w-[23%] border-b border-gray-300">
-                  College
-                </th>
-                <th className="px-4 py-3 text-left w-[16%] border-b border-gray-300">
-                  Degree
-                </th>
-                <th className="px-4 py-3 text-left w-[11%] border-b border-gray-300">
-                  Fees
-                </th>
-                <th className="px-4 py-3 text-left border-b border-gray-300">
-                  Eligibility
-                </th>
-                <th className="px-4 py-3 text-left border-b border-gray-300">
-                  Duration
-                </th>
-                <th className="px-4 py-3 text-left w-[9%] border-b border-gray-300">
-                  Mode
-                </th>
-                <th className="px-4 py-3 text-left w-[11%] border-b border-gray-300">
-                  Enroll
-                </th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-800">
-              {courses.map((course, index) => (
-                <React.Fragment key={course._id}>
-                  <tr
-                    className={`hover:bg-blue-50 transition duration-200 ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
-                  >
-                    <td className="px-4 py-3 border-b border-gray-200 rounded-l-xl">
-                      {course.college_id?.rank}
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200 font-semibold">
-                      {course.college_id?.name}
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200">
-                      <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-medium px-2.5 py-1 rounded-full shadow-sm">
-                        {course.category?.name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200 text-green-700 font-semibold">
-                      ₹{course.fees.amount.toLocaleString()}{" "}
-                      {course.fees.currency}
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200">
-                      {course.eligibility}
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200">
-                      {course.duration}
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200">
-                      <span
-                        className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full shadow-sm ${
-                          course.mode.toLowerCase() === "online"
-                            ? "bg-blue-100 text-blue-700"
-                            : course.mode.toLowerCase() === "offline"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {course.mode}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 border-b border-gray-200 rounded-r-xl">
-                      <a
-                        href={course.enrollmentLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 text-white text-xs font-medium px-4 py-2 rounded-md shadow transition-all duration-200"
-                      >
-                        Enroll Now
-                      </a>
-                    </td>
-                  </tr>
+        {/* Course Table */}
+        <main className="w-full lg:w-3/4 overflow-x-auto">
+          <div className="rounded-3xl shadow-2xl border border-gray-200 bg-white overflow-hidden">
+            <table className="min-w-full table-auto text-sm">
+              <thead className="bg-gray-100 sticky top-0 z-10 text-gray-700 text-xs uppercase tracking-wide font-semibold">
+                <tr>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">NIRF</th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300 w-[120px]">Image</th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">College & Details</th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">Eligibility</th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">Fees</th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">Enroll</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800">
+                {courses.map((course, index) => (
+                  <React.Fragment key={course._id}>
+                    <tr
+                      className={`transition-all duration-300 ease-in-out ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-blue-50`}
+                    >
+                      <td className="px-6 py-5 border-b border-gray-200 text-center font-semibold text-sm text-gray-600">
+                        {course.college_id?.rank || "-"}
+                      </td>
 
-                  {course.image && (
-                    <tr key={`${course._id}-image`}>
-                      <td
-                        colSpan={8}
-                        className="px-4 py-5 text-center bg-white border-b border-gray-200 rounded-xl shadow-inner"
-                      >
-                        <img
-                          src={course.image}
-                          alt={course.name}
-                          className="mx-auto rounded-lg shadow max-h-64 object-contain transition-transform duration-300 hover:scale-105"
-                        />
+                      <td className="px-6 py-5 border-b border-gray-200 text-center">
+  <img
+    src="/image/14.jpg"
+    alt={course.college_id?.name || "College Image"}
+    className="w-18 h-[70px] object-cover rounded-full mx-auto"
+  />
+</td>
+
+
+                      <td className="px-6 py-5 border-b border-gray-200">
+                        <div className="font-bold text-sm">
+                          {course.college_id?.name}
+                        </div>
+                        <div className="mt-1flex flex-col items-start text-sm font-medium mt-3">
+                          <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                            {course.category?.name}
+                          </span>
+                          <span className="inline-block ml-3 bg-indigo-100 text-indigo-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">Duration: {course.duration}</span>
+                        </div>
+
+                        <div className="flex flex-col items-start text-sm font-medium mt-3">
+                          <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">{course.mode}</span>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-5 border-b border-gray-200 whitespace-nowrap">
+                        {course.eligibility}
+                      </td>
+
+                      <td className="px-6 py-5 border-b border-gray-200 text-green-700 font-semibold whitespace-nowrap">
+                        ₹{course.fees.amount.toLocaleString()} {course.fees.currency}
+                      </td>
+
+                      <td className="px-6 py-5 border-b border-gray-200">
+                        <a
+                          href={course.enrollmentLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block w-full text-center bg-blue-600 hover:bg-blue-700 transition-colors duration-200 text-white text-sm font-semibold px-6 py-3 rounded-xl shadow-lg"
+                        >
+                          Enroll Now
+                        </a>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Previous
+              </button>
+              <span className="text-gray-700 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </main>
       </div>
 
       <Footer />

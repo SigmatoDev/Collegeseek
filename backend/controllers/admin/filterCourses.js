@@ -111,24 +111,59 @@ const getCoursesWithCommonNames = async (req, res) => {
 };
 
 
+// const getCourseBySameName = async (req, res) => {
+//   try {
+//     const { name } = req.query;
+    
+//     if (!name) {
+//       return res.status(400).json({ message: "Course name is required" });
+//     }
+
+//     // Find courses by name, case-insensitive search
+//     const courses = await Course.find({ name: { $regex: new RegExp(name, 'i') } })
+//       .populate("category", "name")    // Populating the category field with its name
+//       .populate("college_id", "name rank"); // Populating the college_id field with the name and rank fields
+
+//     if (courses.length === 0) {
+//       return res.status(404).json({ message: "No courses found with this name" });
+//     }
+
+//     res.json(courses);  // Return all courses that match the name
+//   } catch (error) {
+//     console.error("Error fetching courses by name:", error);
+//     res.status(500).json({ message: "Failed to fetch courses" });
+//   }
+// };
 const getCourseBySameName = async (req, res) => {
   try {
     const { name } = req.query;
-    
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if no page is provided
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+    const skip = (page - 1) * limit; // Skip the appropriate number of courses based on page
+
     if (!name) {
       return res.status(400).json({ message: "Course name is required" });
     }
 
-    // Find courses by name, case-insensitive search
+    // Find courses by name, with pagination
     const courses = await Course.find({ name: { $regex: new RegExp(name, 'i') } })
-      .populate("category", "name")    // Populating the category field with its name
-      .populate("college_id", "name rank"); // Populating the college_id field with the name and rank fields
+      .populate("category", "name")
+      .populate("college_id", "name rank")
+      .skip(skip)  // Skip the appropriate number of courses based on page
+      .limit(limit);  // Limit the number of courses returned
+
+    // Count the total number of courses that match the search criteria
+    const totalCourses = await Course.countDocuments({ name: { $regex: new RegExp(name, 'i') } });
 
     if (courses.length === 0) {
       return res.status(404).json({ message: "No courses found with this name" });
     }
 
-    res.json(courses);  // Return all courses that match the name
+    res.json({
+      courses,
+      totalPages: Math.ceil(totalCourses / limit),
+      currentPage: page,
+    });
   } catch (error) {
     console.error("Error fetching courses by name:", error);
     res.status(500).json({ message: "Failed to fetch courses" });
