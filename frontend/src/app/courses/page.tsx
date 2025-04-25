@@ -9,17 +9,17 @@ import { useState } from "react";
 
 const AdBox = ({ imageSrc }: { imageSrc: string }) => {
   return (
-    <div className="bg-gray-100 p-4 w-72 h-96 shadow-lg rounded-lg flex flex-col items-center">
-          <p className="text-center font-semibold">Sponsored Ad</p>
-          <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
-            <Image
-              src={imageSrc}
-              alt="Advertisement"
-              fill
-              className="rounded-lg object-cover"
-            />
-          </div>
-        </div>
+    <div className="bg-gray-100 p-4 w-full lg:w-72 h-96 shadow-lg rounded-lg flex flex-col items-center">
+      <p className="text-center font-semibold">Sponsored Ad</p>
+      <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
+        <Image
+          src={imageSrc}
+          alt="Advertisement"
+          fill
+          className="rounded-lg object-cover"
+        />
+      </div>
+    </div>
   );
 };
 
@@ -33,11 +33,10 @@ const CollegesPage = () => {
   return (
     <>
       <Header />
-      <div className="flex mx-auto px-10 py-5 justify-center gap-6">
+      <div className="flex flex-col lg:flex-row mx-auto px-4 sm:px-6 lg:px-10 py-5 justify-center gap-6">
         {/* Filter Sidebar */}
-        <div>
-        <CoursesFilterSidebar onFilterChange={handleFilterChange} />
-
+        <div className="w-full lg:w-auto">
+          <CoursesFilterSidebar onFilterChange={handleFilterChange} />
         </div>
 
         {/* College List */}
@@ -46,7 +45,7 @@ const CollegesPage = () => {
         </div>
 
         {/* Ad Section (Right) */}
-        <div className="space-y-4">
+        <div className="w-full lg:w-72 flex flex-col gap-4">
           <AdBox imageSrc="/image/3.jpg" />
           <AdBox imageSrc="/image/4.avif" />
         </div>
@@ -55,6 +54,5 @@ const CollegesPage = () => {
     </>
   );
 };
-
 
 export default CollegesPage;
