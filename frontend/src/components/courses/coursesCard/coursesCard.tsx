@@ -55,7 +55,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
             <div className="flex flex-wrap gap-4 mb-2 mt-3">
               {/* Duration Box */}
-              <div className="flex px-4 py-2.5 bg-blue-50 border border-blue-100 rounded-xl w-fit transition hover:shadow-sm">
+              <div className="flex px-3 py-2 bg-blue-50 border border-blue-100 rounded-xl w-fit transition hover:shadow-sm">
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
                     <ClockIcon className="h-4 w-4" />
@@ -68,7 +68,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               </div>
 
               {/* Fees Box */}
-              <div className="flex px-4 py-2.5 bg-green-50 border border-green-100 rounded-xl w-fit transition hover:shadow-sm">
+              <div className="flex px-2 py-1 bg-green-50 border border-green-100 rounded-xl w-fit transition hover:shadow-sm">
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
                     <CurrencyRupeeIcon className="h-4 w-4" />
@@ -102,7 +102,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
         <div className="border-t mt-4 pt-2 flex justify-between text-sm text-[#441A6B]">
           <div className="flex gap-2">
-            <button className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg transition-all duration-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-md hover:shadow-lg">
+            <button className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-[#38337E] rounded-lg transition-all duration-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-md hover:shadow-lg">
               View Details
               <ArrowRightCircle
                 size={18}

@@ -6,6 +6,7 @@ import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import Image from "next/image";
 import CombinedFilterSidebar from "@/components/FilterSidebar/FilterSidebar";
+import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 
 const AdBox = ({ imageSrc }: { imageSrc: string }) => {
   return (
@@ -41,10 +42,12 @@ const CollegesPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-
   return (
     <>
       <Header />
+      <div className="px-10 pt-6">
+        <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Colleges" }]} />
+      </div>
       <div className="flex mx-auto px-10 py-5 justify-center gap-6">
         <div>
           <CombinedFilterSidebar onFilterChange={setFilters} />
