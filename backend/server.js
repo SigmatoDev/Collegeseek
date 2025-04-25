@@ -58,6 +58,9 @@ app.use("/api", require("./routes/admin/dashboardRoutes"));
 app.use("/api", require("./routes/admin/termsAndConditionsRoutes"));
 app.use("/api", require("./routes/admin/privacyPolicyRoutes"));
 app.use("/api", require("./routes/admin/importCollegeRoute"));
+app.use("/api", require("./routes/admin/moduleRoutes"));
+app.use("/api", require("./routes/admin/pageRoutes"));
+
 
 
 

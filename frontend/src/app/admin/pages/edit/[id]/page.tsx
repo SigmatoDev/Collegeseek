@@ -33,7 +33,7 @@ const EditPage = () => {
   useEffect(() => {
     const loadPage = async () => {
       try {
-        const { data } = await axios.get(`${api_url}admin/pages/${id}`);
+        const { data } = await axios.get(`${api_url}pages/${id}`);
         setTitle(data.page.title);
         setDescription(data.page.description);
         setSelectedModules(

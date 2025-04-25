@@ -5,6 +5,7 @@ import { api_url } from "@/utils/apiCall";
 import Header from "@/components/header/page";
 import Footer from "@/components/footer/page";
 import CoursesFilterSidebar from "@/components/coursesFilterbar/page";
+import Image from "next/image";
 
 interface Course {
   _id: string;
@@ -121,13 +122,14 @@ const CourseDetail = () => {
                       </td>
 
                       <td className="px-6 py-5 border-b border-gray-200 text-center">
-  <img
-    src="/image/14.jpg"
-    alt={course.college_id?.name || "College Image"}
-    className="w-18 h-[70px] object-cover rounded-full mx-auto"
-  />
-</td>
-
+                        <Image
+                          src="/image/14.jpg"
+                          alt={course.college_id?.name || "College Image"}
+                          width={70}
+                          height={70}
+                          className="object-cover rounded-full mx-auto"
+                        />
+                      </td>
 
                       <td className="px-6 py-5 border-b border-gray-200">
                         <div className="font-bold text-sm">
@@ -137,11 +139,15 @@ const CourseDetail = () => {
                           <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
                             {course.category?.name}
                           </span>
-                          <span className="inline-block ml-3 bg-indigo-100 text-indigo-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">Duration: {course.duration}</span>
+                          <span className="inline-block ml-3 bg-indigo-100 text-indigo-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                            Duration: {course.duration}
+                          </span>
                         </div>
 
                         <div className="flex flex-col items-start text-sm font-medium mt-3">
-                          <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">{course.mode}</span>
+                          <span className="inline-block bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                            {course.mode}
+                          </span>
                         </div>
                       </td>
 

@@ -31,7 +31,7 @@ interface SidebarLinkProps {
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);  // Manage active submenu
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const Sidebar = () => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const toggleMenu = (menu: string) => {
-    setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu)); // Toggle menu visibility
+    setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu));
   };
 
   const menuItems: SidebarLinkProps[] = [
@@ -66,7 +66,7 @@ const Sidebar = () => {
         { href: "/admin/leads/newletter", icon: <FileText size={18} />, text: "Newsletter", isOpen },
         { href: "/admin/leads/getFreeCounselling", icon: <ChatBubbleLeftIcon className="h-5 w-5" />, text: "Counseling", isOpen },
         { href: "/admin/leads/enrolledStudents", icon: <UserGroupIcon className="h-5 w-5" />, text: "Enrolled students", isOpen },
-        { href: "/admin/leads/contactUs", icon: <PhoneIcon size={18} />, text: "Contact Us", isOpen }, // Added Contact Us submenu
+        { href: "/admin/leads/contactUs", icon: <PhoneIcon size={18} />, text: "Contact Us", isOpen },
       ],
     },
     {
@@ -89,6 +89,16 @@ const Sidebar = () => {
         { href: "/admin/menuBuilder", icon: <Book size={18} />, text: "CourseMenu", isOpen },
       ],
     },
+    {
+      href: "#",
+      icon: <BookOpenIcon className="h-5 w-5" />,
+      text: "Content",
+      isOpen,
+      subMenu: [
+        { href: "/admin/pages", icon: <FileText size={18} />, text: "Pages", isOpen },
+        { href: "/admin/modules", icon: <Grid size={18} />, text: "Modules", isOpen },
+      ],
+    },
     { href: "/admin/blogs", icon: <FileText size={20} />, text: "Blogs & News", isOpen },
     {
       href: "#",
@@ -107,9 +117,9 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/settings", icon: <Settings size={18} />, text: "General Settings", isOpen },
-        { href: "/admin/coursesList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen }, // Added Courses List submenu item
-        { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen }, // New Terms & Conditions submenu
-        { href: "/admin/privacy-policy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen }, // New Privacy Policy submenu
+        { href: "/admin/coursesList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen },
+        { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
+        { href: "/admin/privacy-policy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
       ]
     },
   ];
@@ -133,7 +143,7 @@ const Sidebar = () => {
             {subMenu ? (
               <div>
                 <button
-                  onClick={() => toggleMenu(text)} // Toggle submenu based on menu text
+                  onClick={() => toggleMenu(text)}
                   className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-[#4f2780] transition-all"
                 >
                   <div className="flex items-center space-x-4">

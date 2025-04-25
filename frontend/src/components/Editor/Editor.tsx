@@ -1,36 +1,51 @@
-import { useEffect, useState } from "react";
-import { Editor } from "react-draft-wysiwyg";
+import { useEffect, useState, useRef } from "react";
 import { EditorState, convertFromHTML, ContentState } from "draft-js";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
-const EditorComponent = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+// Dynamically import Editor from react-draft-wysiwyg
+const { Editor } = require("react-draft-wysiwyg");
+
+const CustomEditor = ({ value, onChange }: { value: string; onChange: (val: string) => void }) => {
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const isMounted = useRef(false);
 
   useEffect(() => {
+    isMounted.current = true;
+  
     if (value) {
-      const blocksFromHTML = convertFromHTML(value);
-      const contentState = ContentState.createFromBlockArray(blocksFromHTML.contentBlocks, blocksFromHTML.entityMap);
-
-      const editorState = EditorState.createWithContent(contentState);
-      setEditorState(editorState);
+      const blocks = convertFromHTML(value);
+      const content = ContentState.createFromBlockArray(
+        blocks.contentBlocks,
+        blocks.entityMap
+      );
+      const state = EditorState.createWithContent(content);
+  
+      if (isMounted.current) {
+        setEditorState(state);
+        }
     }
+  
+    return () => {
+      isMounted.current = false; // cleanup
+    };
   }, [value]);
 
-  const handleEditorChange = (newState: EditorState) => {
-    setEditorState(newState);
-    const contentState = newState.getCurrentContent();
-    const contentText = contentState.getPlainText();
+  const handleEditorChange = (state: EditorState) => {
+    setEditorState(state);
+    const contentText = state.getCurrentContent().getPlainText();
     onChange(contentText);
   };
 
   return (
-    <Editor
-      editorState={editorState}
-      onEditorStateChange={handleEditorChange}
-      wrapperClassName="demo-wrapper"
-      editorClassName="demo-editor"
-    />
+    <div className="border border-gray-300 rounded">
+      <Editor
+        editorState={editorState}
+        onEditorStateChange={handleEditorChange}
+        wrapperClassName="demo-wrapper"
+        editorClassName="demo-editor px-2 min-h-[200px]"
+      />
+    </div>
   );
 };
 
-export default EditorComponent;
+export default CustomEditor;

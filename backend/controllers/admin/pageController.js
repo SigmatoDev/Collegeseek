@@ -5,9 +5,14 @@ const Module = require("../../models/admin/Module");
 
 // Create a new page
 const createPage = async (req, res) => {
-  console.log("Creating a new page");
   try {
+    // Log the request to ensure the API is being hit
+    console.log("API hit: Creating a new page");
+
     const { title, description, modules } = req.body;
+
+    // Log the incoming data for debugging
+    console.log("Received data:", { title, description, modules });
 
     const newPage = new Page({
       title,
@@ -16,12 +21,17 @@ const createPage = async (req, res) => {
     });
 
     await newPage.save();
+
+    // Log after saving to ensure it's completed
+    console.log("Page created:", newPage);
+
     res.status(201).json(newPage);
   } catch (err) {
-    console.error(err);
+    console.error("Error creating page:", err);
     res.status(500).json({ message: "Failed to create page" });
   }
 };
+
 
 // Get all pages
 const getPages = async (req, res) => {
