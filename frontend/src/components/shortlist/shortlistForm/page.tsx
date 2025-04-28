@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // ✅ Import router
 import { useUserStore } from "@/Store/userStore";
 import { api_url } from "@/utils/apiCall";
 
@@ -17,6 +18,7 @@ interface ShortlistFormProps {
 
 const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
   const { user } = useUserStore();
+  const router = useRouter(); // ✅ Initialize router
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -36,16 +38,12 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
     console.log("ShortlistForm mounted with:", { user, college });
     console.log("User ID:", userId);
     console.log("User Token:", user?.token);
-  }, [user, college]);
 
-  if (!user || !collegeId || !userId) {
-    return (
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Shortlist This College</h2>
-        <p className="text-red-600">User or college information is missing.</p>
-      </div>
-    );
-  }
+    // ✅ Redirect if user or collegeId or userId is missing
+    if (!user || !collegeId || !userId) {
+      router.push("/user/auth/signUp");
+    }
+  }, [user, college, collegeId, userId, router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -65,7 +63,7 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${user?.token}`, // safe access
         },
         body: JSON.stringify({
           ...formData,

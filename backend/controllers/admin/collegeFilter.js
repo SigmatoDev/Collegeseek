@@ -5,13 +5,13 @@ const getFilteredColleges = async (req, res) => {
   try {
     const { degrees, states, cities, ranks, fees, page = 1, limit = 10 } = req.body;
 
-    console.log("📥 Incoming Filters:");
-    console.log("Degrees:", degrees);
-    console.log("States:", states);
-    console.log("Cities:", cities);
-    console.log("Ranks:", ranks);
-    console.log("Fees:", fees);
-    console.log("🧭 Page:", page, "Limit:", limit);
+    // console.log("📥 Incoming Filters:");
+    // console.log("Degrees:", degrees);
+    // console.log("States:", states);
+    // console.log("Cities:", cities);
+    // console.log("Ranks:", ranks);
+    // console.log("Fees:", fees);
+    // console.log("🧭 Page:", page, "Limit:", limit);
 
     let collegeQuery = {};
     let matchedCourseCollegeIds = [];

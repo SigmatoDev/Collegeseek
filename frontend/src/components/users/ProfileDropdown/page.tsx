@@ -33,17 +33,13 @@ const ProfileDropdown = () => {
 
           {/* Additional Information */}
           <div className="mt-4 text-sm text-gray-600">
-            <p className="font-semibold text-[#582445]">By creating an account you can -</p>
-            <ul className="mt-2 space-y-2 list-inside">
-              <li className="flex items-center text-gray-700">
+            <p className="font-semibold text-[#582445]">By creating an account you can </p>
+            <ul className="mt-2 list-disc list-inside space-y-2 text-gray-700">
+            {/* <li className="flex items-center text-gray-700">
                 <span className="text-green-500 mr-2">✅</span> Apply to colleges directly
-              </li>
-              <li className="flex items-center text-gray-700">
-                <span className="text-green-500 mr-2">✅</span> Shortlist colleges for quick access
-              </li>
-              <li className="flex items-center text-gray-700">
-                <span className="text-green-500 mr-2">✅</span> Get free counselling
-              </li>
+              </li> */}
+             <li>Shortlist colleges</li>
+             <li>Get free counselling</li>
             </ul>
           </div>
 

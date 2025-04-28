@@ -147,10 +147,10 @@ const getCourseBySameName = async (req, res) => {
 
     // Find courses by name, with pagination
     const courses = await Course.find({ name: { $regex: new RegExp(name, 'i') } })
-      .populate("category", "name")
-      .populate("college_id", "name rank")
-      .skip(skip)  // Skip the appropriate number of courses based on page
-      .limit(limit);  // Limit the number of courses returned
+    .populate("category", "name")
+    .populate("college_id", "name rank image") // <--- added image here
+    .skip(skip)
+    .limit(limit);  // Limit the number of courses returned
 
     // Count the total number of courses that match the search criteria
     const totalCourses = await Course.countDocuments({ name: { $regex: new RegExp(name, 'i') } });

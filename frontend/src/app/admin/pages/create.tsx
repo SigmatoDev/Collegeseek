@@ -10,9 +10,9 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 // Dynamically import client-only components
-const EditorComponent = dynamic(() => import('@/components/Editor/Editor'), {
+const EditorComponent = dynamic(() => import('@/components/editor/Editor'), {
   ssr: false,
-});const DraggableModule = dynamic(() => import('@/components/Editor/DraggableComponent'), { ssr: false });
+});const DraggableModule = dynamic(() => import('@/components/editor/DraggableComponent'), { ssr: false });
 
 interface ModuleItem {
   _id: string;

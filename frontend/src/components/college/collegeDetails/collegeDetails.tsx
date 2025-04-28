@@ -10,6 +10,7 @@ import ShortlistForm from "@/components/shortlist/shortlistForm/page";
 import Modal from "@/components/shortlist/model/page";
 import DOMPurify from "dompurify";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
+import Loader from "@/components/loader/loader";
 
 interface Tab {
   title: string;
@@ -89,7 +90,7 @@ export default function CollegeDetailsPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (loading) return <Loader />; // 🆕 called Loader component when loading
   if (error)
     return <div className="text-center py-10 text-red-500">{error}</div>;
   if (!collegeData)
@@ -105,32 +106,32 @@ export default function CollegeDetailsPage() {
 
   return (
     <>
-      <div className="pt-6 pr-10 pl-10 ">
-  <Breadcrumb
-    items={[
-      { label: "Home", href: "/" },
-      { label: "Colleges", href: "/college" },
-      { label: collegeData.name },
-    ]}
-  />
-</div>
-
-      <div className="container-1 mx-auto p-6 py-[10px] px-[70px] w-full">
-        <div className="flex flex-col lg:flex-row items-start gap-8">
+      <div className="pt-6 pr-4 pl-4 sm:pr-10 sm:pl-10">
+        <Breadcrumb
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Colleges", href: "/college" },
+            { label: collegeData.name },
+          ]}
+        />
+      </div>
+  
+      <div className="container-1 mx-auto p-6 py-[10px] px-4 sm:px-6 md:px-10 lg:px-[70px] w-full">
+        <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-8">
           {/* Left */}
           <div className="lg:w-2/3 space-y-6">
-            <h1 className="text-3xl font-bold">{collegeData.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">{collegeData.name}</h1>
             <p
               className="text-gray-700"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(collegeData.description || ""),
               }}
             />
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <span className="text-[#403A83] font-semibold">
                 📍 {collegeData.location?.split(" ")[0]}
               </span>
-
+  
               <div className="flex -space-x-3 overflow-x-auto scrollbar-hide p-1">
                 {imageGalleryUrls.map((img, index) => (
                   <Image
@@ -143,7 +144,7 @@ export default function CollegeDetailsPage() {
                   />
                 ))}
               </div>
-
+  
               {imageGalleryUrls.length > 1 && (
                 <button
                   onClick={() => setIsGalleryOpen(true)}
@@ -153,7 +154,7 @@ export default function CollegeDetailsPage() {
                 </button>
               )}
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() =>
                   handleDownload(collegeData.id || (collegeData as any)._id)
@@ -162,14 +163,14 @@ export default function CollegeDetailsPage() {
               >
                 Download Brochure
               </button>
-
+  
               <button
                 onClick={() => setIsShortlistOpen(true)}
                 className="px-5 py-2 bg-[#D35B42] text-white rounded-lg font-medium hover:bg-blue-800 transition"
               >
                 Shortlist
               </button>
-
+  
               {collegeData && (
                 <Modal
                   isOpen={isShortlistOpen}
@@ -186,23 +187,23 @@ export default function CollegeDetailsPage() {
               )}
             </div>
           </div>
-
+  
           {/* Right */}
-          <div className="lg:w-1/3">
+          <div className="lg:w-1/3 w-full">
             <Image
               src={imageUrlFinal}
               width={500}
               height={500}
-              className="rounded-xl shadow-lg"
+              className="rounded-xl shadow-lg w-full object-cover"
               alt={collegeData.name}
             />
           </div>
         </div>
-
+  
         <Courses college_id={collegeData.id || (collegeData as any)._id} />
-
+  
         {/* Tabs */}
-        <nav className="flex space-x-6 border-b pb-2 mt-6 text-gray-600 overflow-x-auto scrollbar-hide">
+        <nav className="flex space-x-6 border-b pb-2 mt-6 text-gray-600 overflow-x-auto scrollbar-hide px-2 sm:px-0">
           {collegeData.tabs.map((tab, index) => (
             <button
               key={index}
@@ -217,10 +218,10 @@ export default function CollegeDetailsPage() {
             </button>
           ))}
         </nav>
-
+  
         {selectedTab && (
           <div className="mt-6">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
               {selectedTab.title}
             </h2>
             <div
@@ -231,10 +232,10 @@ export default function CollegeDetailsPage() {
             />
           </div>
         )}
-
+  
         {/* About */}
-        <div className="mt-6">
-          <h2 className="text-xl font-bold text-gray-900">
+        <div className="mt-6 mb-6">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">
             About {collegeData.name}
           </h2>
           <div
@@ -244,11 +245,11 @@ export default function CollegeDetailsPage() {
             }}
           />
         </div>
-
+  
         {/* Gallery Modal */}
         {isGalleryOpen && imageGalleryUrls.length > 1 && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-xl transition-opacity duration-300 ease-in-out">
-            <div className="bg-[#E5E7EB] p-6 rounded-2xl shadow-2xl max-w-lg w-full relative overflow-hidden">
+            <div className="bg-[#E5E7EB] p-6 rounded-2xl shadow-2xl w-[90%] sm:max-w-lg relative overflow-hidden">
               <button
                 onClick={() => setIsGalleryOpen(false)}
                 className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-gray-900/80 text-white rounded-full hover:bg-red-500 transition-all duration-300"
@@ -259,7 +260,7 @@ export default function CollegeDetailsPage() {
               <h2 className="text-2xl font-bold mb-5 text-center text-gray-900">
                 Gallery
               </h2>
-
+  
               <div className="relative">
                 <div className="w-full overflow-hidden">
                   <div
@@ -281,7 +282,7 @@ export default function CollegeDetailsPage() {
                     ))}
                   </div>
                 </div>
-
+  
                 <button
                   onClick={() =>
                     setCurrentImageIndex(
@@ -294,7 +295,7 @@ export default function CollegeDetailsPage() {
                 >
                   ❮
                 </button>
-
+  
                 <button
                   onClick={() =>
                     setCurrentImageIndex(
@@ -312,5 +313,6 @@ export default function CollegeDetailsPage() {
       </div>
     </>
   );
+  
 }
 

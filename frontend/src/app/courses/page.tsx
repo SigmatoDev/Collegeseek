@@ -48,7 +48,7 @@ const CollegesPage = () => {
       <div className="flex flex-col lg:flex-row mx-auto px-4 sm:px-6 lg:px-10 py-5 justify-center gap-6">
         {/* Filter Sidebar */}
         <div className="w-full lg:w-auto">
-          <CoursesFilterSidebar onFilterChange={handleFilterChange} />
+          {/* <CoursesFilterSidebar onFilterChange={handleFilterChange} /> */}
         </div>
 
         {/* College List */}

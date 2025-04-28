@@ -4,6 +4,7 @@ import { api_url } from "@/utils/apiCall";
 import { useEffect, useState } from "react";
 import EnrollmentModal from "./model/page";
 import EnrollmentForm from "./enrollForm/page";
+import Loader from "@/components/loader/loader";
 
 interface Course {
   _id: string;
@@ -83,7 +84,7 @@ export default function CollegeCourses({ college_id }: Props) {
     setIsModalOpen(null); // Close the modal
   };
 
-  if (loading) return <p className="text-center text-gray-500">Loading courses...</p>;
+  if (loading) return <Loader />; // 🆕 called Loader component when loading
   if (error) return <p className="text-center text-red-500">{error}</p>;
   if (!courses.length) return <p className="text-center text-gray-500">No courses found for this college.</p>;
 

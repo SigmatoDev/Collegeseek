@@ -352,6 +352,8 @@ const ActualCollegeForm = () => {
   };
 
   return (
+    <div>
+
     <div className="mx-5 p-8 bg-white shadow-xl rounded-2xl border border-gray-200">
       {/* Title */}
       <h1 className="text-3xl font-bold text-center text-gray-900">
@@ -360,7 +362,7 @@ const ActualCollegeForm = () => {
           : "Create New College"}
       </h1>
 
-      {/* Error Message */}
+           {/* Error Message */}
       {error && <p className="text-red-500 text-center mt-3">{error}</p>}
 
       {/* Form */}
@@ -678,6 +680,7 @@ const ActualCollegeForm = () => {
           </button>
         )}
       </form>
+    </div>
     </div>
   );
 };

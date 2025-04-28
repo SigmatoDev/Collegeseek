@@ -11,7 +11,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { GripVertical, Trash2 } from "lucide-react";
 import { useRef } from "react"; // make sure you import it
 
-const Editor = dynamic(() => import("@/components/Editor/Editor"), { ssr: false });
+const Editor = dynamic(() => import("@/components/editor/Editor"), { ssr: false });
 
 interface ModuleItem {
   _id: string;

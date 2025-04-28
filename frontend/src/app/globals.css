@@ -23,3 +23,41 @@ body {
 }
 
 
+/* Editor styles */
+.editor-container {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.editor-toolbar button,
+.editor-toolbar select,
+.editor-toolbar input[type="color"] {
+  padding: 5px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.editor-toolbar button:hover {
+  background: #f0f0f0;
+}
+
+.editor-content {
+  min-height: 300px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  overflow-y: auto;
+  background: #fff;
+}

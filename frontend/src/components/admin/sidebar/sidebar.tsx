@@ -117,9 +117,9 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/settings", icon: <Settings size={18} />, text: "General Settings", isOpen },
-        { href: "/admin/coursesList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen },
+        { href: "/admin/courseList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen },
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
-        { href: "/admin/privacy-policy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
+        { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
       ]
     },
   ];

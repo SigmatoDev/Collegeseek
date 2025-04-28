@@ -1,18 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { api_url } from "@/utils/apiCall";
+import { api_url, img_url } from "@/utils/apiCall";
 import Header from "@/components/header/page";
 import Footer from "@/components/footer/page";
 import CoursesFilterSidebar from "@/components/coursesFilterbar/page";
 import Image from "next/image";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
+import Loader from "@/components/loader/loader";
 
 interface Course {
   _id: string;
   name: string;
   description: string;
-  college_id: { name: string; rank: number };
+  college_id: { name: string; rank: number; image?: string };
   fees: { amount: number; currency: string };
   eligibility: string;
   category: { name: string };
@@ -39,7 +40,9 @@ const CourseDetail = () => {
   const fetchCourses = async (page: number) => {
     try {
       const res = await fetch(
-        `${api_url}courses/all/get/with/same/name?name=${encodeURIComponent(name)}&page=${page}&limit=10`
+        `${api_url}courses/all/get/with/same/name?name=${encodeURIComponent(
+          name
+        )}&page=${page}&limit=10`
       );
       if (!res.ok) {
         throw new Error("Failed to fetch courses");
@@ -63,15 +66,27 @@ const CourseDetail = () => {
     if (name) fetchCourses(currentPage);
   }, [name, currentPage]);
 
-  if (loading) return <p className="text-center text-lg">Loading courses...</p>;
+  const getValidImageUrl = (image?: string) => {
+    if (!image) return "/image/default-college.jpg"; // fallback
+    try {
+      const url = new URL(image); // will throw if invalid
+      return url.href;
+    } catch {
+      return `${img_url}uploads/${image.replace(/^\/?uploads\//, "")}`;
+    }
+  };
+
+  if (loading) return <Loader />;
   if (error) return <p className="text-red-500 text-center">{error}</p>;
-  if (courses.length === 0) return <p className="text-center">No courses found.</p>;
+  if (courses.length === 0)
+    return <p className="text-center">No courses found.</p>;
 
   return (
     <>
       <Header />
-       {/* 🧩 Breadcrumb Section */}
-       <div className="py-3 px-6 ml-4 rounded-md mt-3">
+
+      {/* Breadcrumb Section */}
+      <div className="py-3 px-6 ml-4 rounded-md mt-3">
         <Breadcrumb
           items={[
             { label: "Home", href: "/" },
@@ -100,7 +115,10 @@ const CourseDetail = () => {
       </div>
 
       {/* Content Section */}
-      <div id="courses-section" className="max-w-screen-2xl mx-auto px-4 mb-[110px] md:px-8 flex flex-col lg:flex-row gap-8">
+      <div
+        id="courses-section"
+        className="max-w-screen-2xl mx-auto px-4 mb-[110px] md:px-8 flex flex-col lg:flex-row gap-8"
+      >
         {/* Sidebar */}
         <aside className="w-full lg:w-1/4 sticky top-20">
           <CoursesFilterSidebar onFilterChange={handleFilterChange} />
@@ -112,12 +130,24 @@ const CourseDetail = () => {
             <table className="min-w-full table-auto text-sm">
               <thead className="bg-gray-100 sticky top-0 z-10 text-gray-700 text-xs uppercase tracking-wide font-semibold">
                 <tr>
-                  <th className="px-6 py-5 text-left border-b border-gray-300">NIRF</th>
-                  <th className="px-6 py-5 text-left border-b border-gray-300 w-[120px]">Image</th>
-                  <th className="px-6 py-5 text-left border-b border-gray-300">College & Details</th>
-                  <th className="px-6 py-5 text-left border-b border-gray-300">Eligibility</th>
-                  <th className="px-6 py-5 text-left border-b border-gray-300">Fees</th>
-                  <th className="px-6 py-5 text-left border-b border-gray-300">Enroll</th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">
+                    NIRF
+                  </th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300 w-[120px]">
+                    Image
+                  </th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">
+                    College & Details
+                  </th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">
+                    Eligibility
+                  </th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">
+                    Fees
+                  </th>
+                  <th className="px-6 py-5 text-left border-b border-gray-300">
+                    Enroll
+                  </th>
                 </tr>
               </thead>
               <tbody className="text-gray-800">
@@ -134,11 +164,15 @@ const CourseDetail = () => {
 
                       <td className="px-6 py-5 border-b border-gray-200 text-center">
                         <Image
-                          src="/image/14.jpg"
+                          src={
+                            course.college_id?.image
+                              ? getValidImageUrl(course.college_id?.image)
+                              : "/image/14.jpg"
+                          }
                           alt={course.college_id?.name || "College Image"}
                           width={70}
                           height={70}
-                          className="w-[80px] h-[70px] mx-auto rounded-full"
+                          className="w-[80px] h-[70px] mx-auto rounded-full object-cover"
                         />
                       </td>
 
@@ -167,7 +201,8 @@ const CourseDetail = () => {
                       </td>
 
                       <td className="px-6 py-5 border-b border-gray-200 text-green-700 font-semibold whitespace-nowrap">
-                        ₹{course.fees.amount.toLocaleString()} {course.fees.currency}
+                        ₹{course.fees.amount.toLocaleString()}{" "}
+                        {course.fees.currency}
                       </td>
 
                       <td className="px-6 py-5 border-b border-gray-200">
@@ -206,7 +241,9 @@ const CourseDetail = () => {
                 }
                 disabled={currentPage === totalPages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                  currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 Next

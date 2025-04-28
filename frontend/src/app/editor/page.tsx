@@ -1,7 +1,10 @@
-import { PageEditor } from "@/components/Editor/pageEditor";
+import Editor2 from "@/components/editor/editor2";
 
-const EditorPage: React.FC = () => {
-  return <PageEditor />;
-};
-
-export default EditorPage;
+export default function EditorPage() {
+  return (
+    <div className="editor-page">
+      <h1>Text Editor</h1>
+      <Editor2 />
+    </div>
+  );
+}
