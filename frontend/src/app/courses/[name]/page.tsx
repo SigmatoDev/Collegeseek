@@ -6,6 +6,7 @@ import Header from "@/components/header/page";
 import Footer from "@/components/footer/page";
 import CoursesFilterSidebar from "@/components/coursesFilterbar/page";
 import Image from "next/image";
+import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 
 interface Course {
   _id: string;
@@ -69,6 +70,16 @@ const CourseDetail = () => {
   return (
     <>
       <Header />
+       {/* 🧩 Breadcrumb Section */}
+       <div className="py-3 px-6 ml-4 rounded-md mt-3">
+        <Breadcrumb
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Courses", href: "/courses" },
+            { label: name, href: `/course/${encodeURIComponent(name)}` },
+          ]}
+        />
+      </div>
 
       {/* Hero Section */}
       <div
@@ -127,7 +138,7 @@ const CourseDetail = () => {
                           alt={course.college_id?.name || "College Image"}
                           width={70}
                           height={70}
-                          className="object-cover rounded-full mx-auto"
+                          className="w-[80px] h-[70px] mx-auto rounded-full"
                         />
                       </td>
 

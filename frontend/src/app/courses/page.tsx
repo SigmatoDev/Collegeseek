@@ -5,6 +5,7 @@ import Header from "@/components/header/page";
 import Image from "next/image";
 import CoursesList from "@/components/courses/courseslist/coursesList";
 import CoursesFilterSidebar from "@/components/coursesFilterbar/page";
+import Breadcrumb from "@/components/breadcrumb/breadcrumb"; // 🧩 Import Breadcrumb
 import { useState } from "react";
 
 const AdBox = ({ imageSrc }: { imageSrc: string }) => {
@@ -33,6 +34,17 @@ const CollegesPage = () => {
   return (
     <>
       <Header />
+
+      {/* 🧩 Breadcrumb Section */}
+      <div className="pt-6 pr-10 pl-10 ">
+        <Breadcrumb
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Courses", href: "/courses" },
+          ]}
+        />
+      </div>
+
       <div className="flex flex-col lg:flex-row mx-auto px-4 sm:px-6 lg:px-10 py-5 justify-center gap-6">
         {/* Filter Sidebar */}
         <div className="w-full lg:w-auto">
@@ -50,6 +62,7 @@ const CollegesPage = () => {
           <AdBox imageSrc="/image/4.avif" />
         </div>
       </div>
+
       <Footer />
     </>
   );
