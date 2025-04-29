@@ -33,26 +33,45 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
       return;
     }
 
-    const fetchBlogBySlug = async () => {
-      console.log(`📡 Fetching blog from: ${api_url}blog?slug=${slug}`);
-      try {
-        const response = await axios.get(`${api_url}blog?slug=${slug}`);
-        console.log("✅ Blog fetched:", response.data);
+    // const fetchBlogBySlug = async () => {
+    //   console.log(`📡 Fetching blog from: ${api_url}blog/by/slug?slug=${slug}`);
+    //   try {
+    //     const response = await axios.get(`${api_url}blog/by/slug?slug=${slug}`);
+    //     console.log("✅ Blog fetched:", response.data);
 
-        if (response.data && response.data.length > 0) {
-          setBlog(response.data[0]); // Assuming you're getting an array of blogs and using the first one.
+    //     if (response.data && response.data.length > 0) {
+    //       setBlog(response.data[0]); // Assuming you're getting an array of blogs and using the first one.
+    //     } else {
+    //       console.warn("⚠️ No blog returned from API");
+    //       setError("Blog not found.");
+    //     }
+    //   } catch (err: any) {
+    //     console.error("❌ Error fetching blog by slug:", err.response?.status, err.response?.data);
+    //     const errorMessage = err.response?.data?.message || "Blog not found or an error occurred.";
+    //     setError(errorMessage);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
+    const fetchBlogBySlug = async () => {
+      try {
+        const response = await axios.get(`${api_url}blog/by/slug?slug=${slug}`);
+        console.log("API Response:", response.data);
+    
+        if (response.data) {
+          setBlog(response.data); // Since it's an object, no need to access the first element like an array
         } else {
-          console.warn("⚠️ No blog returned from API");
+          console.warn("No blog returned from API");
           setError("Blog not found.");
         }
-      } catch (err: any) {
-        console.error("❌ Error fetching blog by slug:", err.response?.status, err.response?.data);
-        const errorMessage = err.response?.data?.message || "Blog not found or an error occurred.";
-        setError(errorMessage);
+      } catch (err) {
+        console.error("Error fetching blog:", err);
+        setError("An error occurred while fetching the blog.");
       } finally {
         setLoading(false);
       }
     };
+    
 
     fetchBlogBySlug();
   }, [slug]);
@@ -67,7 +86,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto py-12 px-6 text-center text-red-500">
+      <div className="max-w-7xl mx-auto py-12 px-6 text-center text-red-500">
         <p className="text-lg font-semibold">{error}</p>
         <button
           onClick={() => window.location.reload()}
@@ -91,7 +110,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
   const sanitizedContent = DOMPurify.sanitize(blog.content);
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-6 space-y-12">
+    <div className="max-w-7xl mx-auto py-12 px-6 space-y-12">
       <h1 className="text-5xl font-extrabold text-gray-900 mb-6">{blog.title}</h1>
       <p className="text-lg text-gray-600 mb-8">
         By <span className="font-semibold text-gray-800">{blog.author}</span> |{" "}
@@ -102,7 +121,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
         {/* Image Section */}
         <div className="bg-gradient-to-r from-blue-50 via-yellow-50 to-blue-50 rounded-2xl p-6 md:w-1/3 justify-center">
           <div className="relative w-full h-80 rounded-xl overflow-hidden">
-          <Image
+            <Image
               src={
                 blog.image
                   ? `${img_url}${blog.image.replace(/^\/uploads\//, "uploads/")}`
@@ -113,7 +132,6 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
               objectFit="cover"
               className="rounded-xl transform transition-all duration-300 hover:scale-105"
             />
-
           </div>
         </div>
 

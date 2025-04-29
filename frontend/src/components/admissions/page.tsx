@@ -54,7 +54,7 @@ export default function CollegeAdmissions() {
             className="bg-white border border-gray-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-xl transition duration-300 ease-in-out flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6"
           >
             {/* Icon */}
-            <div className="bg-yellow-100 text-yellow-600 p-3 sm:p-4 rounded-full shadow-inner">
+            <div className="bg-yellow-100 text-[#D25C41] p-3 sm:p-4 rounded-full shadow-inner">
               {feature.icon}
             </div>
 
@@ -74,13 +74,13 @@ export default function CollegeAdmissions() {
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-8">
         <Link href="/college">
-          <Button className="bg-yellow-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-yellow-700">
+          <Button className="bg-[#D25C41] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-yellow-700">
             Start Your Application
           </Button>
         </Link>
 
         <Link href="/contactUs">
-          <Button className="border border-yellow-600 text-yellow-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-blue-50">
+          <Button className="border border-[#D25C41] text-[#D25C41] px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-blue-50">
             Contact an Admissions Counselor
           </Button>
         </Link>

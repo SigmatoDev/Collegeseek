@@ -7,7 +7,7 @@ import Header from "@/components/header/page";
 
 const BlogDetailsPage = () => {
   const { slug } = useParams(); // Use `useParams` directly here
-
+ console.log("siug", slug)
   return (
     <>
       <Header />

@@ -9,7 +9,7 @@ const CollegeConsultationPopup = () => {
     if (!popupClosed) {
       const timer = setTimeout(() => {
         setShowPopup(true);
-      }, 20000); // 2 minutes delay
+      }, 2000); // 2 minutes delay
       return () => clearTimeout(timer);
     }
   }, []);

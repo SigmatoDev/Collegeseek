@@ -1,19 +1,42 @@
 const Course = require("../../models/admin/courseModel");
 
 const getCourseFilters = async (req, res) => {
-  try {
-    const durations = await Course.distinct("duration");
-    const modes = await Course.distinct("mode");
+  console.log("Received courseName:", req.query.name); // Log the name from the frontend
 
-    res.status(200).json({
-      durations,
-      modes,
+  try {
+    const { name } = req.query; // Get the name from the query params
+
+    // Fetch all courses based on the name (case-insensitive search)
+    const courses = await Course.find({ name: { $regex: name, $options: "i" } });
+
+    if (courses.length === 0) {
+      return res.status(404).json({ message: "No courses found with that name" });
+    }
+
+    // Use a Set to get unique values for durations and modes
+    const uniqueDurations = new Set();
+    const uniqueModes = new Set();
+
+    // Loop through the courses to collect unique durations and modes
+    courses.forEach(course => {
+      uniqueDurations.add(course.duration);
+      uniqueModes.add(course.mode);
     });
+
+    // Convert the sets to arrays
+    const filters = {
+      durations: Array.from(uniqueDurations),
+      modes: Array.from(uniqueModes),
+    };
+
+    // Send the filters back to the frontend
+    res.status(200).json(filters);
   } catch (error) {
-    console.error("Error fetching filters:", error);
-    res.status(500).json({ message: "Failed to fetch filters", error });
+    console.error("Error fetching course filters:", error);
+    res.status(500).json({ message: "Failed to fetch course filters", error });
   }
 };
+
 
 
 
@@ -134,41 +157,53 @@ const getCoursesWithCommonNames = async (req, res) => {
 //     res.status(500).json({ message: "Failed to fetch courses" });
 //   }
 // };
+
 const getCourseBySameName = async (req, res) => {
+  console.log("req query", req.query);
   try {
-    const { name } = req.query;
+    const { name, duration, mode } = req.query;
     const page = parseInt(req.query.page) || 1; // Default to page 1 if no page is provided
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+    const limit = parseInt(req.query.limit) || 10; // Default to 100 items per page
     const skip = (page - 1) * limit; // Skip the appropriate number of courses based on page
 
     if (!name) {
       return res.status(400).json({ message: "Course name is required" });
     }
 
-    // Find courses by name, with pagination
-    const courses = await Course.find({ name: { $regex: new RegExp(name, 'i') } })
-    .populate("category", "name")
-    .populate("college_id", "name rank image") // <--- added image here
-    .skip(skip)
-    .limit(limit);  // Limit the number of courses returned
+    // Build the filter query with dynamic checks for name, duration, and mode
+    const filterQuery = {
+      name: { $regex: new RegExp(name, 'i') }, // Case-insensitive search for course name
+      ...(duration && { duration: duration }), // Filter by exact duration if provided
+      ...(mode && mode !== 'undefined' && mode !== 'null' && { mode: mode }), // Filter by exact mode if provided
+    };
 
-    // Count the total number of courses that match the search criteria
-    const totalCourses = await Course.countDocuments({ name: { $regex: new RegExp(name, 'i') } });
+    // Find courses by name, duration, and mode, with pagination
+    const courses = await Course.find(filterQuery)
+      .populate("category", "name") // Populate category field (optional)
+      .populate("college_id", "name rank image slug") // Populate college_id with the required fields
+      .skip(skip)
+      .limit(limit);
+
+    // Count the total number of courses that match the filter criteria
+    const totalCourses = await Course.countDocuments(filterQuery);
 
     if (courses.length === 0) {
-      return res.status(404).json({ message: "No courses found with this name" });
+      return res.status(404).json({ message: "No courses found with these filters" });
     }
 
+    // Return filtered courses along with pagination
     res.json({
       courses,
       totalPages: Math.ceil(totalCourses / limit),
       currentPage: page,
     });
   } catch (error) {
-    console.error("Error fetching courses by name:", error);
+    console.error("Error fetching courses by name, duration, or mode:", error);
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+
+module.exports = { getCourseBySameName };
 
 
 module.exports = {

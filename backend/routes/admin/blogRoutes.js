@@ -17,6 +17,6 @@ router.get("/b/blog",   getAllBlog);
 router.get("/blog/:id", getBlogById);
 router.put("/blog/:id", updateBlog);
 router.delete("/blog/:id", deleteBlog);
-router.get("/blog", getBlogBySlug); // GET /api/blog?slug=...
+router.get("/blog/by/slug", getBlogBySlug); // GET /api/blog?slug=...
 
 module.exports = router;

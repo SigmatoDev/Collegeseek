@@ -4,7 +4,6 @@ import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import Image from "next/image";
 import CoursesList from "@/components/courses/courseslist/coursesList";
-import CoursesFilterSidebar from "@/components/coursesFilterbar/page";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb"; // 🧩 Import Breadcrumb
 import { useState } from "react";
 

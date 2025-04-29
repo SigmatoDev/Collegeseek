@@ -74,7 +74,7 @@ export default function CallbackForm() {
             placeholder="Full Name"
             value={formData.name}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
             required
           />
         </div>
@@ -85,7 +85,7 @@ export default function CallbackForm() {
             placeholder="Mobile Number"
             value={formData.mobile}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
             required
           />
         </div>
@@ -96,7 +96,7 @@ export default function CallbackForm() {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
             required
           />
         </div>
@@ -105,7 +105,7 @@ export default function CallbackForm() {
             name="stream"
             value={formData.stream}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-00 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
             required
           >
             <option value="" disabled>Select Your Course</option>
@@ -119,7 +119,7 @@ export default function CallbackForm() {
         <div className="col-span-full flex justify-center mt-2">
           <button
             type="submit"
-            className="bg-[#0a0536] text-white font-semibold py-3 px-8 rounded-lg hover:bg-blue-700 transition-all shadow-md w-full sm:w-auto max-w-xs sm:max-w-full"
+            className="bg-[#D25C41] text-white font-semibold py-3 px-8 rounded-lg hover:bg-orange-600 transition-all shadow-md w-full sm:w-auto max-w-xs sm:max-w-full"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Submitting..." : "Get Career Advice"}

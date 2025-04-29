@@ -14,10 +14,10 @@ export default function HeroSection() {
     <div className="relative h-screen pt-[env(safe-area-inset-top)] flex items-center justify-start bg-gradient-to-r from-yellow-200 to-orange-200 px-4 sm:px-6 md:px-16 lg:px-24">
       {/* Background Image */}
       <Image
-        src="/image/2.png"
+        src="/image/2a.webp"
         alt="Hero Image"
         fill
-        className="object-cover opacity-40"
+        className="object-cover opacity-55"
       />
 
       {/* Content */}

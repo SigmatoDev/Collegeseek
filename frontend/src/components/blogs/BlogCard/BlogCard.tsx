@@ -46,6 +46,7 @@ export default function BlogCard({ _id: propId, title, slug, image, content }: B
   }, [propId, slug]);  // Dependency on propId and slug
 
   const handleReadMore = () => {
+    console.log("slug", slug)
     if (!slug) {
       console.error("❌ Error: Blog slug is undefined");
       alert("Error: Blog slug is missing.");
