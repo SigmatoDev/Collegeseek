@@ -8,7 +8,7 @@ import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
 import CallbackForm from "@/components/newsletters/page";
 import TrendingNow from "@/components/trendingNow/trendingNow";
-import RegisterPopup from "@/components/CollegeConsultationPopup/page";
+import RegisterPopup from "@/components/collegeConsultationPopup/page";
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
