@@ -8,7 +8,7 @@ import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
 import CallbackForm from "@/components/newsletters/page";
 import TrendingNow from "@/components/trendingNow/trendingNow";
-import RegisterPopup from "@/components/collegeConsultationPopup/page";
+import Register from "@/components/collegeConsultationPopup/page";
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ const HomePage = () => {
       <CollegeApplication />
       <BlogList />
       <CallbackForm/>
-      <RegisterPopup />
+      <Register />
       <Footer />
     </div>
   );
