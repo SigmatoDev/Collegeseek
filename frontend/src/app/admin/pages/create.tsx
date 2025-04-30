@@ -5,19 +5,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
-import dynamic from "next/dynamic";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import CustomEditor from "@/components/editor/editor";
+import DraggableModule from "@/components/editor/draggableComponent";
 
-// ✅ Fixed import for CustomEditor
-const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
-  ssr: false,
-});
-
-// ✅ Fixed import for DraggableModule (double-check file casing)
-const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), {
-  ssr: false,
-});
 
 interface ModuleItem {
   _id: string;
