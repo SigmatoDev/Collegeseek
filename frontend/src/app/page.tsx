@@ -2,7 +2,6 @@
 
 import CollegeAdmissions from "@/components/admissions/page";
 import BlogList from "@/components/blogs/blogList/blogList";
-import CollegeConsultationPopup from "@/components/collegeConsultationPopup/collegeConsultationPopup";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
@@ -43,7 +42,6 @@ const HomePage = () => {
       <CollegeAdmissions />
       <BlogList />
       <CallbackForm/>
-      <CollegeConsultationPopup />
       <Footer />
     </div>
   );

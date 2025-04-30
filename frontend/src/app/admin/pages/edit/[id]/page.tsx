@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -9,7 +9,6 @@ import { toast } from "react-hot-toast";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { GripVertical, Trash2 } from "lucide-react";
-import { useRef } from "react"; // make sure you import it
 
 const CustomEditor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
