@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import CollegeApplication from "@/components/admissions/page";
+import CollegeAdmissions from "@/components/admissions/page";
 import BlogList from "@/components/blogs/blogList/blogList";
+import CollegeConsultationPopup from "@/components/collegeConsultationPopup/test";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
 import CallbackForm from "@/components/newsletters/page";
 import TrendingNow from "@/components/trendingNow/trendingNow";
-import Register from "@/components/collegeConsultationPopup/page";
+import { useEffect, useState } from "react";
+
 
 const HomePage = () => {
   const [loading, setLoading] = useState(true);
@@ -38,10 +39,10 @@ const HomePage = () => {
   "(BITSAT) BITS Pilani Admission Exam",
   "(NDA) National Defence Academy Exam"
 ]} />
-      <CollegeApplication />
+      <CollegeAdmissions />
       <BlogList />
       <CallbackForm/>
-      <Register />
+      <CollegeConsultationPopup/>
       <Footer />
     </div>
   );

@@ -20,7 +20,7 @@ interface RegisterData {
   confirmPassword: string;
 }
 
-const Register = () => {
+const RegisterPopup = () => {
   const [registerData, setRegisterData] = useState<RegisterData>({
     name: "",
     email: "",
@@ -256,4 +256,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterPopup;
