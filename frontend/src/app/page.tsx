@@ -6,6 +6,7 @@ import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
 import CallbackForm from "@/components/newsletters/page";
+import PopUp from "@/components/popup/popUp";
 import TrendingNow from "@/components/trendingNow/trendingNow";
 import { useEffect, useState } from "react";
 
@@ -42,6 +43,7 @@ const HomePage = () => {
       <CollegeAdmissions />
       <BlogList />
       <CallbackForm/>
+      <PopUp />
       <Footer />
     </div>
   );
