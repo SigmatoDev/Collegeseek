@@ -9,11 +9,12 @@ import dynamic from "next/dynamic";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
-// ✅ Fixed import: match file casing exactly
+// ✅ Fixed import for CustomEditor
 const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
   ssr: false,
 });
 
+// ✅ Fixed import for DraggableModule (double-check file casing)
 const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), {
   ssr: false,
 });
@@ -35,6 +36,7 @@ const Create = () => {
 
   const router = useRouter();
 
+  // UseEffect for loading modules and setting mounted state
   useEffect(() => {
     setHasMounted(true);
 
@@ -55,6 +57,7 @@ const Create = () => {
     return () => controller.abort();
   }, []);
 
+  // Submit handler for page creation
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -77,6 +80,7 @@ const Create = () => {
     setLoading(false);
   };
 
+  // Add a module to selectedModules
   const addModule = useCallback(
     (module: ModuleItem) => {
       if (!selectedModules.find((m) => m._id === module._id)) {
@@ -86,6 +90,7 @@ const Create = () => {
     [selectedModules]
   );
 
+  // Remove a module from selectedModules
   const removeModule = useCallback(
     (moduleId: string) => {
       setSelectedModules((prev) => prev.filter((mod) => mod._id !== moduleId));
@@ -93,6 +98,7 @@ const Create = () => {
     [selectedModules]
   );
 
+  // Move a module in selectedModules
   const moveModule = useCallback(
     (fromIndex: number, toIndex: number) => {
       const updatedModules = [...selectedModules];
@@ -103,16 +109,19 @@ const Create = () => {
     [selectedModules]
   );
 
+  // Set mounted state to true after initial render
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
+  // Prevent rendering on first mount
   if (!hasMounted) return null;
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-4">
       <h1 className="text-2xl font-bold">Create New Page</h1>
 
+      {/* Page Title Input */}
       <input
         type="text"
         placeholder="Page Title"
@@ -121,6 +130,7 @@ const Create = () => {
         className="border px-4 py-2 w-full rounded"
       />
 
+      {/* CustomEditor Component */}
       <CustomEditor
         value={description}
         onChange={(newDescription) => setDescription(newDescription)}
@@ -160,6 +170,7 @@ const Create = () => {
         </div>
       </DndProvider>
 
+      {/* Submit Button */}
       <button
         onClick={handleSubmit}
         disabled={loading}
