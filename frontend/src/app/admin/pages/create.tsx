@@ -9,11 +9,14 @@ import dynamic from "next/dynamic";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
-// Dynamically import client-only components
+// ✅ Fixed import: match file casing exactly
 const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
   ssr: false,
 });
-const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
+
+const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), {
+  ssr: false,
+});
 
 interface ModuleItem {
   _id: string;
@@ -22,7 +25,7 @@ interface ModuleItem {
   content: any;
 }
 
-const CreatePage = () => {
+const Create = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -74,26 +77,36 @@ const CreatePage = () => {
     setLoading(false);
   };
 
-  const addModule = useCallback((module: ModuleItem) => {
-    if (!selectedModules.find((m) => m._id === module._id)) {
-      setSelectedModules((prev) => [...prev, module]);
-    }
-  }, [selectedModules]);
+  const addModule = useCallback(
+    (module: ModuleItem) => {
+      if (!selectedModules.find((m) => m._id === module._id)) {
+        setSelectedModules((prev) => [...prev, module]);
+      }
+    },
+    [selectedModules]
+  );
 
-  const removeModule = useCallback((moduleId: string) => {
-    setSelectedModules((prev) => prev.filter((mod) => mod._id !== moduleId));
-  }, [selectedModules]);
+  const removeModule = useCallback(
+    (moduleId: string) => {
+      setSelectedModules((prev) => prev.filter((mod) => mod._id !== moduleId));
+    },
+    [selectedModules]
+  );
 
-  const moveModule = useCallback((fromIndex: number, toIndex: number) => {
-    const updatedModules = [...selectedModules];
-    const [movedModule] = updatedModules.splice(fromIndex, 1);
-    updatedModules.splice(toIndex, 0, movedModule);
-    setSelectedModules(updatedModules);
-  }, [selectedModules]);
+  const moveModule = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const updatedModules = [...selectedModules];
+      const [movedModule] = updatedModules.splice(fromIndex, 1);
+      updatedModules.splice(toIndex, 0, movedModule);
+      setSelectedModules(updatedModules);
+    },
+    [selectedModules]
+  );
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
-  
+
   if (!hasMounted) return null;
 
   return (
@@ -158,4 +171,4 @@ const CreatePage = () => {
   );
 };
 
-export default CreatePage;
+export default Create;

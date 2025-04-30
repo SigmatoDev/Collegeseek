@@ -2,13 +2,14 @@
 
 import CollegeAdmissions from "@/components/admissions/page";
 import BlogList from "@/components/blogs/blogList/blogList";
-import CollegeConsultationPopup from "@/components/collegeConsultationPopup/test";
+import RegisterPopup from "@/components/collegeConsultationPopup/collegeConsultationPopup";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
 import CallbackForm from "@/components/newsletters/page";
 import TrendingNow from "@/components/trendingNow/trendingNow";
 import { useEffect, useState } from "react";
+
 
 
 const HomePage = () => {
@@ -42,7 +43,7 @@ const HomePage = () => {
       <CollegeAdmissions />
       <BlogList />
       <CallbackForm/>
-      <CollegeConsultationPopup/>
+      <RegisterPopup/>
       <Footer />
     </div>
   );
