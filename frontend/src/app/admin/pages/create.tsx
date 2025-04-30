@@ -9,11 +9,11 @@ import dynamic from "next/dynamic";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
-// Dynamically import client-only components
-const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
-  ssr: false,
-});
-const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
+// // Dynamically import client-only components
+// const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
+//   ssr: false,
+// });
+// const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
 
 interface ModuleItem {
   _id: string;
@@ -108,10 +108,10 @@ const Create = () => {
         className="border px-4 py-2 w-full rounded"
       />
 
-      <CustomEditor
+      {/* <CustomEditor
         value={description}
         onChange={(newDescription) => setDescription(newDescription)}
-      />
+      /> */}
 
       <DndProvider backend={HTML5Backend}>
         <div className="mt-6 space-y-4">
@@ -134,7 +134,7 @@ const Create = () => {
           </div>
 
           <div className="space-y-2">
-            {selectedModules.map((mod, index) => (
+            {/* {selectedModules.map((mod, index) => (
               <DraggableModule
                 key={mod._id}
                 mod={mod}
@@ -142,7 +142,7 @@ const Create = () => {
                 moveModule={moveModule}
                 onRemove={() => removeModule(mod._id)}
               />
-            ))}
+            ))} */}
           </div>
         </div>
       </DndProvider>

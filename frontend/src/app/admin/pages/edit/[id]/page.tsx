@@ -10,7 +10,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { GripVertical, Trash2 } from "lucide-react";
 
-const CustomEditor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
+// const CustomEditor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
 interface ModuleItem {
   _id: string;
@@ -106,7 +106,7 @@ const EditPage = () => {
         placeholder="Page Title"
       />
 
-      <CustomEditor value={description} onChange={setDescription} />
+      {/* <CustomEditor value={description} onChange={setDescription} /> */}
 
       <DndProvider backend={HTML5Backend}>
         <div className="mt-6 space-y-4">
