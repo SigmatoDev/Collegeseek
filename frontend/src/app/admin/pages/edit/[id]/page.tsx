@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { GripVertical, Trash2 } from "lucide-react";
 import { useRef } from "react"; // make sure you import it
-import CustomEditor from "@/components/editor/editor";
 
+const CustomEditor = dynamic(() => import("@/components/editor/editor"), { ssr: false });
 
 interface ModuleItem {
   _id: string;
@@ -203,4 +204,3 @@ interface ModuleItem {
       </div>
     );
   };
-  

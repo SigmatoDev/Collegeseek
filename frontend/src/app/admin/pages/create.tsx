@@ -5,11 +5,15 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
+import dynamic from "next/dynamic";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import CustomEditor from "@/components/editor/editor";
-import DraggableModule from "@/components/editor/draggableComponent";
 
+// Dynamically import client-only components
+const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
+  ssr: false,
+});
+const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
 
 interface ModuleItem {
   _id: string;
@@ -28,7 +32,6 @@ const Create = () => {
 
   const router = useRouter();
 
-  // UseEffect for loading modules and setting mounted state
   useEffect(() => {
     setHasMounted(true);
 
@@ -49,7 +52,6 @@ const Create = () => {
     return () => controller.abort();
   }, []);
 
-  // Submit handler for page creation
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -72,48 +74,32 @@ const Create = () => {
     setLoading(false);
   };
 
-  // Add a module to selectedModules
-  const addModule = useCallback(
-    (module: ModuleItem) => {
-      if (!selectedModules.find((m) => m._id === module._id)) {
-        setSelectedModules((prev) => [...prev, module]);
-      }
-    },
-    [selectedModules]
-  );
+  const addModule = useCallback((module: ModuleItem) => {
+    if (!selectedModules.find((m) => m._id === module._id)) {
+      setSelectedModules((prev) => [...prev, module]);
+    }
+  }, [selectedModules]);
 
-  // Remove a module from selectedModules
-  const removeModule = useCallback(
-    (moduleId: string) => {
-      setSelectedModules((prev) => prev.filter((mod) => mod._id !== moduleId));
-    },
-    [selectedModules]
-  );
+  const removeModule = useCallback((moduleId: string) => {
+    setSelectedModules((prev) => prev.filter((mod) => mod._id !== moduleId));
+  }, [selectedModules]);
 
-  // Move a module in selectedModules
-  const moveModule = useCallback(
-    (fromIndex: number, toIndex: number) => {
-      const updatedModules = [...selectedModules];
-      const [movedModule] = updatedModules.splice(fromIndex, 1);
-      updatedModules.splice(toIndex, 0, movedModule);
-      setSelectedModules(updatedModules);
-    },
-    [selectedModules]
-  );
-
-  // Set mounted state to true after initial render
+  const moveModule = useCallback((fromIndex: number, toIndex: number) => {
+    const updatedModules = [...selectedModules];
+    const [movedModule] = updatedModules.splice(fromIndex, 1);
+    updatedModules.splice(toIndex, 0, movedModule);
+    setSelectedModules(updatedModules);
+  }, [selectedModules]);
   useEffect(() => {
     setHasMounted(true);
   }, []);
-
-  // Prevent rendering on first mount
+  
   if (!hasMounted) return null;
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-4">
       <h1 className="text-2xl font-bold">Create New Page</h1>
 
-      {/* Page Title Input */}
       <input
         type="text"
         placeholder="Page Title"
@@ -122,7 +108,6 @@ const Create = () => {
         className="border px-4 py-2 w-full rounded"
       />
 
-      {/* CustomEditor Component */}
       <CustomEditor
         value={description}
         onChange={(newDescription) => setDescription(newDescription)}
@@ -162,7 +147,6 @@ const Create = () => {
         </div>
       </DndProvider>
 
-      {/* Submit Button */}
       <button
         onClick={handleSubmit}
         disabled={loading}
