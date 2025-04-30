@@ -12,7 +12,8 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 // Dynamically import client-only components
 const CustomEditor = dynamic(() => import('@/components/editor/editor'), {
   ssr: false,
-});const DraggableModule = dynamic(() => import('@/components/editor/DraggableComponent'), { ssr: false });
+});
+const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
 
 interface ModuleItem {
   _id: string;
