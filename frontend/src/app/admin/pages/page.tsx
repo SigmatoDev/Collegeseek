@@ -1,5 +1,4 @@
 import AdminLayout from "@/components/admin/adminLayout";
-import Create from "./create";
 import CreatePage from "./cp";
 import Pages from "./cp";
 
