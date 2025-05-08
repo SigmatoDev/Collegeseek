@@ -33,7 +33,7 @@ export default function BlogList() {
   }, []);
 
   return (
-    <section className="container-1 mx-auto px-4 sm:px-6 py-[70px] bg-blue-50">
+    <section className="container-1 mx-auto px-4 sm:px-6 py-[70px] bg-white">
       <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-8">
         College Blog & News
       </h2>

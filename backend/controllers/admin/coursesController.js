@@ -3,18 +3,23 @@ const slugify = require("slugify"); // <-- Add this
 const Course = require("../../models/admin/courseModel");
 const College = require("../../models/admin/collegemodel");
 const CoursesList = require("../../models/admin/coursesList"); // Adjust path if necessary
+const ProgramMode = require("../../models/admin/programMode"); // Adjust path if necessary
 
 
 // Get all courses
 const getCourse = async (req, res) => {
   try {
-    const courses = await Course.find().populate("category", "name"); // Only populate the name field
+    const courses = await Course.find()
+      .populate("category", "name") // Populate the category name field
+      .populate("programMode", "name"); // Populate the programMode name field
+
     res.json(courses);
   } catch (error) {
     console.error("Error fetching courses:", error);
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+
 
 const getCourses = async (req, res) => {
   try {
@@ -62,12 +67,59 @@ const getCourseById = async (req, res) => {
 };
 
 // Create a new course
+// const createCourse = async (req, res) => {
+//   console.log("create course", req.body);
+//   try {
+//     let { college_id, category, name, ...courseData } = req.body;
+
+//     // Validate or find college ObjectId
+//     if (!mongoose.Types.ObjectId.isValid(college_id)) {
+//       const college = await College.findOne({ name: college_id });
+//       if (!college) {
+//         return res.status(400).json({ message: "College not found" });
+//       }
+//       college_id = college._id;
+//     }
+
+//     // Find category ObjectId from name
+//     const courseCategory = await CoursesList.findOne({ name: category });
+//     if (!courseCategory) {
+//       return res.status(400).json({ message: "Category not found" });
+//     }
+
+//     let slug = slugify(name, { lower: true, strict: true });
+
+//     // Check for duplicate slug and modify it if necessary
+//     let existingCourse = await Course.findOne({ slug });
+//     let counter = 1;
+//     while (existingCourse) {
+//       slug = `${slugify(name, { lower: true, strict: true })}-${counter}`;
+//       existingCourse = await Course.findOne({ slug });
+//       counter++;
+//     }
+
+//     const imageUrl = req.file ? `/uploads/courses/${req.file.filename}` : null;
+
+//     const newCourse = new Course({
+//       ...courseData,
+//       name,
+//       slug,
+//       college_id,
+//       category: courseCategory._id,
+//       image: imageUrl, // <-- save image path
+//     });
+
+//     await newCourse.save();
+//     res.status(201).json(newCourse);
+//   } catch (error) {
+//     console.error("Error creating course:", error);
+//     res.status(500).json({ message: "Failed to create course" });
+//   }
+// };
 const createCourse = async (req, res) => {
-  console.log("create course", req.body);
   try {
     let { college_id, category, name, ...courseData } = req.body;
 
-    // Validate or find college ObjectId
     if (!mongoose.Types.ObjectId.isValid(college_id)) {
       const college = await College.findOne({ name: college_id });
       if (!college) {
@@ -76,7 +128,6 @@ const createCourse = async (req, res) => {
       college_id = college._id;
     }
 
-    // Find category ObjectId from name
     const courseCategory = await CoursesList.findOne({ name: category });
     if (!courseCategory) {
       return res.status(400).json({ message: "Category not found" });
@@ -84,7 +135,6 @@ const createCourse = async (req, res) => {
 
     let slug = slugify(name, { lower: true, strict: true });
 
-    // Check for duplicate slug and modify it if necessary
     let existingCourse = await Course.findOne({ slug });
     let counter = 1;
     while (existingCourse) {
@@ -96,12 +146,12 @@ const createCourse = async (req, res) => {
     const imageUrl = req.file ? `/uploads/courses/${req.file.filename}` : null;
 
     const newCourse = new Course({
-      ...courseData,
+      ...courseData, // includes programMode if in body
       name,
       slug,
       college_id,
       category: courseCategory._id,
-      image: imageUrl, // <-- save image path
+      image: imageUrl,
     });
 
     await newCourse.save();
@@ -115,32 +165,93 @@ const createCourse = async (req, res) => {
 
 
 // Update a course
+// const updateCourse = async (req, res) => {
+//   try {
+//     let { name, college_id, category, ...rest } = req.body;
+
+//     // Regenerate slug if name changes
+//     if (name) {
+//       req.body.slug = slugify(name, { lower: true, strict: true });
+//     }
+
+//     // Handle nested college_id object (e.g., from frontend dropdown or populated course)
+//     if (college_id && typeof college_id === 'object') {
+//       college_id = college_id._id;
+//     }
+
+//     // If college_id is not valid ObjectId, try to fetch it by name
+//     if (college_id && !mongoose.Types.ObjectId.isValid(college_id)) {
+//       const college = await College.findOne({ name: college_id });
+//       if (!college) return res.status(400).json({ message: "College not found" });
+//       college_id = college._id;
+//     }
+
+//     // If category is a name, convert it to ObjectId
+//     if (category && typeof category !== 'object' && !mongoose.Types.ObjectId.isValid(category)) {
+//       const courseCategory = await CoursesList.findOne({ name: category });
+//       if (!courseCategory) return res.status(400).json({ message: "Category not found" });
+//       category = courseCategory._id;
+//     }
+
+//     const updatedCourse = await Course.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         ...rest,
+//         ...(name && { name }),
+//         ...(college_id && { college_id }),
+//         ...(category && { category }),
+//         ...(req.body.slug && { slug: req.body.slug }),
+//       },
+//       { new: true }
+//     );
+
+//     if (!updatedCourse) return res.status(404).json({ message: "Course not found" });
+
+//     res.json(updatedCourse);
+//   } catch (error) {
+//     console.error("Error updating course:", error);
+//     res.status(500).json({ message: "Failed to update course" });
+//   }
+// };
+
+
 const updateCourse = async (req, res) => {
   try {
-    let { name, college_id, category, ...rest } = req.body;
+
+    let { name, college_id, category, programMode, ...rest } = req.body;
 
     // Regenerate slug if name changes
     if (name) {
       req.body.slug = slugify(name, { lower: true, strict: true });
+      console.log("Generated slug:", req.body.slug);
     }
 
-    // Handle nested college_id object (e.g., from frontend dropdown or populated course)
+    // Normalize college_id
     if (college_id && typeof college_id === 'object') {
       college_id = college_id._id;
     }
 
-    // If college_id is not valid ObjectId, try to fetch it by name
     if (college_id && !mongoose.Types.ObjectId.isValid(college_id)) {
       const college = await College.findOne({ name: college_id });
+      console.log("Resolved college by name:", college);
       if (!college) return res.status(400).json({ message: "College not found" });
       college_id = college._id;
     }
 
-    // If category is a name, convert it to ObjectId
+    // Normalize category
     if (category && typeof category !== 'object' && !mongoose.Types.ObjectId.isValid(category)) {
       const courseCategory = await CoursesList.findOne({ name: category });
+      console.log("Resolved category by name:", courseCategory);
       if (!courseCategory) return res.status(400).json({ message: "Category not found" });
       category = courseCategory._id;
+    }
+
+    // Normalize programMode
+    if (programMode && typeof programMode !== 'object' && !mongoose.Types.ObjectId.isValid(programMode)) {
+      const programModeDoc = await ProgramMode.findOne({ name: programMode });
+      console.log("Resolved programMode by name:", programModeDoc);
+      if (!programModeDoc) return res.status(400).json({ message: "Program mode not found" });
+      programMode = programModeDoc._id;
     }
 
     const updatedCourse = await Course.findByIdAndUpdate(
@@ -150,6 +261,7 @@ const updateCourse = async (req, res) => {
         ...(name && { name }),
         ...(college_id && { college_id }),
         ...(category && { category }),
+        ...(programMode && { programMode }),
         ...(req.body.slug && { slug: req.body.slug }),
       },
       { new: true }
@@ -157,6 +269,7 @@ const updateCourse = async (req, res) => {
 
     if (!updatedCourse) return res.status(404).json({ message: "Course not found" });
 
+    console.log("Updated course successfully:", updatedCourse);
     res.json(updatedCourse);
   } catch (error) {
     console.error("Error updating course:", error);

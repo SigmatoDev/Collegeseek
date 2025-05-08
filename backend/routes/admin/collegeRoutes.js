@@ -12,6 +12,8 @@ const {
   deleteCollege,
   getCollegeBySlug,
   getCollege,
+  getallColleges,
+  getFeaturedColleges,
 } = require("../../controllers/admin/collegeController");
 
 const router = express.Router();
@@ -54,11 +56,14 @@ const uploadHandler = (req, res, next) => {
 // ✅ Routes
 router.get("/colleges", getColleges);
 router.get("/f/college", getCollege);
+router.get("/get/colleges/", getallColleges),
 router.get("/colleges/:id", getCollegeById);
 router.post("/colleges", uploadHandler, createCollege);
 router.put("/colleges/:id", uploadHandler, updateCollege);
 router.delete("/colleges/:id", deleteCollege);
 router.get("/college/:slug", getCollegeBySlug);
+router.get('/featured', getFeaturedColleges);
+
 
 
 module.exports = router;

@@ -9,7 +9,8 @@ export interface Course {
   college_id: string;
   category: string;
   duration: string;
-  mode: string;
+  // mode: string;
+  programMode: string;
   fees: { amount: number; currency: string; year: number };
   eligibility: string;
   application_dates: { start_date: string; end_date: string };

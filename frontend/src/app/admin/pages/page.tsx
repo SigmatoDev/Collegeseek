@@ -1,5 +1,7 @@
 import AdminLayout from "@/components/admin/adminLayout";
 import Create from "./create";
+import CreatePage from "./cp";
+import Pages from "./cp";
 
 
 const AdminCreatePage = () => {
@@ -7,7 +9,7 @@ const AdminCreatePage = () => {
     <AdminLayout>
       <div>
         {/* <h1 className="text-2xl font-bold mb-4">Manage Courses</h1> */}
-        <Create />
+        <Pages />
       </div>
     </AdminLayout>
   );

@@ -2,36 +2,37 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const Editor2 = () => {
+interface Editor2Props {
+  value: string;
+  onChange: (newValue: string) => void;
+}
+
+const Editor2 = ({ value, onChange }: Editor2Props) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState<number>(-1);
-  const [isClient, setIsClient] = useState<boolean>(false); // To track client-side rendering
+  const [isClient, setIsClient] = useState<boolean>(false);
 
   useEffect(() => {
-    // Set isClient to true once component is mounted (client-side)
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    // Save history when the component mounts on the client-side
     if (isClient && editorRef.current) {
+      editorRef.current.innerHTML = value;
       saveHistory();
     }
   }, [isClient]);
 
   const format = (command: string, value?: string) => {
     document.execCommand(command, false, value);
-    saveHistory();
-  };
-
-  const formatBlock = (block: string) => {
-    document.execCommand('formatBlock', false, block);
+    syncContent();
     saveHistory();
   };
 
   const setFontSize = (size: string) => {
     document.execCommand('fontSize', false, size);
+    syncContent();
     saveHistory();
   };
 
@@ -42,6 +43,7 @@ const Editor2 = () => {
     span.style.fontFamily = font;
     span.innerHTML = selection.toString();
     replaceSelectionWithHtml(span.outerHTML);
+    syncContent();
     saveHistory();
   };
 
@@ -49,12 +51,14 @@ const Editor2 = () => {
     const url = prompt('Enter URL:');
     if (url) {
       document.execCommand('createLink', false, url);
+      syncContent();
       saveHistory();
     }
   };
 
   const removeLink = () => {
     document.execCommand('unlink', false);
+    syncContent();
     saveHistory();
   };
 
@@ -62,6 +66,7 @@ const Editor2 = () => {
     const url = prompt('Enter Image URL:');
     if (url) {
       document.execCommand('insertImage', false, url);
+      syncContent();
       saveHistory();
     }
   };
@@ -70,6 +75,7 @@ const Editor2 = () => {
     const emoji = prompt('Enter Emoji (😊, ❤️, 👍):');
     if (emoji) {
       document.execCommand('insertText', false, emoji);
+      syncContent();
       saveHistory();
     }
   };
@@ -79,6 +85,7 @@ const Editor2 = () => {
     if (code) {
       const codeHtml = `<pre><code>${code}</code></pre><br>`;
       replaceSelectionWithHtml(codeHtml);
+      syncContent();
       saveHistory();
     }
   };
@@ -90,58 +97,36 @@ const Editor2 = () => {
           <tr>
             <th style="border: 1px solid gray;">Column 1</th>
             <th style="border: 1px solid gray;">Column 2</th>
-            <th style="border: 1px solid gray;">Column 3</th> <!-- Added column -->
+            <th style="border: 1px solid gray;">Column 3</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td style="border: 1px solid gray;">Row 1 Col 1</td>
             <td style="border: 1px solid gray;">Row 1 Col 2</td>
-            <td style="border: 1px solid gray;">Row 1 Col 3</td> <!-- Added row data -->
+            <td style="border: 1px solid gray;">Row 1 Col 3</td>
           </tr>
           <tr>
             <td style="border: 1px solid gray;">Row 2 Col 1</td>
             <td style="border: 1px solid gray;">Row 2 Col 2</td>
-            <td style="border: 1px solid gray;">Row 2 Col 3</td> <!-- Added row data -->
+            <td style="border: 1px solid gray;">Row 2 Col 3</td>
           </tr>
         </tbody>
       </table><br>`;
-  
     replaceSelectionWithHtml(tableHtml);
+    syncContent();
     saveHistory();
   };
 
   const insertUnorderedList = () => {
-    const selection = window.getSelection();
-    if (!selection) return;
-
-    const range = selection.getRangeAt(0);
-    const ul = document.createElement('ul');
-    const li = document.createElement('li');
-    
-    li.textContent = selection.toString() || 'New list item';
-    ul.appendChild(li);
-
-    range.deleteContents();
-    range.insertNode(ul);
-
+    document.execCommand('insertUnorderedList');
+    syncContent();
     saveHistory();
   };
 
   const insertOrderedList = () => {
-    const selection = window.getSelection();
-    if (!selection) return;
-
-    const range = selection.getRangeAt(0);
-    const ol = document.createElement('ol');
-    const li = document.createElement('li');
-    
-    li.textContent = selection.toString() || 'New ordered item';
-    ol.appendChild(li);
-
-    range.deleteContents();
-    range.insertNode(ol);
-
+    document.execCommand('insertOrderedList');
+    syncContent();
     saveHistory();
   };
 
@@ -172,6 +157,7 @@ const Editor2 = () => {
       setHistoryStep(prev => {
         if (editorRef.current) {
           editorRef.current.innerHTML = history[prev - 1];
+          syncContent();
         }
         return prev - 1;
       });
@@ -183,6 +169,7 @@ const Editor2 = () => {
       setHistoryStep(prev => {
         if (editorRef.current) {
           editorRef.current.innerHTML = history[prev + 1];
+          syncContent();
         }
         return prev + 1;
       });
@@ -199,7 +186,7 @@ const Editor2 = () => {
         reader.onload = (event) => {
           const img = document.createElement('img');
           img.src = event.target?.result as string;
-          img.style.maxWidth = '100%'; 
+          img.style.maxWidth = '100%';
           img.style.height = 'auto';
           insertImageToEditor(img);
         };
@@ -218,10 +205,32 @@ const Editor2 = () => {
     const range = selection.getRangeAt(0);
     range.deleteContents();
     range.insertNode(img);
+    syncContent();
     saveHistory();
   };
 
-  if (!isClient) return null; // Render nothing until mounted on the client-side
+  const handleHeadingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedHeading = e.target.value;
+    if (editorRef.current) {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString();
+      const headingHtml = `<${selectedHeading}>${selectedText}</${selectedHeading}>`;
+      range.deleteContents();
+      range.insertNode(document.createRange().createContextualFragment(headingHtml));
+      syncContent();
+      saveHistory();
+    }
+  };
+
+  const syncContent = () => {
+    if (editorRef.current) {
+      onChange(editorRef.current.innerHTML);
+    }
+  };
+
+  if (!isClient) return null;
 
   return (
     <div className="editor-container">
@@ -234,7 +243,7 @@ const Editor2 = () => {
         <button onClick={() => format('superscript')}>x²</button>
         <button onClick={() => format('subscript')}>x₂</button>
 
-        <select onChange={(e) => formatBlock(e.target.value)}>
+        <select onChange={handleHeadingChange}>
           <option value="p">Normal</option>
           <option value="h1">Heading 1</option>
           <option value="h2">Heading 2</option>
@@ -284,6 +293,7 @@ const Editor2 = () => {
         suppressContentEditableWarning
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onInput={syncContent}
       >
         <p>Start typing here...</p>
       </div>

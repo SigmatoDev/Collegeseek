@@ -6,6 +6,7 @@ import axios from "axios";
 import { api_url } from "@/utils/apiCall";
 import { College, Course } from "@/components/model/models";
 import { Loader } from "lucide-react";
+import ProgramModeDropdown from "@/components/programMode/page";
 
 const CourseForm = () => {
   const [isClient, setIsClient] = useState(false);
@@ -21,6 +22,7 @@ const ActualCourseForm = () => {
   const [courseList, setCourseList] = useState<{ name: string }[]>([]);
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedProgramMode, setSelectedProgramMode] = useState("");
 
   const [course, setCourse] = useState<Course>({
     name: "",
@@ -28,7 +30,8 @@ const ActualCourseForm = () => {
     college_id: "",
     category: "B.Tech",
     duration: "",
-    mode: "Full-Time",
+    // mode: "Full-Time",
+    programMode: "",
     fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
     eligibility: "",
     application_dates: { start_date: "", end_date: "" },
@@ -42,7 +45,7 @@ const ActualCourseForm = () => {
 
   useEffect(() => {
     axios
-      .get(`${api_url}f/college`)
+      .get(`${api_url}get/colleges`)
       .then((res) => setColleges(res.data.data || []))
       .catch((err) => console.error("Error fetching colleges:", err));
   }, []);
@@ -62,9 +65,13 @@ const ActualCourseForm = () => {
 
   useEffect(() => {
     if (courseId && courseId !== "new") {
+      console.log(`Fetching course with ID: ${courseId}`);
       axios
         .get(`${api_url}courses/${courseId}`)
-        .then((res) => setCourse(res.data || {}))
+        .then((res) => {
+          setCourse(res.data || {});
+          console.log("Course data fetched:", res.data);
+        })
         .catch((err) => console.error("Error fetching course:", err));
     }
   }, [courseId]);
@@ -103,8 +110,6 @@ const ActualCourseForm = () => {
     [router]
   );
 
-  
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -130,6 +135,10 @@ const ActualCourseForm = () => {
       setLoading(false);
     }
   };
+  const handleProgramModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedProgramMode(e.target.value);
+    setCourse((prev) => ({ ...prev, programMode: e.target.value }));
+  };
 
   return (
     <form
@@ -141,61 +150,106 @@ const ActualCourseForm = () => {
       </h1>
 
       <div className="grid grid-cols-2 gap-4">
-        <input
-          name="name"
-          placeholder="Course Name"
-          value={course.name ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
-       <select
-  name="college_id"
-  value={course.college_id ?? ""}
-  onChange={handleChange}
-  className="p-2 border rounded"
->
-  <option value="">Select College</option>
-  {colleges.map(({ _id, name }) => (
-    <option key={_id} value={_id}>
-      {name}
-    </option>
-  ))}
-</select>
+        <div className="mb-4">
+          <label
+            htmlFor="name"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Course Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            placeholder="Course Name"
+            value={course.name ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+        </div>
 
+        <div className="mb-4">
+          <label
+            htmlFor="college_id"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Select College
+          </label>
+          <select
+            id="college_id"
+            name="college_id"
+            value={course.college_id ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+          >
+            <option value="">Select College</option>
+            {colleges.map(({ _id, name }) => (
+              <option key={_id} value={_id}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <label
+          htmlFor="description"
+          className="block text-sm mt-[-20px] font-semibold text-gray-700"
+        >
+          Description
+        </label>
         <textarea
+          id="description"
           name="description"
           placeholder="Description"
           value={course.description ?? ""}
           onChange={handleChange}
-          className="p-2 border rounded col-span-2"
+          className="p-2 border rounded col-span-2 w-full mt-[-10px]"
           rows={3}
           required
         />
 
-        <select
-          name="category"
-          value={course.category}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        >
-          <option value="">Select Degree</option>
-          {courseList.map((cat) => (
-            <option key={cat.name} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+        <div className="mb-4">
+          <label
+            htmlFor="category"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Degree
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={course.category ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+          >
+            <option value="">Select Degree</option>
+            {courseList.map((cat) => (
+              <option key={cat.name} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <input
-          name="duration"
-          placeholder="Duration"
-          value={course.duration ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
-        <select
+        <div className="mb-4">
+          <label
+            htmlFor="duration"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Duration
+          </label>
+          <input
+            id="duration"
+            name="duration"
+            placeholder="Duration"
+            value={course.duration ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+        </div>
+        
+        {/* <select
           name="mode"
           value={course.mode ?? ""}
           onChange={handleChange}
@@ -206,84 +260,126 @@ const ActualCourseForm = () => {
               {mode}
             </option>
           ))}
-        </select>
+        </select> */}
+        <ProgramModeDropdown
+          name="programMode"
+          // value={selectedProgramMode}
+          value={course.programMode ?? ""}
+          onChange={handleProgramModeChange}
+          label="Program Mode"
+        />
 
-        <input
-          name="eligibility"
-          placeholder="Eligibility"
-          value={course.eligibility ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
-        <input
-          name="enrollmentLink"
-          placeholder="Enrollment Link"
-          value={course.enrollmentLink ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-          required
-        />
-        <input
-          name="brochure_link"
-          placeholder="Brochure Link"
-          value={course.brochure_link ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        />
-      </div>
-
-      <Section title="Fees" cols={3}>
-        <input
-          type="number"
-          name="amount"
-          placeholder="Amount"
-          value={course?.fees?.amount ?? ""}
-          onChange={(e) => handleNestedChange(e, "fees")}
-          className="p-2 border rounded"
-          required
-        />
-        <select
-          name="currency"
-          value={course.fees.currency ?? ""}
-          onChange={(e) => handleNestedChange(e, "fees")}
-          className="p-2 border rounded"
-        >
-          <option value="INR">INR</option>
-          <option value="USD">USD</option>
-        </select>
-        <input
-          type="number"
-          name="year"
-          placeholder="Year"
-          value={course.fees.year ?? ""}
-          onChange={(e) => handleNestedChange(e, "fees")}
-          className="p-2 border rounded"
-          required
-        />
-      </Section>
-      <Section title="Application Dates" cols={2}>
-        {["start_date", "end_date"].map((date) => (
+        <div className="mb-4">
+          <label
+            htmlFor="eligibility"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Eligibility
+          </label>
           <input
-            key={date}
-            type="date"
-            name={date}
-            value={
-              course?.application_dates?.[
-                date as keyof typeof course.application_dates
-              ]?.split("T")[0] || ""
-            }
-            onChange={(e) => handleNestedChange(e, "application_dates")}
+            id="eligibility"
+            name="eligibility"
+            placeholder="Eligibility"
+            value={course.eligibility ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full mt-2"
+            required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="enrollmentLink"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Enrollment Link
+          </label>
+          <input
+            id="enrollmentLink"
+            name="enrollmentLink"
+            placeholder="Enrollment Link"
+            value={course.enrollmentLink ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label
+            htmlFor="brochure_link"
+            className="mb-1 font-semibold text-sm text-gray-700"
+          >
+            Brochure Link
+          </label>
+          <input
+            id="brochure_link"
+            name="brochure_link"
+            placeholder="Brochure Link"
+            value={course.brochure_link ?? ""}
+            onChange={handleChange}
             className="p-2 border rounded"
           />
-        ))}
+        </div>
+      </div>
+
+      <Section title="Course Fees" cols={3}>
+        <div className="flex space-x-4 mt-2">
+          <div className="flex flex-col w-1/3">
+            <label htmlFor="amount" className="mb-1">
+              Amount
+            </label>
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              placeholder="Amount"
+              value={course?.fees?.amount ?? ""}
+              onChange={(e) => handleNestedChange(e, "fees")}
+              className="p-2 border rounded"
+              required
+            />
+          </div>
+
+          <div className="flex flex-col w-1/3">
+            <label htmlFor="currency" className="mb-1">
+              Currency
+            </label>
+            <select
+              id="currency"
+              name="currency"
+              value={course.fees.currency ?? ""}
+              onChange={(e) => handleNestedChange(e, "fees")}
+              className="p-2 border rounded"
+            >
+              <option value="INR">INR</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col w-1/3">
+            <label htmlFor="year" className="mb-1">
+              Year
+            </label>
+            <input
+              type="number"
+              id="year"
+              name="year"
+              placeholder="Year"
+              value={course.fees.year ?? ""}
+              onChange={(e) => handleNestedChange(e, "fees")}
+              className="p-2 border rounded"
+              required
+            />
+          </div>
+        </div>
       </Section>
 
       <Section title="Ratings" cols={2}>
         <div className="flex flex-col">
           <label
             htmlFor="score"
-            className="mb-1 font-medium text-sm text-gray-700"
+            className="mb-1 font-semibold text-sm text-gray-700"
           >
             Score (0–5)
           </label>
@@ -303,7 +399,7 @@ const ActualCourseForm = () => {
         <div className="flex flex-col">
           <label
             htmlFor="reviews_count"
-            className="mb-1 font-medium text-sm text-gray-700"
+            className="mb-1 font-semibold text-sm text-gray-700"
           >
             Reviews Count
           </label>
@@ -320,44 +416,46 @@ const ActualCourseForm = () => {
       </Section>
 
       <Section title="Placements" cols={3}>
-        <div className="flex flex-col">
-          <label
-            htmlFor="median_salary"
-            className="mb-1 font-medium text-sm text-gray-700"
-          >
-            Median Salary
-          </label>
-          <input
-            id="median_salary"
-            type="number"
-            name="median_salary"
-            placeholder="Enter Median Salary"
-            value={course.placements.median_salary ?? ""}
-            onChange={(e) => handleNestedChange(e, "placements")}
-            className="p-2 border rounded"
-          />
-        </div>
+        <div className="flex space-x-4">
+          <div className="flex flex-col w-1/2">
+            <label
+              htmlFor="median_salary"
+              className="mb-1 font-semibold text-sm text-gray-700"
+            >
+              Median Salary
+            </label>
+            <input
+              id="median_salary"
+              type="number"
+              name="median_salary"
+              placeholder="Enter Median Salary"
+              value={course.placements.median_salary ?? ""}
+              onChange={(e) => handleNestedChange(e, "placements")}
+              className="p-2 border rounded"
+            />
+          </div>
 
-        <div className="flex flex-col">
-          <label
-            htmlFor="placement_rate"
-            className="mb-1 font-medium text-sm text-gray-700"
-          >
-            Placement Rate (%)
-          </label>
-          <input
-            id="placement_rate"
-            type="number"
-            name="placement_rate"
-            placeholder="Enter Placement Rate (%)"
-            value={course.placements.placement_rate ?? ""}
-            onChange={(e) => handleNestedChange(e, "placements")}
-            className="p-2 border rounded"
-          />
+          <div className="flex flex-col w-1/2">
+            <label
+              htmlFor="placement_rate"
+              className="mb-1 font-semibold text-sm text-gray-700"
+            >
+              Placement Rate (%)
+            </label>
+            <input
+              id="placement_rate"
+              type="number"
+              name="placement_rate"
+              placeholder="Enter Placement Rate (%)"
+              value={course.placements.placement_rate ?? ""}
+              onChange={(e) => handleNestedChange(e, "placements")}
+              className="p-2 border rounded"
+            />
+          </div>
         </div>
       </Section>
 
-      <label className="block font-medium mt-4">Entrance Exam</label>
+      <label className="block font-semibold mt-4">Entrance Exam</label>
       <input
         name="entrance_exam"
         value={course.entrance_exam ?? ""}
@@ -366,31 +464,33 @@ const ActualCourseForm = () => {
         className="p-2 border rounded w-full"
       />
       <Section title="Intake Capacity" cols={3}>
-        {["male", "female", "total"].map((field) => (
-          <div key={field} className="flex flex-col">
-            <label
-              htmlFor={field}
-              className="mb-1 font-medium text-sm text-gray-700"
-            >
-              {field.charAt(0).toUpperCase() + field.slice(1)}
-            </label>
-            <input
-              id={field}
-              type="number"
-              name={field}
-              placeholder={`Enter ${
-                field.charAt(0).toUpperCase() + field.slice(1)
-              } Intake`}
-              value={
-                course?.intake_capacity?.[
-                  field as keyof typeof course.intake_capacity
-                ] ?? ""
-              }
-              onChange={(e) => handleNestedChange(e, "intake_capacity")}
-              className="p-2 border rounded"
-            />
-          </div>
-        ))}
+        <div className="flex space-x-4">
+          {["male", "female", "total"].map((field) => (
+            <div key={field} className="flex flex-col w-1/3">
+              <label
+                htmlFor={field}
+                className="mb-1 font-semibold text-sm text-gray-700"
+              >
+                {field.charAt(0).toUpperCase() + field.slice(1)}
+              </label>
+              <input
+                id={field}
+                type="number"
+                name={field}
+                placeholder={`Enter ${
+                  field.charAt(0).toUpperCase() + field.slice(1)
+                } Intake`}
+                value={
+                  course?.intake_capacity?.[
+                    field as keyof typeof course.intake_capacity
+                  ] ?? ""
+                }
+                onChange={(e) => handleNestedChange(e, "intake_capacity")}
+                className="p-2 border rounded"
+              />
+            </div>
+          ))}
+        </div>
       </Section>
 
       <button

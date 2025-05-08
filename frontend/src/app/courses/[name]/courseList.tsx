@@ -13,8 +13,10 @@ interface Course {
   fees: { amount: number; currency: string };
   eligibility: string;
   category: { name: string };
+  programMode: { name: string }; // ✅ updated type
+
   duration: string;
-  mode: string;
+  // mode: string;
   enrollmentLink: string;
 }
 
@@ -126,9 +128,12 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses, filters, totalPage
                         </span>
                       </div>
 
-                      <span className="inline-block mt-2 bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                      {/* <span className="inline-block mt-2 bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
                         {course.mode}
-                      </span>
+                      </span> */}
+                      <span className="inline-block bg-green-100 text-green-700 mt-4 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+  {course.programMode?.name || "N/A"}
+</span>
                     </td>
                     <td className="px-6 py-5 border-b border-gray-200 whitespace-nowrap">
                       {course.eligibility}

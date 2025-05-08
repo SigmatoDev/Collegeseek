@@ -17,6 +17,11 @@ const collegeSchema = new mongoose.Schema(
     // ✅ Location Details
     state: { type: String, required: true, trim: true, index: true },
     city: { type: String, required: true, trim: true, index: true },
+    stream: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Stream' }],  // Ensure this is an array of ObjectIds
+    approvel: [{ type: mongoose.Schema.Types.ObjectId, ref: "Approval", required: true }],
+    affiliatedby: { type: mongoose.Schema.Types.ObjectId, ref: "AffiliatedBy", required: true},    
+    examExpected: [{ type: mongoose.Schema.Types.ObjectId, ref: "ExamsAccepted", required: true }],
+    ownership: { type: mongoose.Schema.Types.ObjectId, ref: "Ownership", required: true},    
     address: { type: String, required: true, trim: true },
     location: { type: String, required: false, trim: true },
 
@@ -43,32 +48,34 @@ const collegeSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      // validate: {
-      //   validator: (v) =>
-      //     /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./]*)?$/.test(v),
-      //   message: (props) => `${props.value} is not a valid URL.`,
-      // },
+      validate: {
+        validator: (v) =>
+          /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./]*)?$/.test(v),
+        message: (props) => `${props.value} is not a valid URL.`,
+      },
     },
     contact: {
       type: String,
       required: true,
       trim: true,
-      // validate: {
-      //   validator: (v) => /^(\+?\d{10,15})$/.test(v),
-      //   message: "Invalid contact number. Use 10-15 digits only.",
-      // },
+      validate: {
+        validator: (v) => /^(\+?\d{10,15})$/.test(v),
+        message: "Invalid contact number. Use 10-15 digits only.",
+      },
     },
+    
     contactEmail: {
       type: String,
       required: true,
       unique: true,
       trim: true,
       lowercase: false,
-      // validate: {
-      //   validator: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-      //   message: "Invalid email address format.",
-      // },
+      validate: {
+        validator: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+        message: "Invalid email address format.",
+      },
     },
+    featured: { type: Boolean, default: false },  // Add the featured field here
     image: { type: String, default: "" },
     imageGallery: { type: [String], default: [] },
   },

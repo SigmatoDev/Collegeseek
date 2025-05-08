@@ -26,7 +26,11 @@ const CourseSchema = new mongoose.Schema(
     mode: {
       type: String,
       enum: ["Full-Time", "Part-Time", "Online"],
-      required: true
+    },
+    programMode: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ProgramMode",
+      required: true,
     },
     duration: {
       type: String,

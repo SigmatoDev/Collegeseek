@@ -31,6 +31,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 
+
+
 // Connect to MongoDB
 connectDB();
 
@@ -60,10 +62,12 @@ app.use("/api", require("./routes/admin/privacyPolicyRoutes"));
 app.use("/api", require("./routes/admin/importCollegeRoute"));
 app.use("/api", require("./routes/admin/moduleRoutes"));
 app.use("/api", require("./routes/admin/pageRoutes"));
-
-
-
-
+app.use("/api", require("./routes/admin/approvelsRoutes"));
+app.use("/api", require("./routes/admin/affiliatedByRoutes"));
+app.use("/api", require("./routes/admin/examExpectedRoutes"));
+app.use("/api", require("./routes/admin/ownershipRoutes"));
+app.use("/api", require("./routes/admin/streamsRoutes"));
+app.use("/api", require("./routes/admin/programModeRoutes"));
 
 
 // Start the server

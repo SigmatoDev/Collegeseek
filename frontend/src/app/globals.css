@@ -61,6 +61,15 @@ body {
   overflow-y: auto;
   background: #fff;
 }
+.editor-content ul {
+  list-style-type: disc; /* or custom */
+  padding-left: 1.5em;
+}
+
+.editor-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
 
 @keyframes marquee {
   0% {

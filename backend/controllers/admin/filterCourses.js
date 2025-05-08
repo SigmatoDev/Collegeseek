@@ -157,51 +157,51 @@ const getCoursesWithCommonNames = async (req, res) => {
 //     res.status(500).json({ message: "Failed to fetch courses" });
 //   }
 // };
-
 const getCourseBySameName = async (req, res) => {
   console.log("req query", req.query);
   try {
-    const { name, duration, mode } = req.query;
-    const page = parseInt(req.query.page) || 1; // Default to page 1 if no page is provided
-    const limit = parseInt(req.query.limit) || 10; // Default to 100 items per page
-    const skip = (page - 1) * limit; // Skip the appropriate number of courses based on page
+    const { name, duration, mode, page = 1, limit = 10 } = req.query;
 
-    if (!name) {
+    if (!name || name.trim() === "") {
       return res.status(400).json({ message: "Course name is required" });
     }
 
-    // Build the filter query with dynamic checks for name, duration, and mode
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Build dynamic filter query
     const filterQuery = {
-      name: { $regex: new RegExp(name, 'i') }, // Case-insensitive search for course name
-      ...(duration && { duration: duration }), // Filter by exact duration if provided
-      ...(mode && mode !== 'undefined' && mode !== 'null' && { mode: mode }), // Filter by exact mode if provided
+      name: { $regex: new RegExp(name, 'i') },
+      ...(duration && duration !== 'undefined' && { duration }),
+      ...(mode && mode !== 'undefined' && mode !== 'null' && { mode }),
     };
 
-    // Find courses by name, duration, and mode, with pagination
     const courses = await Course.find(filterQuery)
-      .populate("category", "name") // Populate category field (optional)
-      .populate("college_id", "name rank image slug") // Populate college_id with the required fields
+      .populate("category", "name")
+      .populate("programMode", "name")
+      .populate("college_id", "name rank image slug")
       .skip(skip)
-      .limit(limit);
+      .limit(limitNumber);
 
-    // Count the total number of courses that match the filter criteria
     const totalCourses = await Course.countDocuments(filterQuery);
 
     if (courses.length === 0) {
       return res.status(404).json({ message: "No courses found with these filters" });
     }
 
-    // Return filtered courses along with pagination
     res.json({
       courses,
-      totalPages: Math.ceil(totalCourses / limit),
-      currentPage: page,
+      totalPages: Math.ceil(totalCourses / limitNumber),
+      currentPage: pageNumber,
     });
+
   } catch (error) {
     console.error("Error fetching courses by name, duration, or mode:", error);
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+
 
 module.exports = { getCourseBySameName };
 

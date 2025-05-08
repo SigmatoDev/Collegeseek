@@ -18,6 +18,8 @@ import {
   Grid,
   Book,
   PhoneIcon,
+  CheckCircle,
+  Plug,
 } from "lucide-react";
 import { BookOpenIcon, ChatBubbleLeftIcon, DocumentIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 
@@ -118,9 +120,15 @@ const Sidebar = () => {
       subMenu: [
         { href: "/admin/settings", icon: <Settings size={18} />, text: "General Settings", isOpen },
         { href: "/admin/courseList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen },
+        { href: "/admin/approvels", icon: <CheckCircle size={18} />, text: "Approval List", isOpen },
+        { href: "/admin/affiliatedBy", icon: <Book size={18} />, text: "Affiliated By List", isOpen },
+        { href: "/admin/ownership", icon: <UserGroupIcon className="h-5 w-5" />, text: "Ownership", isOpen },
+        { href: "/admin/streams", icon: <Grid size={18} />, text: "Streams", isOpen },
+        { href: "/admin/programMode", icon: <Plug size={18} />, text: "Program Mode", isOpen }, // Changed icon to Plug
+        { href: "/admin/examExpected", icon: <BookOpenIcon className="h-5 w-5" />, text: "Exam Expected", isOpen },
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
         { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
-      ]
+      ],
     },
   ];
 

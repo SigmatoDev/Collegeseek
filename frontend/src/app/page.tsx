@@ -2,6 +2,7 @@
 
 import CollegeAdmissions from "@/components/admissions/page";
 import BlogList from "@/components/blogs/blogList/blogList";
+import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import HeroSection from "@/components/hero/page";
@@ -41,6 +42,7 @@ const HomePage = () => {
   "(NDA) National Defence Academy Exam"
 ]} />
       <CollegeAdmissions />
+      <FeaturedColleges/>
       <BlogList />
       <CallbackForm/>
       <PopUp />

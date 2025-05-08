@@ -41,13 +41,22 @@ const PopUp = () => {
 
   useEffect(() => {
     setMounted(true);
-
-    const isClosed = sessionStorage.getItem("registerPopupClosed");
-
-    if (!isLoggedIn && isClosed !== "true") {
-      setShowPopup(true);
-    }
+  
+    let count = 0;
+  
+    const interval = setInterval(() => {
+      if (!isLoggedIn && count < 5) {
+        setShowPopup(true);
+        count++;
+      } else if (count >= 5) {
+        clearInterval(interval);
+      }
+    }, 10000); // 10 seconds
+  
+    return () => clearInterval(interval);
   }, [isLoggedIn]);
+  
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -56,7 +65,8 @@ const PopUp = () => {
 
   const handleClose = () => {
     setShowPopup(false);
-    sessionStorage.setItem("registerPopupClosed", "true");
+    const isClosed = sessionStorage.getItem("registerPopupClosed");
+
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
