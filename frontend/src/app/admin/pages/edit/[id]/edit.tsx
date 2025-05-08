@@ -10,7 +10,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 
 // Dynamically import EditorJS tools on client side only
-const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
+// const DraggableModule = dynamic(() => import('@/components/editor/draggableComponent'), { ssr: false });
 
 let EditorJS: any;
 let Header: any;
@@ -309,7 +309,7 @@ const Edit = () => {
       
    
 
-      <DndProvider backend={HTML5Backend}>
+      {/* <DndProvider backend={HTML5Backend}>
         <div className="space-y-3">
           {selectedModules.map((mod, index) => (
             <DraggableModule
@@ -321,7 +321,7 @@ const Edit = () => {
             />
           ))}
         </div>
-      </DndProvider>
+      </DndProvider> */}
 
       <div className="pt-6">
         <button
