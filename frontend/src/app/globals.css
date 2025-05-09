@@ -88,5 +88,23 @@ body {
   animation-play-state: paused;
 }
 
+/* You can add this to your global styles */
+.Toastify__toast-container {
+  z-index: 9999 !important;
+}
 
+.toast-container {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 

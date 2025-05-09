@@ -168,13 +168,13 @@ const AdminPages = () => {
                           <PencilSquareIcon className="h-5 w-5" />
                           <span className="text-sm font-medium">Edit</span>
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => handleDelete(page._id)}
                           className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition duration-200"
                         >
                           <TrashIcon className="h-5 w-5" />
                           <span className="text-sm font-medium">Delete</span>
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>

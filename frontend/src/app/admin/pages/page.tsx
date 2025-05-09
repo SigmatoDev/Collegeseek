@@ -1,6 +1,6 @@
 import AdminLayout from "@/components/admin/adminLayout";
-import CreatePage from "./cp";
-import Pages from "./cp";
+
+import AdminPages from "./cp";
 
 
 const AdminCreatePage = () => {
@@ -8,7 +8,7 @@ const AdminCreatePage = () => {
     <AdminLayout>
       <div>
         {/* <h1 className="text-2xl font-bold mb-4">Manage Courses</h1> */}
-        <Pages />
+        <AdminPages />
       </div>
     </AdminLayout>
   );

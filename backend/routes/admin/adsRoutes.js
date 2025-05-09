@@ -1,10 +1,13 @@
-// routes/addRoutes.js
 const express = require('express');
 const router = express.Router();
-const upload = require('../../middlewares/admin/upload');
-const addController = require('../../controllers/admin/adsController');
+const { uploadImagee, getAds, updateImage } = require('../../controllers/admin/adsController');
 
-// Route to add item with image
-router.post('/add', upload.single('image'), addController.createItem);
+// POST route to upload an image ad
+router.post('/upload-ad', uploadImagee);
+router.get('/ads', getAds);
+
+// Update ad image
+router.put('/update-ad-image/:adId', updateImage);
+
 
 module.exports = router;

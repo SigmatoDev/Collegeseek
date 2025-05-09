@@ -527,7 +527,7 @@ const ActualCollegeForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* State Dropdown */}
               <div className="flex flex-col gap-2">
-                <label className="text-gray-800 font-semibold">State</label>
+                <label className="text-gray-800 font-medium">State</label>
                 <Select
                   options={states.map((state) => ({
                     value: state.name,
@@ -560,7 +560,7 @@ const ActualCollegeForm = () => {
 
               {/* City Dropdown */}
               <div className="flex flex-col gap-2">
-                <label className="text-gray-800 font-semibold">City</label>
+                <label className="text-gray-800 font-medium">City</label>
                 <Select
                   options={cities.map((city) => ({
                     value: city.name,
@@ -597,6 +597,8 @@ const ActualCollegeForm = () => {
           </div>
           <div className="flex space-x-6 items-center">
             <div className="w-full max-w-[800px]">
+            <label className="text-gray-800 font-medium">Select Streams</label>
+
               <StreamDropdown
                 onSelectionChange={(selectedStreams) => {
                   const streamNames = selectedStreams.map(
@@ -610,6 +612,8 @@ const ActualCollegeForm = () => {
               />
             </div>
             <div className="w-full max-w-[800px]">
+            <label className="text-gray-800 font-medium">Select Approval</label>
+
               <ApprovalDropdown
                 onSelectionChange={(selectedApprovels) => {
                   const approvelNames = selectedApprovels.map(
@@ -623,6 +627,10 @@ const ActualCollegeForm = () => {
               />{" "}
             </div>
           </div>
+
+          <div>
+          <label className="text-gray-800 font-medium">Select ExamExpected</label>
+
           <ExamExpectedDropdown
           
             onSelectionChange={(selectedExams) => {
@@ -635,6 +643,7 @@ const ActualCollegeForm = () => {
               }));
             }}
           />
+          </div>
           <div className="flex space-x-6 items-center">
             <div className="w-full max-w-[800px]">
               <AffiliatedByDropdown

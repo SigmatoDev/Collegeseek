@@ -9,33 +9,33 @@ const slugify = require('slugify'); // Add slugify for slug generation
 
 
 // Create uploads directory if it doesn't exist
+// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true }); // Ensure recursive creation if needed
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Configure Multer for file storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir); // Destination folder for file uploads
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9); // Unique file name
-    const ext = path.extname(file.originalname); // Get file extension
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext); // Define file name
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
   },
 });
 
-// Add file size limit (for example, 5MB)
+// Multer middleware to handle a single file with field name 'image'
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB size limit
-}).single('file'); // Accepting a single file with the field name 'file'
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+}).single('image'); // Updated field name from 'file' to 'image'
 
 // File upload route handler
 const uploadImage = (req, res) => {
   upload(req, res, function (err) {
-    // Error handling
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ success: 0, message: err.message });
     } else if (err) {
@@ -46,10 +46,13 @@ const uploadImage = (req, res) => {
       return res.status(400).json({ success: 0, message: 'No file uploaded' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`; // URL for the uploaded file
+    // Step 4: Construct the file URL
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    // Step 5: Return the file URL in the response
     return res.status(200).json({
       success: 1,
-      url: fileUrl, // Send the URL in the response
+      url: fileUrl,
     });
   });
 };
@@ -241,5 +244,5 @@ module.exports = {
   getPageById,
   updatePage,
   deletePage,
-  uploadImage, upload
+  uploadImage, 
 };

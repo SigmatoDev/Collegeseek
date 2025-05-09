@@ -103,12 +103,12 @@ const Users = () => {
                       >
                         <PencilSquareIcon className="w-4 h-4" /> Edit
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(user._id)}
                         className="bg-red-500 text-white px-3 py-2 rounded flex items-center"
                       >
                         <TrashIcon className="w-4 h-4" /> Delete
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))

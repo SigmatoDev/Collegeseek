@@ -97,7 +97,7 @@ const AdminBlogs = () => {
           <table className="table-auto w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-600">
               <tr>
-                {["Title", "Author", "Category", "Created At", "Actions"].map((header) => (
+                {["Title", "Author", "Created At", "Actions"].map((header) => (
                   <th key={header} className="px-6 py-3 text-sm font-semibold">
                     {header}
                   </th>
@@ -110,7 +110,7 @@ const AdminBlogs = () => {
                   <tr key={blog._id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm text-gray-700">{blog.title}</td>
                     <td className="px-6 py-3 text-sm text-gray-700">{blog.author}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{blog.category}</td>
+                    {/* <td className="px-6 py-3 text-sm text-gray-700">{blog.category}</td> */}
                     <td className="px-6 py-3 text-sm text-gray-700">
                       {new Date(blog.createdAt).toLocaleDateString()}
                     </td>
@@ -122,13 +122,13 @@ const AdminBlogs = () => {
                         <PencilSquareIcon className="h-5 w-5" />
                         <span>Edit</span>
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(blog._id)}
                         className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                       >
                         <TrashIcon className="h-5 w-5" />
                         <span>Delete</span>
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))

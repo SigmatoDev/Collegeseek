@@ -5,6 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import Editor, { ContentEditableEvent } from 'react-simple-wysiwyg'; 
 import { api_url, img_url } from "@/utils/apiCall";
 import { Loader } from "lucide-react";
+import toast from "react-hot-toast";
+import CustomToast from "@/components/customToast/page";
 
 const BlogForm = () => {
   const [isClient, setIsClient] = useState(false);
@@ -83,28 +85,47 @@ const ActualBlogForm = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
+  
     if (!blogData.title || !blogData.content || !blogData.author) {
-      setError("Title, content, and author are required.");
+      const errorMsg = "Title, content, and author are required.";
+      setError(errorMsg);
+      toast.custom((t) => (
+        <CustomToast message={errorMsg} onClose={() => toast.dismiss(t.id)} />
+      ));
       setLoading(false);
       return;
     }
-
+  
     const formData = new FormData();
     Object.entries(blogData).forEach(([key, value]) => {
       if (value) formData.append(key, value as string | Blob);
     });
-
+  
     try {
       const url = blogId && blogId !== "new" ? `${api_url}blog/${blogId}` : `${api_url}blog`;
       const method = blogId && blogId !== "new" ? axios.put : axios.post;
-      const response = await method(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
+  
+      const response = await method(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+  
       if ([200, 201].includes(response.status)) {
-        alert("Blog saved successfully!");
+        toast.custom((t) => (
+          <CustomToast
+            message="Blog saved successfully!"
+            type="success"
+            onClose={() => toast.dismiss(t.id)}
+          />
+        ));
         router.push("/admin/blogs");
       }
     } catch (err) {
-      setError("Failed to save blog. Please try again.");
+      toast.custom((t) => (
+        <CustomToast
+          message="Failed to save blog. Please try again."
+          onClose={() => toast.dismiss(t.id)}
+        />
+      ));
     } finally {
       setLoading(false);
     }

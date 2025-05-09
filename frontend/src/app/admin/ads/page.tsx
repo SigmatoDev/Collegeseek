@@ -1,13 +1,13 @@
 "use client";
 
 import AdminLayout from "@/components/admin/adminLayout";
-import UploadPageAds from "./ads";
+import AdminCollegePage from "./ads1";
 
 const SettingsPage = () => {
   return (
     <AdminLayout>
       <div>
-        <UploadPageAds />
+        <AdminCollegePage />
       </div>
     </AdminLayout>
   );

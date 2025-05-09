@@ -1,11 +1,11 @@
-// models/AddItem.js
 const mongoose = require('mongoose');
 
-const addItemSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+const adsSchema = new mongoose.Schema({
+  image: { type: String, required: true }, // Store the image path or URL
   description: { type: String },
-  imageUrl: { type: String }, // store image path or URL
-  createdAt: { type: Date, default: Date.now },
+}, {
+  timestamps: true // Optional: adds createdAt and updatedAt fields
 });
 
-module.exports = mongoose.model('AdsItem', addItemSchema);
+// Avoid using spaces in model names; "Ads" or "CollegeAd" is more conventional
+module.exports = mongoose.models.Ads || mongoose.model('Ads', adsSchema);

@@ -1,7 +1,7 @@
 // routes/admin/pageRoutes.js
 
 const express = require("express");
-const { createPage, getPages, uploadImage, upload, getPageById, updatePage, deletePage } = require("../../controllers/admin/pageController");
+const { createPage, getPages, uploadImage, getPageById, updatePage, deletePage } = require("../../controllers/admin/pageController");
 const router = express.Router();
 
 // Route to create a page
@@ -10,7 +10,7 @@ router.post("/pages", createPage);
 // Route to get all pages
 router.get("/get/pages", getPages);
 
-router.post('/image', upload, uploadImage); // Use 'upload' as middleware
+router.post('/image',  uploadImage); // Use 'upload' as middleware
 
 router.get('/id/pages/:id', getPageById);
 

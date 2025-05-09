@@ -63,10 +63,7 @@ const FeaturedColleges = () => {
 
   return (
     <section className="py-[70px] bg-gray-200">
-      <div className="container mx-auto px-4 ">
-        {/* <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
-          Featured Colleges
-        </h2> */}
+      <div className="container mx-auto px-4">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-[45px]">
           Featured Colleges
         </h2>
@@ -75,7 +72,7 @@ const FeaturedColleges = () => {
           {/* Left Arrow */}
           <button
             aria-label="Previous"
-            className="hidden sm:flex absolute left-[-70px] top-1/2 transform -translate-y-1/2 z-10 p-3 bg-white hover:bg-[#D25C40]  rounded-full transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="hidden sm:flex absolute left-[-70px] top-1/2 transform -translate-y-1/2 z-10 p-3 bg-white hover:bg-[#D25C40] rounded-full transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             onClick={() => swiperRef.current?.slidePrev()}
           >
             <ArrowLeft size={25} />
@@ -87,8 +84,8 @@ const FeaturedColleges = () => {
             spaceBetween={16}
             loop={true}
             autoplay={{
-              delay: 3000, // Time between slides (ms)
-              disableOnInteraction: false, // Keeps autoplay running after user interaction
+              delay: 3000,
+              disableOnInteraction: false,
             }}
             onSwiper={(swiper) => (swiperRef.current = swiper)}
             pagination={{
@@ -112,8 +109,8 @@ const FeaturedColleges = () => {
                     <Image
                       src={getImageUrl(college.image)}
                       alt={college.name}
-                      layout="fill"
-                      objectFit="cover"
+                      fill
+                      style={{ objectFit: "cover" }}
                       className="absolute inset-0"
                     />
                   </div>
@@ -131,19 +128,16 @@ const FeaturedColleges = () => {
                       {college.city}, {college.state}
                     </div>
 
-                    <span
-  className="inline-block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm"
->
-  View Details
-</span>
-
+                    <span className="inline-block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm">
+                      View Details
+                    </span>
                   </div>
                 </Link>
               </SwiperSlide>
             ))}
           </Swiper>
 
-          {/* Custom Pagination Container */}
+          {/* Custom Pagination */}
           <div className="custom-swiper-pagination flex justify-center mt-6 p-[1px]" />
 
           {/* Right Arrow */}
