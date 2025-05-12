@@ -10,7 +10,7 @@ export interface DegreeOption {
 
 export const useCourseFilters = () => {
   const [degrees, setDegrees] = useState<DegreeOption[]>([]);
-  const [modes, setModes] = useState<string[]>([]);
+  const [programModes, setProgramModes] = useState<DegreeOption[]>([]);
   const [courseNames, setCourseNames] = useState<string[]>([]);
 
   useEffect(() => {
@@ -32,11 +32,18 @@ export const useCourseFilters = () => {
         }));
         setDegrees(degreeList);
 
-        // Modes
-        const uniqueModes = Array.from(
-          new Set(courseData.map((course: any) => course.mode).filter(Boolean))
-        ) as string[];
-        setModes(uniqueModes);
+        // Program Modes
+        const programModeMap = new Map<string, string>();
+        courseData.forEach((course: any) => {
+          if (course.programMode && course.programMode._id && course.programMode.name) {
+            programModeMap.set(course.programMode._id, course.programMode.name);
+          }
+        });
+        const programModeList = Array.from(programModeMap.entries()).map(([id, name]) => ({
+          _id: id,
+          name,
+        }));
+        setProgramModes(programModeList);
 
         // Course Names
         const uniqueNames = Array.from(
@@ -54,7 +61,7 @@ export const useCourseFilters = () => {
 
   return {
     degrees,
-    modes,
+    programModes,
     courseNames,
   };
 };

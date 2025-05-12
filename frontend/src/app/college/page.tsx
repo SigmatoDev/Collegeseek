@@ -7,22 +7,10 @@ import Header from "@/components/header/page";
 import Image from "next/image";
 import CombinedFilterSidebar from "@/components/FilterSidebar/FilterSidebar";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
+import AdBox1 from "@/components/adBox/adBox1";
+import AdBox2 from "@/components/adBox/adBox2";
 
-const AdBox = ({ imageSrc }: { imageSrc: string }) => {
-  return (
-    <div className="bg-gray-100 p-4 w-72 h-96 shadow-lg rounded-lg flex flex-col items-center">
-      <p className="text-center font-semibold">Sponsored Ad</p>
-      <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
-        <Image
-          src={imageSrc}
-          alt="Advertisement"
-          fill
-          className="rounded-lg object-cover"
-        />
-      </div>
-    </div>
-  );
-};
+
 
 const CollegesPage = () => {
   const [loading, setLoading] = useState(true);
@@ -56,8 +44,8 @@ const CollegesPage = () => {
           <CollegeList appliedFilters={filters} />
         </div>
         <div className="space-y-4">
-          <AdBox imageSrc="/image/3.jpg" />
-          <AdBox imageSrc="/image/4.avif" />
+          <AdBox1 />
+          <AdBox2 />
         </div>
       </div>
       <Footer />

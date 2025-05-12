@@ -68,7 +68,11 @@ app.use("/api", require("./routes/admin/examExpectedRoutes"));
 app.use("/api", require("./routes/admin/ownershipRoutes"));
 app.use("/api", require("./routes/admin/streamsRoutes"));
 app.use("/api", require("./routes/admin/programModeRoutes"));
-app.use("/api", require("./routes/admin/adsRoutes"));
+app.use("/api", require("./routes/admin/ads1Routes"));
+app.use("/api", require("./routes/admin/ads2Routes"));
+app.use("/api", require("./routes/admin/ads3Routes"));
+app.use("/api", require("./routes/admin/ads4Routes"));
+
 
 
 // Start the server

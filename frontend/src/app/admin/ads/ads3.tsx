@@ -1,10 +1,10 @@
 'use client';
 import { api_url } from '@/utils/apiCall';
-import { XCircle, ImagePlus, Loader2 } from 'lucide-react';
+import { ImagePlus, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-export default function AdminCollegePage() {
+export default function AdminCoursesPagead1 () {
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [ad, setAd] = useState<any>(null);
@@ -24,13 +24,13 @@ export default function AdminCollegePage() {
         setPreview(objectUrl);
       } else {
         toast.error('Image must be exactly 288 x 384 pixels.');
-        URL.revokeObjectURL(objectUrl);
+        URL.revokeObjectURL(objectUrl); // cleanup
       }
     };
 
     img.onerror = () => {
       toast.error('Failed to load image. Try another file.');
-      URL.revokeObjectURL(objectUrl);
+      URL.revokeObjectURL(objectUrl); // cleanup
     };
   };
 
@@ -39,40 +39,60 @@ export default function AdminCollegePage() {
     setPreview(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ad?._id) return toast.error('Ad ID not found.');
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      setLoading(true);
-      const formData = new FormData();
-      if (image) formData.append('image', image);
+  if (!ad?._id) {
+    toast.error('Ad ID not found. Please try again later.');
+    return;
+  }
 
-      const res = await fetch(`${api_url}update-ad-image/${ad._id}`, {
-        method: 'PUT',
-        body: formData,
-      });
+  try {
+    setLoading(true);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Something went wrong!');
-
-      setAd(data.ad);
-      setImage(null);
-      setPreview(null);
-      toast.success('Image updated successfully!');
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || 'Failed to update image.');
-    } finally {
-      setLoading(false);
+    const formData = new FormData();
+    if (image) {
+      formData.append('image', image);
     }
-  };
+
+    const res = await fetch(`${api_url}u/update-ad-image3/${ad._id}`, {
+  method: 'PUT',
+  body: formData,
+});
+
+// First check the content type
+const contentType = res.headers.get('content-type') || '';
+let data;
+
+if (contentType.includes('application/json')) {
+  data = await res.json();
+} else {
+  const text = await res.text();
+  throw new Error('Unexpected response format: ' + text.slice(0, 100));
+}
+
+
+    setAd(data.ad);
+    setImage(null);
+    setPreview(null);
+    toast.success('Image updated successfully!');
+  } catch (error: any) {
+    console.error('Error updating image:', error); // Log full error
+    toast.error(error.message || 'Failed to update image.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const fetchAd = async () => {
     try {
-      const res = await fetch(`${api_url}ads`);
+      const res = await fetch(`${api_url}ads3`);
       const data = await res.json();
-      if (res.ok && data.ads.length > 0) setAd(data.ads[0]);
+
+      if (res.ok && data.ads.length > 0) {
+        setAd(data.ads[0]);
+      }
     } catch (err) {
       console.error('Failed to fetch ad:', err);
     }
@@ -82,7 +102,7 @@ export default function AdminCollegePage() {
     fetchAd();
   }, []);
 
-  return (
+   return (
     <div className="p-6 max-w-5xl mx-auto">
       <form
         onSubmit={handleSubmit}

@@ -2,33 +2,16 @@
 
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
-import Image from "next/image";
 import CoursesList from "@/components/courses/courseslist/coursesList";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb"; // 🧩 Import Breadcrumb
 import { useState } from "react";
+import AdBox3 from "@/components/adBox/adBox3";
+import AdBox4 from "@/components/adBox/adBox4";
 
-const AdBox = ({ imageSrc }: { imageSrc: string }) => {
-  return (
-    <div className="bg-gray-100 p-4 w-full lg:w-72 h-96 shadow-lg rounded-lg flex flex-col items-center">
-      <p className="text-center font-semibold">Sponsored Ad</p>
-      <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
-        <Image
-          src={imageSrc}
-          alt="Advertisement"
-          fill
-          className="rounded-lg object-cover"
-        />
-      </div>
-    </div>
-  );
-};
 
 const CollegesPage = () => {
   const [appliedFilters, setAppliedFilters] = useState<string[]>([]);
 
-  const handleFilterChange = (newFilters: string[]) => {
-    setAppliedFilters(newFilters);
-  };
 
   return (
     <>
@@ -57,8 +40,9 @@ const CollegesPage = () => {
 
         {/* Ad Section (Right) */}
         <div className="w-full lg:w-72 flex flex-col gap-4">
-          <AdBox imageSrc="/image/3.jpg" />
-          <AdBox imageSrc="/image/4.avif" />
+          <AdBox3/>
+          <AdBox4/>
+
         </div>
       </div>
 

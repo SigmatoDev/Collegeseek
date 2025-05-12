@@ -8,4 +8,4 @@ const adsSchema = new mongoose.Schema({
 });
 
 // Avoid using spaces in model names; "Ads" or "CollegeAd" is more conventional
-module.exports = mongoose.models.Ads || mongoose.model('Ads', adsSchema);
+module.exports = mongoose.models.Ads || mongoose.model('Ads 3', adsSchema);

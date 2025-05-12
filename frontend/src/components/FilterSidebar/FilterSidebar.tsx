@@ -3,13 +3,23 @@
 import { useState, useEffect } from "react";
 import { useCourseFilters } from "./useCourseFilters";
 import { useCollegeFilters } from "./useCollegeFilters";
-import { FilterSectionWrapper, renderFilterSection, handleCheckboxChange } from "./filterHelpers";
+import {
+  FilterSectionWrapper,
+  renderFilterSection,
+  handleCheckboxChange,
+} from "./filterHelpers";
 
 const feeRanges = [
   "Below 50,000",
   "50,000 - 1,00,000",
   "1,00,000 - 1,50,000",
   "Above 1,50,000",
+];
+
+const rankRanges = [
+  "Below 50",
+  "50 - 100",
+  "Above 100",
 ];
 
 interface CombinedFilterSidebarProps {
@@ -19,11 +29,10 @@ interface CombinedFilterSidebarProps {
 const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) => {
   const [mounted, setMounted] = useState(false);
 
-  const { degrees, modes, courseNames } = useCourseFilters();
+  const { degrees, programModes, courseNames } = useCourseFilters();
   const {
     states,
     cities,
-    ranks,
     ownerships,
     affiliations,
     approvals,
@@ -34,14 +43,14 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
   const [selectedDegrees, setSelectedDegrees] = useState<string[]>([]);
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
-  const [selectedRanks, setSelectedRanks] = useState<number[]>([]);
+  const [selectedRanks, setSelectedRanks] = useState<string[]>([]); // Changed to string[]
   const [selectedFees, setSelectedFees] = useState<string[]>([]);
   const [selectedOwnerships, setSelectedOwnerships] = useState<string[]>([]);
   const [selectedAffiliations, setSelectedAffiliations] = useState<string[]>([]);
   const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
   const [selectedExams, setSelectedExams] = useState<string[]>([]);
   const [selectedStreams, setSelectedStreams] = useState<string[]>([]);
-  const [selectedModes, setSelectedModes] = useState<string[]>([]);
+  const [selectedProgramModes, setSelectedProgramModes] = useState<string[]>([]);
   const [selectedCourseNames, setSelectedCourseNames] = useState<string[]>([]);
 
   useEffect(() => {
@@ -51,11 +60,11 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
   const handleFilterChange = (filters: any) => {
     const combined = {
       degrees: filters.degrees ?? selectedDegrees,
-      modes: filters.modes ?? selectedModes,
+      programModes: filters.programModes ?? selectedProgramModes,
       courseNames: filters.courseNames ?? selectedCourseNames,
       states: filters.states ?? selectedStates,
       cities: filters.cities ?? selectedCities,
-      ranks: filters.ranks ?? selectedRanks,
+      ranks: filters.ranks ?? selectedRanks, // Still using string format
       fees: filters.fees ?? selectedFees,
       ownerships: filters.ownerships ?? selectedOwnerships,
       affiliations: filters.affiliations ?? selectedAffiliations,
@@ -72,8 +81,8 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
     <div className="w-[300px] max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-6">
       <h1 className="text-xl font-semibold text-gray-800">Filter Colleges</h1>
 
-      <div className="space-y-5 overflow-y-auto max-h-[calc(150vh-50px)] pr-2">
-        <FilterSectionWrapper title="Degree">
+      <div className="space-y-5 overflow-y-auto max-h-[calc(190vh-50px)] pr-2">
+        <FilterSectionWrapper title="Courses">
           <div className="max-h-40 overflow-y-auto">
             {degrees.map(({ _id, name }) => (
               <label
@@ -98,17 +107,154 @@ const CombinedFilterSidebar = ({ onFilterChange }: CombinedFilterSidebarProps) =
             ))}
           </div>
         </FilterSectionWrapper>
-        {renderFilterSection("Mode", modes, selectedModes, setSelectedModes, handleFilterChange)}
-        {renderFilterSection("Course", courseNames, selectedCourseNames, setSelectedCourseNames, handleFilterChange)}
+
+        {/* Program Mode */}
+        <FilterSectionWrapper title="Program Mode">
+          <div className="max-h-40 overflow-y-auto">
+            {programModes.map(({ _id, name }) => (
+              <label key={_id} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={selectedProgramModes.includes(_id)}
+                  onChange={() =>
+                    handleCheckboxChange<string>(
+                      _id,
+                      selectedProgramModes,
+                      setSelectedProgramModes,
+                      (updated) => handleFilterChange({ programModes: updated })
+                    )
+                  }
+                  className="accent-blue-600 h-4 w-4 rounded"
+                />
+                {name}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
+
+        {renderFilterSection("Specialization", courseNames, selectedCourseNames, setSelectedCourseNames, handleFilterChange)}
         {renderFilterSection("State", states, selectedStates, setSelectedStates, handleFilterChange)}
         {renderFilterSection("City", cities, selectedCities, setSelectedCities, handleFilterChange)}
-        {renderFilterSection("Rank", ranks, selectedRanks, setSelectedRanks, handleFilterChange)}
-        {renderFilterSection("Fee", feeRanges, selectedFees, setSelectedFees, handleFilterChange)}
-        {renderFilterSection("Ownership", ownerships.map(({ _id }) => _id), selectedOwnerships, setSelectedOwnerships, handleFilterChange)}
-        {renderFilterSection("Affiliation", affiliations.map(({ _id }) => _id), selectedAffiliations, setSelectedAffiliations, handleFilterChange)}
-        {renderFilterSection("Approval", approvals.map(({ _id }) => _id), selectedApprovals, setSelectedApprovals, handleFilterChange)}
-        {renderFilterSection("Exam", exams.map(({ _id }) => _id), selectedExams, setSelectedExams, handleFilterChange)}
-        {renderFilterSection("Stream", streams.map(({ _id }) => _id), selectedStreams, setSelectedStreams, handleFilterChange)}
+
+        {/* Ranks like Fees */}
+        {renderFilterSection("Rank", rankRanges, selectedRanks, setSelectedRanks, handleFilterChange)}
+
+        {renderFilterSection("Total Fees", feeRanges, selectedFees, setSelectedFees, handleFilterChange)}
+
+        <FilterSectionWrapper title="Ownership">
+          <div className="max-h-40 overflow-y-auto">
+            {ownerships.map(({ _id, name }) => (
+              <label key={_id} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={selectedOwnerships.includes(_id)}
+                  onChange={() =>
+                    handleCheckboxChange<string>(
+                      _id,
+                      selectedOwnerships,
+                      setSelectedOwnerships,
+                      (updated) => handleFilterChange({ ownerships: updated })
+                    )
+                  }
+                  className="accent-blue-600 h-4 w-4 rounded"
+                />
+                {name}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
+
+        <FilterSectionWrapper title="Affiliated By">
+          <div className="max-h-40 overflow-y-auto">
+            {affiliations.map(({ _id, name }) => (
+              <label key={_id} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={selectedAffiliations.includes(_id)}
+                  onChange={() =>
+                    handleCheckboxChange<string>(
+                      _id,
+                      selectedAffiliations,
+                      setSelectedAffiliations,
+                      (updated) => handleFilterChange({ affiliations: updated })
+                    )
+                  }
+                  className="accent-blue-600 h-4 w-4 rounded"
+                />
+                {name}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
+
+        <FilterSectionWrapper title="Approval">
+          <div className="max-h-40 overflow-y-auto">
+            {approvals.map(({ _id, code }) => (
+              <label key={_id} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={selectedApprovals.includes(_id)}
+                  onChange={() =>
+                    handleCheckboxChange<string>(
+                      _id,
+                      selectedApprovals,
+                      setSelectedApprovals,
+                      (updated) => handleFilterChange({ approvals: updated })
+                    )
+                  }
+                  className="accent-blue-600 h-4 w-4 rounded"
+                />
+                {code}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
+
+        <FilterSectionWrapper title="Exams Accepted">
+          <div className="max-h-40 overflow-y-auto">
+            {exams.map(({ _id, code }) => (
+              <label key={_id} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={selectedExams.includes(_id)}
+                  onChange={() =>
+                    handleCheckboxChange<string>(
+                      _id,
+                      selectedExams,
+                      setSelectedExams,
+                      (updated) => handleFilterChange({ exams: updated })
+                    )
+                  }
+                  className="accent-blue-600 h-4 w-4 rounded"
+                />
+                {code}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
+
+        <FilterSectionWrapper title="Stream">
+          <div className="max-h-40 overflow-y-auto">
+            {streams.map(({ _id, name }) => (
+              <label key={_id} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+                <input
+                  type="checkbox"
+                  checked={selectedStreams.includes(_id)}
+                  onChange={() =>
+                    handleCheckboxChange<string>(
+                      _id,
+                      selectedStreams,
+                      setSelectedStreams,
+                      (updated) => handleFilterChange({ streams: updated })
+                    )
+                  }
+                  className="accent-blue-600 h-4 w-4 rounded"
+                />
+                {name}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
       </div>
     </div>
   );

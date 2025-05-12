@@ -1,20 +1,21 @@
-const Ads = require('../../models/admin/adsModel');
+const Ads = require('../../models/admin/ads3model');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
 // Configure multer to store uploaded images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './uploads/'); // Folder to store images
+    cb(null, './uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename with extension
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 
 const upload = multer({ storage }).single('image');
 
-// Image upload endpoint
+// Upload new ad
 const uploadImagee = (req, res) => {
   console.log("Upload API hit");
 
@@ -26,23 +27,19 @@ const uploadImagee = (req, res) => {
 
     try {
       const { description } = req.body;
-      let imagePath = req.file ? req.file.path.replace(/\\/g, '/') : ''; // Normalize path
+      const imagePath = req.file ? req.file.path.replace(/\\/g, '/') : '';
 
       if (!imagePath) {
         return res.status(400).json({ error: 'No image file uploaded' });
       }
 
-      const ad = new Ads({
-        description,
-        image: imagePath,
-      });
-
+      const ad = new Ads({ description, image: imagePath });
       await ad.save();
 
       res.status(200).json({
         message: 'Ad added successfully',
         ad,
-        imageUrl: `${req.protocol}://${req.get('host')}/${imagePath}` // Optional full URL
+        imageUrl: `${req.protocol}://${req.get('host')}/${imagePath}`
       });
     } catch (error) {
       console.error("Error saving ad data:", error);
@@ -51,24 +48,22 @@ const uploadImagee = (req, res) => {
   });
 };
 
+// Get all ads
 const getAds = async (req, res) => {
   try {
-    // Fetch all ads from the database
     const ads = await Ads.find();
-
     if (!ads || ads.length === 0) {
       return res.status(404).json({ message: 'No ads found' });
     }
 
-    // Map ads and generate full image URLs
     const adsWithImageUrls = ads.map(ad => ({
-      ...ad._doc, // Spread the original ad fields
-      imageUrl: `${req.protocol}://${req.get('host')}/${ad.image}`, // Generate the image URL
+      ...ad._doc,
+      imageUrl: `${req.protocol}://${req.get('host')}/${ad.image}`
     }));
 
     res.status(200).json({
       message: 'Ads fetched successfully',
-      ads: adsWithImageUrls,
+      ads: adsWithImageUrls
     });
   } catch (error) {
     console.error("Error fetching ads:", error);
@@ -76,12 +71,12 @@ const getAds = async (req, res) => {
   }
 };
 
+// Update ad image
 const updateImage = (req, res) => {
-  console.log("Update Image API hit");
+  // console.log("Update Image API hit 3");
 
-  const { adId } = req.params; // Get the ad ID from the URL parameter
+  const { adId } = req.params;
 
-  // Validate if adId is provided
   if (!adId) {
     return res.status(400).json({ error: 'Ad ID is required.' });
   }
@@ -93,32 +88,34 @@ const updateImage = (req, res) => {
     }
 
     try {
-      const ad = await Ads.findById(adId); // Find the ad by ID
-
+      const ad = await Ads.findById(adId);
       if (!ad) {
         return res.status(404).json({ error: 'Ad not found' });
       }
 
-      // Check if a new image is provided
-      let imagePath = req.file ? req.file.path.replace(/\\/g, '/') : ad.image; // Use existing image if no new image is uploaded
+      const newImagePath = req.file ? req.file.path.replace(/\\/g, '/') : ad.image;
 
-      // If a new image is uploaded, we should delete the old image from the server (optional)
+      // If a new image is uploaded, delete the old one
       if (req.file && ad.image) {
-        const fs = require('fs');
-        const oldImagePath = ad.image.replace(/\\/g, '/');
-        fs.unlinkSync(oldImagePath); // Delete the old image file from the server (ensure to handle errors)
+        const oldImagePath = path.join(__dirname, '../../', ad.image);
+        if (fs.existsSync(oldImagePath)) {
+          try {
+            fs.unlinkSync(oldImagePath);
+          } catch (unlinkErr) {
+            console.warn("Failed to delete old image:", unlinkErr.message);
+          }
+        } else {
+          console.warn("Old image not found for deletion:", oldImagePath);
+        }
       }
 
-      // Update the ad image in the database
-      ad.image = imagePath;
-
-      // Save the updated ad
+      ad.image = newImagePath;
       await ad.save();
 
       res.status(200).json({
         message: 'Ad image updated successfully',
         ad,
-        imageUrl: `${req.protocol}://${req.get('host')}/${imagePath}` // Optional full URL
+        imageUrl: `${req.protocol}://${req.get('host')}/${newImagePath}`
       });
     } catch (error) {
       console.error("Error updating ad image:", error);
@@ -126,6 +123,7 @@ const updateImage = (req, res) => {
     }
   });
 };
+
 module.exports = {
   uploadImagee,
   getAds,
