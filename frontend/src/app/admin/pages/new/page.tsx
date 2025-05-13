@@ -1,6 +1,7 @@
 import AdminLayout from "@/components/admin/adminLayout";
-
 import Create from "./create";
+
+
 
 
 const AdminCreatePage = () => {

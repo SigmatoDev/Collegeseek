@@ -1,6 +1,6 @@
 import AdminLayout from "@/components/admin/adminLayout";
+import AdminPages from "./pageList";
 
-import AdminPages from "./cp";
 
 
 const AdminCreatePage = () => {
