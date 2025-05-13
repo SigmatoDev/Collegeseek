@@ -1,32 +1,43 @@
 const Course = require("../../models/admin/courseModel");
 
 const getCourseFilters = async (req, res) => {
-  console.log("Received courseName:", req.query.name); // Log the name from the frontend
+  const { name } = req.query;
+  console.log("Received courseName:", name); // Log the name from the frontend
+
+  if (!name) {
+    return res.status(400).json({ message: "Course name is required" });
+  }
 
   try {
-    const { name } = req.query; // Get the name from the query params
-
-    // Fetch all courses based on the name (case-insensitive search)
-    const courses = await Course.find({ name: { $regex: name, $options: "i" } });
+    // Fetch all courses based on the name (case-insensitive search) and populate programMode
+    const courses = await Course.find({ name: { $regex: name, $options: "i" } })
+      .populate("programMode", "name"); // Only populate the 'name' field of the related model
 
     if (courses.length === 0) {
       return res.status(404).json({ message: "No courses found with that name" });
     }
 
-    // Use a Set to get unique values for durations and modes
+    // Use Sets to get unique values
     const uniqueDurations = new Set();
     const uniqueModes = new Set();
+    const uniqueProgramModes = new Set();
 
-    // Loop through the courses to collect unique durations and modes
+    // Collect unique values from all courses
     courses.forEach(course => {
-      uniqueDurations.add(course.duration);
-      uniqueModes.add(course.mode);
+      if (course.duration) uniqueDurations.add(course.duration);
+      if (course.mode) uniqueModes.add(course.mode);
+
+      // If programMode is populated
+      if (course.programMode && course.programMode.name) {
+        uniqueProgramModes.add(course.programMode.name);
+      }
     });
 
-    // Convert the sets to arrays
+    // Build the filters object
     const filters = {
       durations: Array.from(uniqueDurations),
       modes: Array.from(uniqueModes),
+      programModes: Array.from(uniqueProgramModes),
     };
 
     // Send the filters back to the frontend
@@ -36,6 +47,8 @@ const getCourseFilters = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch course filters", error });
   }
 };
+
+
 
 
 

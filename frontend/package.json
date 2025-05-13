@@ -25,6 +25,7 @@
     "country-state-city": "^3.2.1",
     "dompurify": "^3.2.5",
     "draft-js": "^0.11.7",
+    "editorjs-html": "^4.0.5",
     "framer-motion": "^12.4.4",
     "grapesjs": "^0.22.6",
     "install": "^0.13.0",

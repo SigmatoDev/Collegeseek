@@ -58,7 +58,10 @@ export default function FilterCollegeCard({ collegeId }: Props) {
         }
       } catch (error: any) {
         setError("Failed to load college data.");
-        console.error("Error fetching data:", error?.response?.data || error?.message);
+        console.error(
+          "Error fetching data:",
+          error?.response?.data || error?.message
+        );
       } finally {
         setLoading(false);
       }
@@ -69,7 +72,8 @@ export default function FilterCollegeCard({ collegeId }: Props) {
 
   if (loading) return <div className="text-center p-4">Loading...</div>;
   if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
-  if (!collegeData) return <div className="text-center p-4">No data available.</div>;
+  if (!collegeData)
+    return <div className="text-center p-4">No data available.</div>;
 
   const imageUrlFinal = collegeData.image
     ? `${img_url}uploads/${collegeData.image.replace(/^\/?uploads\//, "")}`
@@ -88,14 +92,18 @@ export default function FilterCollegeCard({ collegeId }: Props) {
           height={128}
           className="w-full md:w-48 h-48 md:h-32 rounded-lg object-cover"
           loading="lazy"
-          onError={(e) => (e.currentTarget.src = "/logo/logo-removebg-preview.png")}
+          onError={(e) =>
+            (e.currentTarget.src = "/logo/logo-removebg-preview.png")
+          }
           onClick={(e) => {
             e.stopPropagation();
             setSelectedImage(imageUrlFinal);
           }}
         />
         <div className="flex flex-col justify-between flex-1">
-          <h2 className="text-lg md:text-xl font-semibold mb-2">{collegeData.name}</h2>
+          <h2 className="text-lg md:text-xl font-semibold mb-2">
+            {collegeData.name}
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 mb-2">
             <div className="flex items-center gap-1">
@@ -126,7 +134,7 @@ export default function FilterCollegeCard({ collegeId }: Props) {
           </div>
 
           <div className="text-sm text-gray-600 mb-2">
-            <p>
+            <p className="break-all whitespace-pre-wrap">
               {isExpanded
                 ? collegeData.description
                 : `${collegeData.description.slice(0, 150)}...`}
@@ -144,30 +152,33 @@ export default function FilterCollegeCard({ collegeId }: Props) {
             )}
           </div>
 
-          {Array.isArray(collegeData.shortlistedUsers) && collegeData.shortlistedUsers.length > 0 && (
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex -space-x-2">
-                {collegeData.shortlistedUsers.map((user, index) => (
-                  <img
-                    key={index}
-                    src={
-                      user.image
-                        ? `${img_url}${user.image.replace(/^\/+/, "")}`
-                        : "/logo/default-user.png"
-                    }
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 rounded-full border"
-                    alt={user.name}
-                    onError={(e) => (e.currentTarget.src = "/logo/default-user.png")}
-                  />
-                ))}
+          {Array.isArray(collegeData.shortlistedUsers) &&
+            collegeData.shortlistedUsers.length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex -space-x-2">
+                  {collegeData.shortlistedUsers.map((user, index) => (
+                    <img
+                      key={index}
+                      src={
+                        user.image
+                          ? `${img_url}${user.image.replace(/^\/+/, "")}`
+                          : "/logo/default-user.png"
+                      }
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 rounded-full border"
+                      alt={user.name}
+                      onError={(e) =>
+                        (e.currentTarget.src = "/logo/default-user.png")
+                      }
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-700">
+                  Shortlisted by {collegeData.shortlistedCount ?? 0}+ students
+                </span>
               </div>
-              <span className="text-sm text-gray-700">
-                Shortlisted by {collegeData.shortlistedCount ?? 0}+ students
-              </span>
-            </div>
-          )}
+            )}
         </div>
       </div>
 

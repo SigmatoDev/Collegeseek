@@ -11,8 +11,8 @@ import CourseDetail from "./courseList";
 const CoursesFilterPage = () => {
   const [filters, setFilters] = useState<any>({});
   const [courses, setCourses] = useState<any[]>([]);
-  const [totalPages, setTotalPages] = useState<number>(0); // New state for total pages
-  const [currentPage, setCurrentPage] = useState<number>(1); // New state for current page
+  const [totalPages, setTotalPages] = useState<number>(0); // Total number of pages from the backend response
+  const [currentPage, setCurrentPage] = useState<number>(1); // Current page state
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +54,7 @@ const CoursesFilterPage = () => {
 
       const data = await res.json();
       setCourses(data.courses);
-      setTotalPages(data.totalPages); // Set the total pages from the API response
+      setTotalPages(data.totalPages); // Set total pages from the API response
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -81,25 +81,6 @@ const CoursesFilterPage = () => {
         />
       </div>
 
-      {/* Background Section (Optional)
-      <div
-        className="relative bg-cover bg-center bg-no-repeat py-32 px-6 mb-20 shadow-lg"
-        style={{ backgroundImage: "url('/image/14.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
-        <div className="relative z-10 flex flex-col items-center text-center text-white max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
-            Explore Courses
-          </h1>
-          <span className="inline-block px-6 py-4 bg-white/10 backdrop-blur-md rounded-2xl shadow-lg">
-            Courses: {name}
-          </span>
-          <p className="text-lg md:text-xl text-white/90 font-medium mb-8">
-            Explore top colleges, fees, and eligibility for your selected course
-          </p>
-        </div>
-      </div> */}
-
       {/* Main Content Section */}
       <div className="flex mx-auto px-10 py-5 justify-center gap-6">
         {/* Filter Sidebar */}
@@ -119,6 +100,7 @@ const CoursesFilterPage = () => {
               filters={filters}
               totalPages={totalPages} // Pass totalPages to CourseDetail
               currentPage={currentPage} // Pass currentPage to CourseDetail
+              // currentPage={setCurrentPage} // Pass setCurrentPage to handle page updates
             />
           )}
         </div>

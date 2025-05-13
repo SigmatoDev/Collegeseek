@@ -12,12 +12,13 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
-app.use(cors({
-  origin: process.env.CLIENT_URL, // or '*' if public
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL, // or '*' if public
+    credentials: true,
+  })
+);
 app.use(express.json());
-
 
 // Ensure Uploads Folder Exists
 const uploadDir = path.join(__dirname, "./uploads");
@@ -27,10 +28,15 @@ if (!fs.existsSync(uploadDir)) {
 
 // Serve Static Files (for uploaded images)
 app.use("/uploads", express.static("uploads"));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 
+
+//new for pages
+// Allow larger JSON payloads up to 50MB (for base64 encoded data, etc.)
+app.use(express.json({ limit: "50mb" })); 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 // Connect to MongoDB
@@ -72,8 +78,6 @@ app.use("/api", require("./routes/admin/ads1Routes"));
 app.use("/api", require("./routes/admin/ads2Routes"));
 app.use("/api", require("./routes/admin/ads3Routes"));
 app.use("/api", require("./routes/admin/ads4Routes"));
-
-
 
 // Start the server
 app.listen(PORT, () => {

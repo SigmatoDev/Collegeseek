@@ -129,7 +129,7 @@ const getFilteredColleges = async (req, res) => {
     }
 
     // Final Query Logging
-    console.log("🎯 Final College Query Before DB Call:", JSON.stringify(collegeQuery, null, 2));
+    // console.log("🎯 Final College Query Before DB Call:", JSON.stringify(collegeQuery, null, 2));
 
     // Pagination
     const skip = (Number(page) - 1) * Number(limit);

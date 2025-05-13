@@ -9,9 +9,11 @@ interface FilterSidebarProps {
 const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange, courseName }) => {
   const [durations, setDurations] = useState<string[]>([]);
   const [modes, setModes] = useState<string[]>([]);
+  const [programModes, setProgramModes] = useState<string[]>([]);
 
   const [selectedDurations, setSelectedDurations] = useState<string[]>([]);
   const [selectedModes, setSelectedModes] = useState<string[]>([]);
+  const [selectedProgramModes, setSelectedProgramModes] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -19,10 +21,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange, courseNam
         console.log("Fetching filters for course:", courseName);
         const res = await fetch(`${api_url}get/courses/filters?name=${courseName}`);
         const data = await res.json();
-        console.log("Fetched data:", data);
+        console.log("Fetched filter data:", data);
 
         setDurations(data.durations || []);
         setModes(data.modes || []);
+        setProgramModes(data.programModes || []);
       } catch (error) {
         console.error("Failed to fetch filter data", error);
       }
@@ -33,37 +36,60 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange, courseNam
     }
   }, [courseName]);
 
-  // Memoize the onFilterChange callback to prevent unnecessary renders
   const handleDurationChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      setSelectedDurations((prev) =>
-        e.target.checked ? [...prev, value] : prev.filter((item) => item !== value)
-      );
+      setSelectedDurations((prev) => {
+        const updatedDurations = e.target.checked
+          ? [...prev, value]
+          : prev.filter((item) => item !== value);
+        console.log("Selected Durations:", updatedDurations); // Added console log
+        return updatedDurations;
+      });
     },
     []
   );
-  
+
   const handleModeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      setSelectedModes((prev) =>
-        e.target.checked ? [...prev, value] : prev.filter((item) => item !== value)
-      );
+      setSelectedModes((prev) => {
+        const updatedModes = e.target.checked
+          ? [...prev, value]
+          : prev.filter((item) => item !== value);
+        console.log("Selected Modes:", updatedModes); // Added console log
+        return updatedModes;
+      });
     },
     []
   );
-  // Apply filters only when selectedDurations or selectedModes change
+
+  const handleProgramModeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSelectedProgramModes((prev) => {
+        const updatedProgramModes = e.target.checked
+          ? [...prev, value]
+          : prev.filter((item) => item !== value);
+        console.log("Selected Program Modes:", updatedProgramModes); // Added console log
+        return updatedProgramModes;
+      });
+    },
+    []
+  );
+
   useEffect(() => {
     const filters: any = {};
     if (selectedDurations.length) filters.duration = selectedDurations;
     if (selectedModes.length) filters.mode = selectedModes;
+    if (selectedProgramModes.length) filters.programMode = selectedProgramModes;
 
-    // Only apply filters if there's any change in the selected filters
+    console.log("Final Filters:", filters); // Added console log to track the final filters
+
     if (Object.keys(filters).length > 0) {
       onFilterChange(filters);
     }
-  }, [selectedDurations, selectedModes, onFilterChange]);
+  }, [selectedDurations, selectedModes, selectedProgramModes, onFilterChange]);
 
   const FilterSectionWrapper = ({
     title,
@@ -124,6 +150,28 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange, courseNam
                   checked={selectedModes.includes(modeOption)}
                 />
                 {modeOption}
+              </label>
+            ))}
+          </div>
+        </FilterSectionWrapper>
+
+        {/* Program Mode Filter Section */}
+        <FilterSectionWrapper title="Program Mode">
+          <div className="max-h-40 overflow-y-auto">
+            {programModes.map((programModeOption, index) => (
+              <label
+                key={index}
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+              >
+                <input
+                  type="checkbox"
+                  value={programModeOption}
+                  onChange={handleProgramModeChange}
+                  id={`program-mode-${programModeOption}`}
+                  className="accent-blue-600 h-4 w-4 rounded"
+                  checked={selectedProgramModes.includes(programModeOption)}
+                />
+                {programModeOption}
               </label>
             ))}
           </div>

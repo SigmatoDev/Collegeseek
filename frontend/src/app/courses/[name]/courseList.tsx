@@ -14,9 +14,7 @@ interface Course {
   eligibility: string;
   category: { name: string };
   programMode: { name: string }; // ✅ updated type
-
   duration: string;
-  // mode: string;
   enrollmentLink: string;
 }
 
@@ -128,12 +126,9 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses, filters, totalPage
                         </span>
                       </div>
 
-                      {/* <span className="inline-block mt-2 bg-yellow-100 text-yellow-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
-                        {course.mode}
-                      </span> */}
                       <span className="inline-block bg-green-100 text-green-700 mt-4 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
-  {course.programMode?.name || "N/A"}
-</span>
+                        {course.programMode?.name || "N/A"}
+                      </span>
                     </td>
                     <td className="px-6 py-5 border-b border-gray-200 whitespace-nowrap">
                       {course.eligibility}
@@ -158,28 +153,27 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ courses, filters, totalPage
             </table>
           )}
 
-{totalPages > 1 && (
-  <div className="flex justify-center items-center space-x-4 mt-6">
-    <button
-      onClick={() => handlePageChange(page - 1)}
-      disabled={page <= 1}
-      className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-    >
-      Prev
-    </button>
-    <span className="text-lg font-semibold">
-      Page {page} of {totalPages}
-    </span>
-    <button
-      onClick={() => handlePageChange(page + 1)}
-      disabled={page >= totalPages}
-      className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-    >
-      Next
-    </button>
-  </div>
-)}
-
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-4 mt-6">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page <= 1}
+                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                Prev
+              </button>
+              <span className="text-lg font-semibold">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page >= totalPages}
+                className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>

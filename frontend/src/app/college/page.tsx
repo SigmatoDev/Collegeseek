@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import CollegeList from "@/components/college/collegeList/collegeList";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
-import Image from "next/image";
 import CombinedFilterSidebar from "@/components/FilterSidebar/FilterSidebar";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import AdBox1 from "@/components/adBox/adBox1";

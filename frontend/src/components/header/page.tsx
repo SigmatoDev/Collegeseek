@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
               <span>1800-572-9877</span>
             </div>
             <div className="hidden sm:flex items-center">
-              <span>hello@collegeSeeker.com</span>
+              <span>hello@collegeseek.com</span>
             </div>
           </div>
 

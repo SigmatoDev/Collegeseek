@@ -83,7 +83,7 @@ const AdminPages = () => {
 
       <div className="flex items-center justify-between gap-4 mb-6">
         <button
-          onClick={() => router.push("/admin/pages/new")}
+  onClick={() => router.push("/admin/pages/new")}  // Change this to the correct path for your 'create.tsx'
           className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200"
         >
           <PlusCircleIcon className="w-6 h-6 mr-2" />
@@ -160,9 +160,8 @@ const AdminPages = () => {
                     <td className="px-6 py-4 text-sm text-gray-700">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() =>
-                            router.push(`/admin/pages/edit/${page._id}`)
-                          }
+                            onClick={() => router.push(`/admin/pages/edit/${page._id}`)} // Navigates to edit page
+
                           className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition duration-200"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
