@@ -43,7 +43,7 @@ const Footer = () => {
               New Delhi - 110001, India
             </address>
             <p className="mt-3 text-sm text-gray-400">📞 1800-545-7787</p>
-            <p className="text-sm text-gray-400">✉️ hello@collegeseek.com</p>
+            <p className="text-sm text-gray-400">✉️ hello@collegeseek.in</p>
 
             {/* Social Icons */}
             <div className="flex space-x-4 mt-4">
