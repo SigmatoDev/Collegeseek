@@ -102,13 +102,13 @@ const AdminAffiliatedBy = () => {
                         <PencilSquareIcon className="h-5 w-5" />
                         <span>Edit</span>
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(affiliation._id)}
                         className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                       >
                         <TrashIcon className="h-5 w-5" />
                         <span>Delete</span>
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))

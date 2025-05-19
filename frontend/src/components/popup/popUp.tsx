@@ -45,13 +45,13 @@ const PopUp = () => {
     let count = 0;
   
     const interval = setInterval(() => {
-      if (!isLoggedIn && count < 5) {
+      if (!isLoggedIn && count < 3) {
         setShowPopup(true);
         count++;
-      } else if (count >= 5) {
+      } else if (count >= 3) {
         clearInterval(interval);
       }
-    }, 10000); // 10 seconds
+    }, 60000); // 1 minute in milliseconds
   
     return () => clearInterval(interval);
   }, [isLoggedIn]);

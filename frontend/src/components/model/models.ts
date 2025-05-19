@@ -11,6 +11,7 @@ export interface Course {
   duration: string;
   // mode: string;
   programMode: string;
+  specialization: string;
   fees: { amount: number; currency: string; year: number };
   eligibility: string;
   application_dates: { start_date: string; end_date: string };

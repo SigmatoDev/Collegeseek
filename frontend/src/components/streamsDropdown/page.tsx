@@ -64,21 +64,28 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { api_url } from "@/utils/apiCall";
 
-interface Stream {
+// Rename `Stream` to `StreamType`
+export interface StreamType {
   _id: string;
   name: string;
-  description: string;
+  description?: string;
 }
 
 interface Props {
-  onSelectionChange: (selectedStreams: Stream[]) => void;
+  defaultSelected: string[] | { _id: string }[]; // Array of selected stream IDs or objects
+  onSelectionChange: (selectedStreams: StreamType[]) => void;
 }
 
-const StreamDropdown: React.FC<Props> = ({ onSelectionChange }) => {
-  const [streams, setStreams] = useState<Stream[]>([]);
-  const [selectedStreams, setSelectedStreams] = useState<Stream[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
 
+const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = [] }) => {
+  const [streams, setStreams] = useState<StreamType[]>([]); // Update here too
+  const [selectedStreams, setSelectedStreams] = useState<StreamType[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+
+  const [allStreams, setAllStreams] = useState<StreamType[]>([]); // Update here too
+
+  // Fetch all streams
   useEffect(() => {
     const fetchStreams = async () => {
       try {
@@ -96,27 +103,60 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange }) => {
     fetchStreams();
   }, []);
 
+  // Update selectedStreams if defaultSelected changes
+  useEffect(() => {
+    if (streams.length > 0) {
+      console.log('Streams:', streams);
+      console.log('Default Selected IDs:', defaultSelected);
+
+      // Ensure defaultSelected contains only IDs (extracting _id if it's an object)
+      const ids = defaultSelected.map((item) => (typeof item === 'string' ? item : item._id));
+      
+      // Map the defaultSelected IDs to the full stream objects
+      const defaultStreamObjects = ids
+        .map((id) => {
+          const foundStream = streams.find((stream) => stream._id === id);
+          console.log(`Finding stream for ID: ${id}, Found: `, foundStream);  // Log each find attempt
+          return foundStream;
+        })
+        .filter((stream): stream is StreamType => stream !== undefined);  // Filter out undefined streams
+
+      console.log('Mapped Stream Objects:', defaultStreamObjects);
+
+      setSelectedStreams(defaultStreamObjects); // Set state with the mapped stream objects
+    }
+  }, [defaultSelected, streams]);
+
+  // Handle selection
   const handleSelect = useCallback(
-    (stream: Stream) => {
+    (stream: StreamType) => {
       if (!selectedStreams.some((s) => s._id === stream._id)) {
         const updated = [...selectedStreams, stream];
         setSelectedStreams(updated);
         onSelectionChange(updated);
       }
       setSearchQuery("");
+      setIsFocused(false); // close dropdown after selection
     },
     [selectedStreams, onSelectionChange]
   );
 
+  // Handle remove
   const handleRemove = (id: string) => {
     const updated = selectedStreams.filter((s) => s._id !== id);
     setSelectedStreams(updated);
     onSelectionChange(updated);
   };
 
+  // Filtered results
+  const filteredStreams = streams.filter((s) =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="w-full max-w-[800px] mx-auto">
       <div className="border p-3 rounded-lg">
+        {/* Selected tags */}
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedStreams.map((stream) => (
             <span
@@ -134,29 +174,34 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange }) => {
           ))}
         </div>
 
+        {/* Input */}
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           placeholder="Search and add streams..."
           className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        {searchQuery && (
+        {/* Dropdown */}
+        {isFocused && filteredStreams.length > 0 && (
           <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md">
-            {streams
-              .filter((s) =>
-                s.name.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-              .map((stream) => (
-                <div
-                  key={stream._id}
-                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleSelect(stream)}
-                >
-                  {stream.name} - {stream.description}
-                </div>
-              ))}
+            {filteredStreams.map((stream) => (
+              <div
+                key={stream._id}
+                className="p-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleSelect(stream)}
+              >
+                {stream.name}
+                {stream.description && (
+                  <span className="text-sm text-gray-500 ml-2">
+                    - {stream.description}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>

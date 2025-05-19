@@ -28,16 +28,17 @@ export const renderFilterSection = <T extends string | number>(
   setSelected: (val: T[]) => void,
   handleFilterChange: (filters: any) => void
 ) => {
-  // Explicit title-to-key mapping to match filter object keys
   const titleKeyMap: Record<string, string> = {
-    Course: "courseNames",
-    State: "states",
-    City: "cities",
-    Rank: "ranks",
-    Fee: "fees",
+    course: "courseNames",
+    state: "states",
+    city: "cities",
+    rank: "ranks",
+    fee: "fees",
+    "total fees": "fees",
+  "specialization": "courseNames", // changed from "specializations" to "courses"
   };
 
-  const filterKey = titleKeyMap[title] || title.toLowerCase(); // Fallback to lowercase
+  const filterKey = titleKeyMap[title.toLowerCase()] || title.toLowerCase();
 
   return (
     <FilterSectionWrapper title={title}>

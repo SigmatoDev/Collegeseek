@@ -99,7 +99,6 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/pages", icon: <FileText size={18} />, text: "Pages", isOpen },
-        { href: "/admin/modules", icon: <Grid size={18} />, text: "Modules", isOpen },
       ],
     },
     { href: "/admin/blogs", icon: <FileText size={20} />, text: "Blogs & News", isOpen },
@@ -128,6 +127,7 @@ const Sidebar = () => {
         { href: "/admin/programMode", icon: <School size={18} />, text: "Program Mode", isOpen },
         { href: "/admin/examExpected", icon: <BookOpenIcon className="h-5 w-5" />, text: "Exam Expected", isOpen },
         { href: "/admin/ads", icon: <Monitor size={18} />, text: "Advertisement", isOpen }, // ✅ Added Advertisement submenu
+        { href: "/admin/specialization", icon: <Grid size={18} />, text: "Modules", isOpen },
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
         { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
       ],

@@ -7,16 +7,16 @@ import CourseDetails from "@/components/courses/coursesDetail/page";
 
 const CourseDetailsPage = () => {
   const params = useParams();
-  const slug = params.slug as string;
+  const specialization = params.specialization as string;
 
-  if (!slug) {
-    return <div className="text-center p-4">Course not found.</div>;
+  if (!specialization) {
+    return <div className="text-center p-4">Specialization not found.</div>;
   }
 
   return (
     <>
       <Header />
-      <CourseDetails slug={slug} />
+      <CourseDetails specialization={specialization} />
       <Footer />
     </>
   );

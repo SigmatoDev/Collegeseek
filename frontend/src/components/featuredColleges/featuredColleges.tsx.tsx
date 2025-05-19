@@ -62,7 +62,7 @@ const FeaturedColleges = () => {
     return <div className="text-center py-6 text-red-500">{error}</div>;
 
   return (
-    <section className="py-[70px] bg-gray-200">
+    <section className="py-[70px] bg-orange-50">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-[45px]">
           Featured Colleges
@@ -128,7 +128,7 @@ const FeaturedColleges = () => {
                       {college.city}, {college.state}
                     </div>
 
-                    <span className="inline-block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm">
+                    <span className="inline-block w-full text-center bg-[#D25C40] text-white px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm">
                       View Details
                     </span>
                   </div>

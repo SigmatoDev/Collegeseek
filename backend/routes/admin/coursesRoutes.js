@@ -11,6 +11,7 @@ const {
   deleteCourse,
   getCourseBySlug,
   getCourse,
+  getCoursesBySpecialization,
 } = require('../../controllers/admin/coursesController');
 
 const {
@@ -22,6 +23,9 @@ const {
   getCourseFilters,
   getFilterdCourses,
   getCoursesWithCommonNames,
+
+  getCoursesWithCommonSpecializations,
+  getCourseBySpecialization,
   getCourseBySameName
 } = require('../../controllers/admin/filterCourses');
 
@@ -35,9 +39,12 @@ router.delete("/courses/:id", deleteCourse);
 router.get("/courses", getCoursesByidCollege);
 router.get("/by-college/:slug", getCoursesByCollegeSlug);
 router.get("/courses/slug/:slug", getCourseBySlug);
+router.get("/courses/specialization/:specialization", getCoursesBySpecialization);
 router.get("/get/courses/filters", getCourseFilters);
 router.post("/apply/filter/courses", getFilterdCourses);
 router.post("/courses/filter/by/common/name", getCoursesWithCommonNames);
+router.post("/courses/filter/by/specialization",getCoursesWithCommonSpecializations)
 router.get("/courses/all/get/with/same/name", getCourseBySameName);
+router.get("/courses/all/get/by/specialization", getCourseBySpecialization);
 
 module.exports = router;

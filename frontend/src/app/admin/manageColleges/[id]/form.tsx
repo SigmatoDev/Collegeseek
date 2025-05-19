@@ -12,7 +12,7 @@ import Editor from "react-simple-wysiwyg";
 import ApprovalDropdown from "@/components/approvels/page";
 import AffiliatedByDropdown from "@/components/affiliatedBy/page";
 import ExamExpectedDropdown from "@/components/examExpected/page";
-import OwnershipDropdown from "@/components/admin/ownership/page";
+import OwnershipDropdown from "@/components/ownership/page";
 import StreamDropdown from "@/components/streamsDropdown/page";
 import { toast } from "react-hot-toast";
 
@@ -57,7 +57,7 @@ const ActualCollegeForm = () => {
     website: "",
     contact: "",
     contactEmail: "",
-    featured: "",  // Add the featured status
+    featured: "", // Add the featured status
     image: null as File | null,
     imageGallery: [] as File[],
   });
@@ -72,12 +72,10 @@ const ActualCollegeForm = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null); // which tab is currently being edited
   const [isFeatured, setIsFeatured] = useState<boolean>(false);
 
-
   interface Course {
     _id: string;
     name: string;
   }
-
 
   /*** ✅ Fetch College Data ***/
   useEffect(() => {
@@ -132,11 +130,14 @@ const ActualCollegeForm = () => {
           contact: data.contact || "",
           contactEmail: data.contactEmail || "",
           tabs: data.tabs || [],
-          featured: data.featured || "",  // Add the featured status
+          featured: data.featured || "", // Add the featured status
           image: null,
           imageGallery: [],
         });
-        console.log("Featured prop passed to FeaturedComponent:", data.featured);
+        console.log(
+          "Featured prop passed to FeaturedComponent:",
+          data.featured
+        );
 
         // ✅ Update Image Previews
         setImagePreview(
@@ -284,7 +285,6 @@ const ActualCollegeForm = () => {
     formData.append("approvel", JSON.stringify(collegeData.approvel));
     formData.append("featured", isFeatured.toString());
 
-
     if (collegeData.address) formData.append("address", collegeData.address);
     if (collegeData.location) formData.append("location", collegeData.location);
     if (collegeData.rank) formData.append("rank", String(collegeData.rank));
@@ -334,7 +334,7 @@ const ActualCollegeForm = () => {
       console.log("Stream is empty, appending empty array or skipping");
       formData.append("stream", JSON.stringify([])); // Or skip if not required
     }
-  
+
     if (
       Array.isArray(collegeData.examExpected) &&
       collegeData.examExpected.length > 0
@@ -461,18 +461,19 @@ const ActualCollegeForm = () => {
     }
   }, [collegeData.state, states]);
 
-  const fieldLabels: Record<string, string> = {
-    name: "College Name",
-    website: "Official Website",
-    contact: "Primary Phone Number",
-    contactEmail: "Contact Email",
-    avgPackage: "Average Package (LPA)",
-    location: "Location",
-  };
+const fieldLabels: Record<string, string> = {
+  name: "College Name (e.g., IIT Delhi)",
+  website: "Official Website (e.g., https://www.iitd.ac.in)",
+  contact: "Primary Phone Number (e.g., 9876543210)",
+  contactEmail: "Contact Email (e.g., info@iitd.ac.in)",
+  avgPackage: "Average Package (LPA) (e.g., 15.5)",
+  location: "Location (e.g., New Delhi, Delhi)",
+};
+
 
   const handleFeaturedToggle = (newState: boolean) => {
-    setIsFeatured(newState);// Update the state to the new featured value
-    console.log('Featured status:', newState); // You can handle the logic here (e.g., API calls)
+    setIsFeatured(newState); // Update the state to the new featured value
+    console.log("Featured status:", newState); // You can handle the logic here (e.g., API calls)
   };
 
   return (
@@ -597,24 +598,28 @@ const ActualCollegeForm = () => {
           </div>
           <div className="flex space-x-6 items-center">
             <div className="w-full max-w-[800px]">
-            <label className="text-gray-800 font-medium">Select Streams</label>
+              <label className="text-gray-800 font-medium">
+                Select Streams
+              </label>
 
               <StreamDropdown
+                defaultSelected={collegeData?.stream ?? []}
                 onSelectionChange={(selectedStreams) => {
-                  const streamNames = selectedStreams.map(
-                    (s: { _id: string }) => s._id
-                  ); // Convert Stream[] to string[]
-                  setCollegeData((prevData) => ({
-                    ...prevData,
-                    stream: streamNames,
+                  const streamIds = selectedStreams.map((s) => s._id);
+                  setCollegeData((prev) => ({
+                    ...prev,
+                    stream: streamIds,
                   }));
                 }}
               />
             </div>
             <div className="w-full max-w-[800px]">
-            <label className="text-gray-800 font-medium">Select Approval</label>
+              <label className="text-gray-800 font-medium">
+                Select Approval
+              </label>
 
               <ApprovalDropdown
+                defaultSelected={collegeData?.approvel ?? []}
                 onSelectionChange={(selectedApprovels) => {
                   const approvelNames = selectedApprovels.map(
                     (a: { _id: string }) => a._id
@@ -624,25 +629,27 @@ const ActualCollegeForm = () => {
                     approvel: approvelNames,
                   }));
                 }}
-              />{" "}
+              />
             </div>
           </div>
 
           <div>
-          <label className="text-gray-800 font-medium">Select ExamExpected</label>
+            <label className="text-gray-800 font-medium">
+              Select ExamExpected
+            </label>
 
-          <ExamExpectedDropdown
-          
-            onSelectionChange={(selectedExams) => {
-              const examNames = selectedExams.map(
-                (e: { _id: string }) => e._id
-              ); // Convert Exam[] to string[]
-              setCollegeData((prevData) => ({
-                ...prevData,
-                examExpected: examNames,
-              }));
-            }}
-          />
+            <ExamExpectedDropdown
+              defaultSelected={collegeData?.examExpected ?? []}
+              onSelectionChange={(selectedExams) => {
+                const examNames = selectedExams.map(
+                  (e: { _id: string }) => e._id
+                ); // Convert Exam[] to string[]
+                setCollegeData((prevData) => ({
+                  ...prevData,
+                  examExpected: examNames,
+                }));
+              }}
+            />
           </div>
           <div className="flex space-x-6 items-center">
             <div className="w-full max-w-[800px]">
@@ -675,7 +682,9 @@ const ActualCollegeForm = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-gray-700 font-medium mb-2">Location</label>
+<label className="text-gray-700 font-medium mb-2">
+  Location <span className="text-gray-700 font-medium mb-2">(optional or Google Map Link)</span>
+</label>
             <LocationAutocomplete onLocationSelect={handleLocationSelect} />
             {collegeData.latitude && collegeData.longitude && (
               <p className="text-sm text-gray-600 mt-2">
@@ -689,8 +698,8 @@ const ActualCollegeForm = () => {
           {/* Number Inputs */}
           <div className="grid grid-cols-2 gap-4">
             {[
-              { key: "rank", label: "NIRF" },
-              { key: "fees", label: "Tuition Fees (₹)" },
+{ key: "rank", label: "NIRF Rank (e.g., 5)" },
+{ key: "fees", label: "Average Tuition Fees (₹) (e.g., 2,00,000)" }
             ].map(({ key, label }) => (
               <div key={key} className="flex flex-col">
                 <label className="text-gray-700 font-medium">{label}</label>
@@ -774,13 +783,14 @@ const ActualCollegeForm = () => {
           </div>
 
           {/* Description Field */}
-          <div className="flex flex-col space-y-1">
-            <label className="text-gray-800 font-medium">Description</label>
-            <Editor
-              value={collegeData.description}
-              onChange={(event) => handleEditorChange(event.target.value)}
-            />
-          </div>
+         <Editor
+  value={collegeData.description}
+  onChange={(event) => {
+    console.log(event.target.value); // Inspect this
+    handleEditorChange(event.target.value);
+  }}
+/>
+
 
           {/* About Field */}
           <div className="flex flex-col space-y-1">
@@ -794,7 +804,6 @@ const ActualCollegeForm = () => {
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-28 bg-white"
             />
           </div>
-          
 
           {/* Image Upload */}
           <div className="space-y-2">
@@ -852,15 +861,12 @@ const ActualCollegeForm = () => {
                 </div>
               ))}
             </div>
-            
           </div>
-          
-          <FeaturedComponent
-  initialFeatured={Boolean(collegeData.featured)} // <- force boolean
-  onToggleFeatured={handleFeaturedToggle}
-/>
 
-          
+          <FeaturedComponent
+            initialFeatured={Boolean(collegeData.featured)} // <- force boolean
+            onToggleFeatured={handleFeaturedToggle}
+          />
 
           <button
             type="submit"

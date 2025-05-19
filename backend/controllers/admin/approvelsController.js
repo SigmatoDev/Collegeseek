@@ -5,10 +5,10 @@ const createApproval = async (req, res) => {
   try {
     const { name, code } = req.body;
 
-    // Check if the approval already exists
-    const existingApproval = await Approval.findOne({ code });
+    // Check if the approval already exists (based on name)
+    const existingApproval = await Approval.findOne({ name });
     if (existingApproval) {
-      return res.status(400).json({ message: 'Approval with this code already exists' });
+      return res.status(400).json({ message: 'Approval with this name already exists' });
     }
 
     const approval = new Approval({
@@ -23,6 +23,7 @@ const createApproval = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
 // Get all approvals
 const getAllApprovals = async (req, res) => {
@@ -53,9 +54,16 @@ const getApprovalById = async (req, res) => {
 const updateApproval = async (req, res) => {
   try {
     const { name, code } = req.body;
+    const approvalId = req.params.id;
+
+    // Check if another approval with the same name exists
+    const existingApproval = await Approval.findOne({ name, _id: { $ne: approvalId } });
+    if (existingApproval) {
+      return res.status(400).json({ message: 'Approval with this name already exists' });
+    }
 
     const approval = await Approval.findByIdAndUpdate(
-      req.params.id,
+      approvalId,
       { name, code },
       { new: true }
     );
@@ -70,6 +78,7 @@ const updateApproval = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
 // Delete an approval by ID
 const deleteApproval = async (req, res) => {

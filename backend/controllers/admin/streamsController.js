@@ -1,12 +1,20 @@
 const Stream = require('../../models/admin/streams');
 
 // Create a new stream
+// createStream
 const createStream = async (req, res) => {
   try {
     const { name } = req.body;
+    const image = req.file ? req.file.path : null;
+
     if (!name) return res.status(400).json({ message: 'Stream name is required' });
 
-    const stream = new Stream({ name });
+    const existingStream = await Stream.findOne({ name });
+    if (existingStream) {
+      return res.status(400).json({ message: 'Stream with this name already exists' });
+    }
+
+    const stream = new Stream({ name, image });
     await stream.save();
     res.status(201).json(stream);
   } catch (error) {
@@ -37,12 +45,27 @@ const getStreamById = async (req, res) => {
 };
 
 // Update a stream
+
+// updateStream
 const updateStream = async (req, res) => {
   try {
     const { name } = req.body;
-    const stream = await Stream.findByIdAndUpdate(req.params.id, { name }, { new: true });
+    const streamId = req.params.id;
+    const image = req.file ? req.file.path : null;
 
+    if (!name) return res.status(400).json({ message: 'Stream name is required' });
+
+    const existingStream = await Stream.findOne({ name, _id: { $ne: streamId } });
+    if (existingStream) {
+      return res.status(400).json({ message: 'Stream with this name already exists' });
+    }
+
+    const updateData = { name };
+    if (image) updateData.image = image;
+
+    const stream = await Stream.findByIdAndUpdate(streamId, updateData, { new: true });
     if (!stream) return res.status(404).json({ message: 'Stream not found' });
+
     res.status(200).json(stream);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error });

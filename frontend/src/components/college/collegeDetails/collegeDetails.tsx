@@ -199,10 +199,8 @@ export default function CollegeDetailsPage() {
             />
           </div>
         </div>
-  
-        <Courses college_id={collegeData.id || (collegeData as any)._id} />
-  
-        {/* Tabs */}
+
+         {/* Tabs */}
         <nav className="flex space-x-6 border-b pb-2 mt-6 text-gray-600 overflow-x-auto scrollbar-hide px-2 sm:px-0">
           {collegeData.tabs.map((tab, index) => (
             <button
@@ -232,6 +230,10 @@ export default function CollegeDetailsPage() {
             />
           </div>
         )}
+  
+        <Courses college_id={collegeData.id || (collegeData as any)._id} />
+  
+       
   
         {/* About */}
         <div className="mt-6 mb-6">

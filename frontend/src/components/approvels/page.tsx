@@ -71,13 +71,16 @@ interface Approval {
 
 interface Props {
   onSelectionChange: (selectedApprovals: Approval[]) => void;
+  defaultSelected: string[] | { _id: string }[]; // Array of selected approval IDs or objects
 }
 
-const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange }) => {
+const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = [] }) => {
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [selectedApprovals, setSelectedApprovals] = useState<Approval[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
+  // Fetch all approvals
   useEffect(() => {
     const fetchApprovals = async () => {
       try {
@@ -95,6 +98,31 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange }) => {
     fetchApprovals();
   }, []);
 
+  // Update selectedApprovals if defaultSelected changes
+  useEffect(() => {
+    if (approvals.length > 0) {
+      console.log('Approvals:', approvals);
+      console.log('Default Selected IDs:', defaultSelected);
+
+      // Ensure defaultSelected contains only IDs (extracting _id if it's an object)
+      const ids = defaultSelected.map((item) => (typeof item === 'string' ? item : item._id));
+      
+      // Map the defaultSelected IDs to the full approval objects
+      const defaultApprovalObjects = ids
+        .map((id) => {
+          const foundApproval = approvals.find((approval) => approval._id === id);
+          console.log(`Finding approval for ID: ${id}, Found: `, foundApproval);
+          return foundApproval;
+        })
+        .filter((approval): approval is Approval => approval !== undefined);
+
+      console.log('Mapped Approval Objects:', defaultApprovalObjects);
+
+      setSelectedApprovals(defaultApprovalObjects); // Set state with the mapped approval objects
+    }
+  }, [defaultSelected, approvals]);
+
+  // Handle selection
   const handleSelect = useCallback(
     (approval: Approval) => {
       if (!selectedApprovals.some((a) => a._id === approval._id)) {
@@ -103,19 +131,27 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange }) => {
         onSelectionChange(updated);
       }
       setSearchQuery("");
+      setIsFocused(false); // Close dropdown
     },
     [selectedApprovals, onSelectionChange]
   );
 
+  // Handle remove
   const handleRemove = (id: string) => {
     const updated = selectedApprovals.filter((a) => a._id !== id);
     setSelectedApprovals(updated);
     onSelectionChange(updated);
   };
 
+  // Filtered results
+  const filteredApprovals = approvals.filter((a) =>
+    a.code.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="w-full max-w-[800px] mx-auto">
       <div className="border p-3 rounded-lg">
+        {/* Selected tags */}
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedApprovals.map((approval) => (
             <span
@@ -133,29 +169,29 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange }) => {
           ))}
         </div>
 
+        {/* Input field */}
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           placeholder="Search and add approvals..."
           className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        {searchQuery && (
+        {/* Dropdown */}
+        {(isFocused || searchQuery) && (
           <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md">
-            {approvals
-              .filter((a) =>
-                a.code.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-              .map((approval) => (
-                <div
-                  key={approval._id}
-                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleSelect(approval)}
-                >
-                  {approval.code} - {approval.description}
-                </div>
-              ))}
+            {filteredApprovals.map((approval) => (
+              <div
+                key={approval._id}
+                className="p-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleSelect(approval)}
+              >
+                {approval.code} - {approval.description}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -164,3 +200,4 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange }) => {
 };
 
 export default ApprovalDropdown;
+

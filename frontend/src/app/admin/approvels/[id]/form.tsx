@@ -67,36 +67,43 @@ const ApprovalForm = () => {
     router.push("/admin/approvels");
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+const handleFormSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    if (!approvalData.name || !approvalData.code) {
-      setError("Approval name and code are required.");
-      setLoading(false);
-      return;
-    }
+  if (!approvalData.name || !approvalData.code) {
+    setError("Approval name and code are required.");
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const url = approvalId && approvalId !== "new" ? `${api_url}update/approvals/${approvalId}` : `${api_url}create/approvals`;
-      const method = approvalId && approvalId !== "new" ? axios.put : axios.post;
+  try {
+    const url = approvalId && approvalId !== "new"
+      ? `${api_url}update/approvals/${approvalId}`
+      : `${api_url}create/approvals`;
+    const method = approvalId && approvalId !== "new" ? axios.put : axios.post;
 
-      const response = await method(url, approvalData);  // Send approvalData as JSON
+    const response = await method(url, approvalData);  // Send approvalData as JSON
 
-      if ([200, 201].includes(response.status)) {
-        alert("Approval saved successfully!");
-        router.push("/admin/approvels");
-      } else {
-        setError("Failed to save approval. Please try again.");
-      }
-    } catch (err) {
-      console.error(err);
+    if ([200, 201].includes(response.status)) {
+      alert("Approval saved successfully!");
+      router.push("/admin/approvels");
+    } else {
       setError("Failed to save approval. Please try again.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err: any) {
+    console.error("❌ Error saving approval:", err);
+    if (err.response && err.response.data && err.response.data.message) {
+      setError(err.response.data.message);  // Show backend message like "Specialization with this name already exists"
+    } else {
+      setError("Failed to save approval. Please try again.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Avoid rendering the form until we have fetched the data
   if (isFetching) {

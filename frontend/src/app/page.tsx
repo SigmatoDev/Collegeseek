@@ -2,6 +2,7 @@
 
 import CollegeAdmissions from "@/components/admissions/page";
 import BlogList from "@/components/blogs/blogList/blogList";
+import CategoryGrid from "@/components/categoryGrid/CategoryGrid";
 import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
@@ -41,8 +42,11 @@ const HomePage = () => {
   "(BITSAT) BITS Pilani Admission Exam",
   "(NDA) National Defence Academy Exam"
 ]} />
-      <CollegeAdmissions />
       <FeaturedColleges/>
+
+      <CollegeAdmissions />
+              <CategoryGrid />
+
       <BlogList />
       <CallbackForm/>
       <PopUp />

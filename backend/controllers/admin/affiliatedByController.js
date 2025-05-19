@@ -6,6 +6,16 @@ const createAffiliatedBy = async (req, res) => {
   try {
     const { name, code } = req.body;
 
+    // Check if affiliation with the same name already exists
+    const existingAffiliation = await AffiliatedBy.findOne({ name });
+
+    if (existingAffiliation) {
+      return res.status(400).json({
+        success: false,
+        message: 'Affiliation with this name already exists',
+      });
+    }
+
     const newAffiliation = new AffiliatedBy({ name, code });
     await newAffiliation.save();
 
@@ -14,6 +24,7 @@ const createAffiliatedBy = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };
+
 
 // Get all affiliations
 const getAllAffiliatedBy = async (req, res) => {
@@ -52,8 +63,20 @@ const getAffiliatedByById = async (req, res) => {
 const updateAffiliatedBy = async (req, res) => {
   try {
     const { name, code } = req.body;
+    const { id } = req.params;
+
+    // Check if another affiliation with the same name exists
+    const existingAffiliation = await AffiliatedBy.findOne({ name, _id: { $ne: id } });
+
+    if (existingAffiliation) {
+      return res.status(400).json({
+        success: false,
+        message: 'Affiliation with this name already exists',
+      });
+    }
+
     const affiliation = await AffiliatedBy.findByIdAndUpdate(
-      req.params.id,
+      id,
       { name, code },
       { new: true }
     );
@@ -67,6 +90,7 @@ const updateAffiliatedBy = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error', error: error.message });
   }
 };
+
 
 // Delete affiliation
 const deleteAffiliatedBy = async (req, res) => {

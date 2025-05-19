@@ -79,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
               <span>1800-572-9877</span>
             </div>
             <div className="hidden sm:flex items-center">
-              <span>hello@collegeseek.com</span>
+              <span>hello@collegeseek.in</span>
             </div>
           </div>
 
@@ -148,7 +148,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex space-x-4 items-center">
               {[
-                { name: "Home", href: "/" },
+                { name: "Online", href: "/college?programModes=681c3ad286ab8ec6b6cf1e27" },
                 { name: "Colleges", href: "/college" },
               ].map((item, index) => (
                 <Link key={index} href={item.href}>
@@ -191,7 +191,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
           <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-md z-50">
             <div className="flex flex-col px-4 pt-4 pb-2 space-y-2 text-center">
               {[
-                { name: "Home", href: "/" },
+                { name: "Online", href: "/college?programModes=Online" },
                 { name: "Colleges", href: "/college" },
                 { name: "Latest Updates", href: "/latestUpdate" },
               ].map((item, index) => (

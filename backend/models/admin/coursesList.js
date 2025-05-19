@@ -9,6 +9,7 @@ const courseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+    image: { type: String, required: false }, // <-- updated field
 });
 
 module.exports = mongoose.model('CoursesList', courseSchema);

@@ -6,8 +6,12 @@ const CourseSchema = new mongoose.Schema(
     slug: { type: String, unique: true },
     name: {
       type: String,
-      required: true
+      required: false
     },
+    specialization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Specialization', // this should match your Specialization model name
+  },
     description: {
       type: String,
       required: true
@@ -40,7 +44,7 @@ const CourseSchema = new mongoose.Schema(
     fees: {
       amount: {
         type: Number,
-        required: true
+        required: true 
       },
       currency: {
         type: String,

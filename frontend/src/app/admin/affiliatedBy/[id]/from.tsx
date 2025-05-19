@@ -31,7 +31,6 @@ const AffiliatedByForm = () => {
         const url = `${api_url}id/affiliated/${affiliatedById}`;
         const response = await axios.get(url);
 
-        // ✅ Fix: Accessing nested data
         const data = response.data?.data;
 
         if (!data) {
@@ -91,9 +90,12 @@ const AffiliatedByForm = () => {
       } else {
         setError("Failed to save affiliated data. Please try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Failed to save affiliated data. Please try again.");
+      const message =
+        err?.response?.data?.message ||
+        "Failed to save affiliated data. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }

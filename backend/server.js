@@ -18,7 +18,8 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+// app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Ensure Uploads Folder Exists
 const uploadDir = path.join(__dirname, "./uploads");
@@ -27,9 +28,9 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Serve Static Files (for uploaded images)
-app.use("/uploads", express.static("uploads"));
+// app.use("/uploads", express.static("uploads"));
 // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 
 
@@ -37,6 +38,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 // Allow larger JSON payloads up to 50MB (for base64 encoded data, etc.)
 app.use(express.json({ limit: "50mb" })); 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 
 // Connect to MongoDB
@@ -72,12 +74,15 @@ app.use("/api", require("./routes/admin/approvelsRoutes"));
 app.use("/api", require("./routes/admin/affiliatedByRoutes"));
 app.use("/api", require("./routes/admin/examExpectedRoutes"));
 app.use("/api", require("./routes/admin/ownershipRoutes"));
+app.use("/api", require("./routes/admin/specializationRoutes"));
 app.use("/api", require("./routes/admin/streamsRoutes"));
 app.use("/api", require("./routes/admin/programModeRoutes"));
 app.use("/api", require("./routes/admin/ads1Routes"));
 app.use("/api", require("./routes/admin/ads2Routes"));
 app.use("/api", require("./routes/admin/ads3Routes"));
 app.use("/api", require("./routes/admin/ads4Routes"));
+app.use("/api", require("./routes/filter/filterRoutes"));
+app.use("/api", require("./routes/admin/categoryRoutes"));
 
 // Start the server
 app.listen(PORT, () => {

@@ -3,50 +3,70 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
-import { api_url } from "@/utils/apiCall";
+import { api_url, img_url } from "@/utils/apiCall";
+import toast from "react-hot-toast";
 
 const ExamExpectedForm = () => {
   const router = useRouter();
-  const { id: examExpectedId } = useParams(); // Dynamically fetching the examExpectedId from the URL
+  const { id: examExpectedId } = useParams();
 
   const [examExpectedData, setExamExpectedData] = useState({
     name: "",
     code: "",
+    image: null as File | null,
+    imagePreviewUrl: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isFetching, setIsFetching] = useState(true); // New state to handle loading
+  const [isFetching, setIsFetching] = useState(true);
 
-  useEffect(() => {
-    const fetchExamExpectedData = async () => {
-      if (!examExpectedId || examExpectedId === "new") {
-        setIsFetching(false); // Set fetching to false immediately if it's a new examExpected
-        return;
-      }
+useEffect(() => {
+  const fetchExamExpectedData = async () => {
+    if (!examExpectedId || examExpectedId === "new") {
+      setIsFetching(false);
+      return;
+    }
 
-      try {
-        const url = `${api_url}id/Exams/${examExpectedId}`;
-        const response = await axios.get(url);
-        const data = response.data;
+    try {
+      const url = `${api_url}id/Exams/${examExpectedId}`;
+      const response = await axios.get(url);
+      const data = response.data;
 
-        setExamExpectedData({
-          name: data.name || "",
-          code: data.code || "",
-        });
-      } catch (err) {
-        setError("Failed to fetch exam expected data. Please try again.");
-      } finally {
-        setIsFetching(false); // Set fetching to false after data is fetched or failed
-      }
-    };
+      setExamExpectedData({
+        name: data.name || "",
+        code: data.code || "",
+        image: null,
+        imagePreviewUrl: data.image ? `${img_url}${data.image}` : "",
+      });
+    } catch (err) {
+      setError("Failed to fetch exam expected data. Please try again.");
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
-    fetchExamExpectedData();
-  }, [examExpectedId]);
+  fetchExamExpectedData();
+}, [examExpectedId]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setExamExpectedData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }, []);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setExamExpectedData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    },
+    []
+  );
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setExamExpectedData((prev) => ({
+        ...prev,
+        image: file,
+        imagePreviewUrl: URL.createObjectURL(file),
+      }));
+    }
+  };
 
   const handleCancel = () => {
     router.push("/admin/examExpected");
@@ -64,26 +84,45 @@ const ExamExpectedForm = () => {
     }
 
     try {
-      const url = examExpectedId && examExpectedId !== "new" ? `${api_url}update/Exams/${examExpectedId}` : `${api_url}create/Exams`;
-      const method = examExpectedId && examExpectedId !== "new" ? axios.put : axios.post;
+      const url =
+        examExpectedId && examExpectedId !== "new"
+          ? `${api_url}update/Exams/${examExpectedId}`
+          : `${api_url}create/Exams`;
 
-      const response = await method(url, examExpectedData);  // Send examExpectedData as JSON
+      const formData = new FormData();
+      formData.append("name", examExpectedData.name);
+      formData.append("code", examExpectedData.code);
+
+      if (examExpectedData.image) {
+        formData.append("image", examExpectedData.image);
+      }
+
+      const response =
+        examExpectedId && examExpectedId !== "new"
+          ? await axios.put(url, formData, { headers: { "Content-Type": "multipart/form-data" } })
+          : await axios.post(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
 
       if ([200, 201].includes(response.status)) {
-        alert("Exam Expected saved successfully!");
+        toast.success("Exam Expected saved successfully!");
         router.push("/admin/examExpected");
       } else {
         setError("Failed to save exam expected. Please try again.");
       }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to save exam expected. Please try again.");
+    } catch (err: any) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 409) {
+          setError(err.response.data.message || "Exam name or code already exists.");
+        } else {
+          setError("Failed to save exam expected. Please try again.");
+        }
+      } else {
+        setError("Failed to save exam expected. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Avoid rendering the form until we have fetched the data
   if (isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -100,7 +139,7 @@ const ExamExpectedForm = () => {
 
       {error && <p className="text-red-600 text-center mb-4">{error}</p>}
 
-      <form onSubmit={handleFormSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6" encType="multipart/form-data">
         <div className="grid grid-cols-2 gap-6">
           <input
             type="text"
@@ -122,13 +161,36 @@ const ExamExpectedForm = () => {
           />
         </div>
 
+        <div>
+          <label className="block mb-1 font-medium">Upload Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="border p-2 rounded"
+          />
+          {examExpectedData.imagePreviewUrl && (
+            <img
+              src={examExpectedData.imagePreviewUrl}
+              alt="Preview"
+              className="mt-4 max-h-40 rounded-lg border"
+            />
+          )}
+        </div>
+
         <div className="flex space-x-4">
           <button
             type="submit"
             disabled={loading}
             className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
           >
-            {loading ? <Loader className="animate-spin h-5 w-5" /> : examExpectedId && examExpectedId !== "new" ? "Update Exam Expected" : "Publish Exam Expected"}
+            {loading ? (
+              <Loader className="animate-spin h-5 w-5" />
+            ) : examExpectedId && examExpectedId !== "new" ? (
+              "Update Exam Expected"
+            ) : (
+              "Publish Exam Expected"
+            )}
           </button>
           {examExpectedId && examExpectedId !== "new" && (
             <button type="button" onClick={handleCancel} className="bg-gray-500 text-white p-3 rounded-lg">

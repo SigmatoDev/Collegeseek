@@ -133,7 +133,7 @@ export default function BlogNewsSection() {
                     <p className="text-gray-600 text-sm mt-3 flex-grow">
                       {blog.description}
                     </p>
-                    <button className="mt-4 inline-block text-blue-600 font-semibold text-sm hover:underline">
+                    <button className="mt-4 inline-block text-[#D25C40] font-semibold text-sm hover:underline">
                       Read More →
                     </button>
                   </div>

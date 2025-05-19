@@ -98,20 +98,21 @@ interface ExamExpected {
 
 interface Props {
   onSelectionChange: (selectedExams: ExamExpected[]) => void; // Callback function to pass selected exams
+  defaultSelected: string[] | { _id: string }[]; // Array of selected approval IDs or objects
 }
 
-const  ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange }) => {
+const ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = [] }) => {
   const [exams, setExams] = useState<ExamExpected[]>([]);
   const [selectedExams, setSelectedExams] = useState<ExamExpected[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false); // New state to handle focus
 
   // Fetch exams from API
-
   useEffect(() => {
     const fetchExams = async () => {
       try {
         const { data } = await axios.get(`${api_url}get/Exams`);
-  
+
         // Check if the response is an array directly
         if (Array.isArray(data)) {
           setExams(data);
@@ -122,10 +123,26 @@ const  ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange }) => {
         console.error("Error fetching exams:", error);
       }
     };
-  
+
     fetchExams();
   }, []);
   
+  useEffect(() => {
+    if (exams.length > 0 && defaultSelected.length > 0) {
+      const ids = defaultSelected.map(item => typeof item === 'string' ? item : item._id);
+
+      const selectedFromDefault = ids
+        .map(id => exams.find(exam => exam._id === id))
+        .filter((exam): exam is ExamExpected => exam !== undefined);
+
+      // Check if selected exams have actually changed
+      if (selectedFromDefault.length !== selectedExams.length || 
+          selectedFromDefault.some((exam, index) => exam._id !== selectedExams[index]?._id)) {
+        setSelectedExams(selectedFromDefault);
+        onSelectionChange(selectedFromDefault);
+      }
+    }
+  }, [exams, defaultSelected, onSelectionChange, selectedExams]); // Added selectedExams to dependencies
 
   // Handle selecting an exam
   const handleSelect = useCallback(
@@ -136,6 +153,7 @@ const  ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange }) => {
         onSelectionChange(updatedExams); // Ensure this function is called
       }
       setSearchQuery(""); // Reset input
+      setIsFocused(false); // Close dropdown after selection
     },
     [selectedExams, onSelectionChange]
   );
@@ -173,12 +191,14 @@ const  ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange }) => {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           placeholder="Search and add exams..."
           className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         {/* Exam Suggestions */}
-        {searchQuery && (
+        {isFocused && (
           <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md">
             {exams
               .filter((e) =>
@@ -200,4 +220,4 @@ const  ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange }) => {
   );
 };
 
-export default  ExamExpectedDropdown;
+export default ExamExpectedDropdown;

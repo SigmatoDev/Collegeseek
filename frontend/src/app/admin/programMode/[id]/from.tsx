@@ -4,6 +4,7 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { api_url } from "@/utils/apiCall";
+import toast from "react-hot-toast";
 
 const ProgramModeForm = () => {
   const router = useRouter();
@@ -54,39 +55,46 @@ const ProgramModeForm = () => {
     router.push("/admin/programMode");
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+const handleFormSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    if (!programModeData.name) {
-      setError("Program mode name is required.");
-      setLoading(false);
-      return;
-    }
+  if (!programModeData.name) {
+    setError("Program mode name is required.");
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const url =
-        programModeId && programModeId !== "new"
-          ? `${api_url}update/program/${programModeId}`
-          : `${api_url}/create/program/`;
-      const method = programModeId && programModeId !== "new" ? axios.put : axios.post;
+  try {
+    const url =
+      programModeId && programModeId !== "new"
+        ? `${api_url}update/program/${programModeId}`
+        : `${api_url}create/program/`;
+    const method = programModeId && programModeId !== "new" ? axios.put : axios.post;
 
-      const response = await method(url, programModeData);
+    const response = await method(url, programModeData);
 
-      if ([200, 201].includes(response.status)) {
-        alert("Program mode saved successfully!");
-        router.push("/admin/programMode");
-      } else {
-        setError("Failed to save program mode. Please try again.");
-      }
-    } catch (err) {
-      console.error(err);
+    if ([200, 201].includes(response.status)) {
+      toast.success("Program mode saved successfully!");
+      router.push("/admin/programMode");
+    } else {
       setError("Failed to save program mode. Please try again.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err: any) {
+    console.error(err);
+
+    // Check if backend sent the duplicate name error
+    if (err.response?.status === 400 && err.response?.data?.message) {
+      setError(err.response.data.message); // This should show 'Program mode with this name already exists'
+    } else {
+      setError("Failed to save program mode. Please try again.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (isFetching) {
     return (

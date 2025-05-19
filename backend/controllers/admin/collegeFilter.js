@@ -22,6 +22,7 @@ const getFilteredColleges = async (req, res) => {
       limit = 10,
     } = req.body;
 
+
     const courseFilters = {};
     const collegeQuery = {};
     let matchedCourseCollegeIds = [];

@@ -90,7 +90,7 @@ export default function BlogCard({ _id: propId, title, slug, image, content }: B
         ) : (
           <button
             onClick={handleReadMore}
-            className="mt-4 inline-block text-blue-600 font-semibold text-sm hover:underline"
+            className="mt-4 inline-block text-[#D25C40]  font-semibold text-sm hover:underline"
           >
             Read More → {/* Trigger navigation on click */}
           </button>

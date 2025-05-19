@@ -4,6 +4,7 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { api_url } from "@/utils/apiCall";
+import toast from "react-hot-toast";
 
 const OwnershipForm = () => {
   const router = useRouter();
@@ -84,14 +85,19 @@ const OwnershipForm = () => {
       const response = await method(url, ownershipData);
 
       if ([200, 201].includes(response.status)) {
-        alert("Ownership saved successfully!");
+        toast.success("Ownership saved successfully!");
         router.push("/admin/ownership");
       } else {
         setError("Failed to save ownership. Please try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Failed to save ownership. Please try again.");
+
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message); // Show backend error message like "Ownership name already exists"
+      } else {
+        setError("Failed to save ownership. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

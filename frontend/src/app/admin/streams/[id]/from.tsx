@@ -4,14 +4,16 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { api_url } from "@/utils/apiCall";
+import toast from "react-hot-toast";
 
 const StreamForm = () => {
   const router = useRouter();
   const { id: streamId } = useParams();
 
-  const [streamData, setStreamData] = useState({
-    name: "",
-  });
+  const [streamData, setStreamData] = useState({ name: "" });
+  const [file, setFile] = useState<File | null>(null);
+  const [existingImage, setExistingImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,29 +21,34 @@ const StreamForm = () => {
 
   useEffect(() => {
     const fetchStreamData = async () => {
-      console.log(`📡 useEffect triggered for streamId: ${streamId}`);
-
       if (!streamId || streamId === "new") {
-        console.log("No streamId or streamId is 'new', skipping fetch.");
         setIsFetching(false);
         return;
       }
 
       try {
         const url = `${api_url}id/streams/${streamId}`;
-        console.log(`🚀 API Request URL: ${url}`);
-
         const response = await axios.get(url);
-        console.log("📊 API Response:", response.data);
-
         const data = response.data;
-        setStreamData({
-          name: data.name || "",
-        });
 
-        console.log("✅ Stream data set:", { name: data.name });
+        setStreamData({ name: data.name || "" });
+
+        if (data.image) {
+          // Replace backslashes with forward slashes for URL correctness
+          const normalizedImagePath = data.image.replace(/\\/g, "/");
+
+          // Remove trailing slash from api_url if exists
+          const baseUrl = api_url.endsWith("/") ? api_url.slice(0, -1) : api_url;
+
+          // Remove '/api' if it exists at the end of baseUrl
+          const imageBaseUrl = baseUrl.endsWith("/api") ? baseUrl.slice(0, -4) : baseUrl;
+
+          // Combine to create the full image URL
+          const fullImageUrl = `${imageBaseUrl}/${normalizedImagePath}`;
+
+          setExistingImage(fullImageUrl);
+        }
       } catch (err) {
-        console.error("❌ Error fetching stream data:", err);
         setError("Failed to fetch stream data. Please try again.");
       } finally {
         setIsFetching(false);
@@ -51,12 +58,21 @@ const StreamForm = () => {
     fetchStreamData();
   }, [streamId]);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setStreamData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    },
-    []
-  );
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setStreamData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+
+    if (selectedFile) {
+      const previewURL = URL.createObjectURL(selectedFile);
+      setPreviewImage(previewURL);
+    } else {
+      setPreviewImage(null);
+    }
+  };
 
   const handleCancel = () => {
     router.push("/admin/streams");
@@ -74,23 +90,33 @@ const StreamForm = () => {
     }
 
     try {
+      const formData = new FormData();
+      formData.append("name", streamData.name);
+      if (file) {
+        formData.append("image", file);
+      }
+
       const url =
         streamId && streamId !== "new"
           ? `${api_url}update/streams/${streamId}`
           : `${api_url}create/streams`;
+
       const method = streamId && streamId !== "new" ? axios.put : axios.post;
 
-      const response = await method(url, streamData);
+      const response = await method(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if ([200, 201].includes(response.status)) {
-        alert("Stream saved successfully!");
+        toast.success("Stream saved successfully!");
         router.push("/admin/streams");
       } else {
         setError("Failed to save stream. Please try again.");
       }
-    } catch (err) {
-      console.error(err);
-      setError("Failed to save stream. Please try again.");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to save stream.");
     } finally {
       setLoading(false);
     }
@@ -105,7 +131,7 @@ const StreamForm = () => {
   }
 
   return (
-    <div className="max-w-1xl mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+    <div className="max-w-8xl mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
       <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
         {streamId && streamId !== "new" ? "Edit Stream" : "Create New Stream"}
       </h1>
@@ -122,6 +148,25 @@ const StreamForm = () => {
           required
           className="w-full p-3 border rounded-lg"
         />
+
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="w-full p-3 border rounded-lg"
+        />
+
+        {(previewImage || existingImage) && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-500 mb-1">Image Preview:</p>
+            <img
+              src={previewImage || existingImage!}
+              alt="Stream Preview"
+              className="h-40 rounded-lg border"
+            />
+          </div>
+        )}
 
         <div className="flex space-x-4">
           <button

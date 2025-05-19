@@ -7,6 +7,7 @@ interface ProgramModeDropdownProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   label: string;
+  required?: boolean;  // add this
 }
 
 const ProgramModeDropdown: React.FC<ProgramModeDropdownProps> = ({
@@ -14,6 +15,7 @@ const ProgramModeDropdown: React.FC<ProgramModeDropdownProps> = ({
   value,
   onChange,
   label,
+  required = false, // default to false if not passed
 }) => {
   const [programModes, setProgramModes] = useState<{ _id: string; name: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,7 +25,7 @@ const ProgramModeDropdown: React.FC<ProgramModeDropdownProps> = ({
     const fetchProgramModes = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${api_url}get/Program`);  // Assuming the endpoint for Program Mode is similar
+        const response = await axios.get(`${api_url}get/Program`);
         setProgramModes(response.data);
         setLoading(false);
       } catch (err) {
@@ -45,9 +47,11 @@ const ProgramModeDropdown: React.FC<ProgramModeDropdownProps> = ({
       {error && <p className="text-red-500">{error}</p>}
       {!loading && !error && (
         <select
+          id={name}
           name={name}
           value={value}
           onChange={onChange}
+          required={required}  // <-- here you go
           className="p-2 border rounded w-full mt-2"
         >
           <option value="">Select {label}</option>

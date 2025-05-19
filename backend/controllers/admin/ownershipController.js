@@ -9,6 +9,13 @@ const createOwnership = async (req, res) => {
       return res.status(400).json({ message: 'Ownership name is required' });
     }
 
+    // Check if ownership with the same name already exists (case-insensitive)
+    const existingOwnership = await Ownership.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+
+    if (existingOwnership) {
+      return res.status(400).json({ message: 'Ownership name already exists' });
+    }
+
     const newOwnership = new Ownership({ name });
     const savedOwnership = await newOwnership.save();
 
@@ -17,6 +24,7 @@ const createOwnership = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
 // Get all ownerships
 const getAllOwnerships = async (req, res) => {
@@ -47,8 +55,24 @@ const getOwnershipById = async (req, res) => {
 const updateOwnership = async (req, res) => {
   try {
     const { name } = req.body;
+    const { id } = req.params;
+
+    if (!name) {
+      return res.status(400).json({ message: 'Ownership name is required' });
+    }
+
+    // Check if another ownership with the same name exists (case-insensitive)
+    const existingOwnership = await Ownership.findOne({ 
+      _id: { $ne: id }, 
+      name: { $regex: new RegExp(`^${name}$`, 'i') } 
+    });
+
+    if (existingOwnership) {
+      return res.status(400).json({ message: 'Ownership name already exists' });
+    }
+
     const updated = await Ownership.findByIdAndUpdate(
-      req.params.id,
+      id,
       { name },
       { new: true }
     );
@@ -62,6 +86,7 @@ const updateOwnership = async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
 
 // Delete ownership
 const deleteOwnership = async (req, res) => {

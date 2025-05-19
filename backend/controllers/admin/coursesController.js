@@ -4,6 +4,8 @@ const Course = require("../../models/admin/courseModel");
 const College = require("../../models/admin/collegemodel");
 const CoursesList = require("../../models/admin/coursesList"); // Adjust path if necessary
 const ProgramMode = require("../../models/admin/programMode"); // Adjust path if necessary
+const Specialization = require("../../models/admin/specialization"); // <- Capitalize for consistency
+
 
 
 // Get all courses
@@ -20,20 +22,22 @@ const getCourse = async (req, res) => {
   }
 };
 
-
+// Get paginated courses with full population
 const getCourses = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 100;
     const skip = (page - 1) * limit;
 
-    // Now you can use skip and limit safely
     const courses = await Course.find()
+      .populate("specialization", "name") // ✅ lowercase 'specialization'
+      .populate("college_id", "name slug")
       .populate("category", "name")
+      .populate("programMode", "name")
       .skip(skip)
       .limit(limit);
 
-    const totalCourses = await Course.countDocuments(); // Assuming you want to calculate the total number of courses
+    const totalCourses = await Course.countDocuments();
 
     res.json({
       courses,
@@ -45,6 +49,7 @@ const getCourses = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+
 
 // Get course by ID
 const getCourseById = async (req, res) => {
@@ -117,6 +122,8 @@ const getCourseById = async (req, res) => {
 //   }
 // };
 const createCourse = async (req, res) => {
+      // console.log("Request Body:", req.body);  // <-- Add this line
+
   try {
     let { college_id, category, name, ...courseData } = req.body;
 
@@ -215,25 +222,19 @@ const createCourse = async (req, res) => {
 // };
 
 
+
+
 const updateCourse = async (req, res) => {
   try {
-
-    let { name, college_id, category, programMode, ...rest } = req.body;
-
-    // Regenerate slug if name changes
-    if (name) {
-      req.body.slug = slugify(name, { lower: true, strict: true });
-      console.log("Generated slug:", req.body.slug);
-    }
+    let { name, college_id, category, programMode, specialization, ...rest } = req.body;
+        console.log("Incoming request body:", req.body);
 
     // Normalize college_id
     if (college_id && typeof college_id === 'object') {
       college_id = college_id._id;
     }
-
     if (college_id && !mongoose.Types.ObjectId.isValid(college_id)) {
       const college = await College.findOne({ name: college_id });
-      console.log("Resolved college by name:", college);
       if (!college) return res.status(400).json({ message: "College not found" });
       college_id = college._id;
     }
@@ -241,7 +242,6 @@ const updateCourse = async (req, res) => {
     // Normalize category
     if (category && typeof category !== 'object' && !mongoose.Types.ObjectId.isValid(category)) {
       const courseCategory = await CoursesList.findOne({ name: category });
-      console.log("Resolved category by name:", courseCategory);
       if (!courseCategory) return res.status(400).json({ message: "Category not found" });
       category = courseCategory._id;
     }
@@ -249,9 +249,15 @@ const updateCourse = async (req, res) => {
     // Normalize programMode
     if (programMode && typeof programMode !== 'object' && !mongoose.Types.ObjectId.isValid(programMode)) {
       const programModeDoc = await ProgramMode.findOne({ name: programMode });
-      console.log("Resolved programMode by name:", programModeDoc);
       if (!programModeDoc) return res.status(400).json({ message: "Program mode not found" });
       programMode = programModeDoc._id;
+    }
+
+    // Normalize specialization
+    if (specialization && typeof specialization !== 'object' && !mongoose.Types.ObjectId.isValid(specialization)) {
+      const specializationDoc = await Specialization.findOne({ name: specialization });
+      if (!specializationDoc) return res.status(400).json({ message: "Specialization not found" });
+      specialization = specializationDoc._id;
     }
 
     const updatedCourse = await Course.findByIdAndUpdate(
@@ -262,20 +268,28 @@ const updateCourse = async (req, res) => {
         ...(college_id && { college_id }),
         ...(category && { category }),
         ...(programMode && { programMode }),
-        ...(req.body.slug && { slug: req.body.slug }),
+        ...(specialization && { specialization }),
+        // Slug is intentionally left out
       },
-      { new: true }
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
-    if (!updatedCourse) return res.status(404).json({ message: "Course not found" });
+    if (!updatedCourse) {
+      return res.status(404).json({ message: "Course not found" });
+    }
 
-    console.log("Updated course successfully:", updatedCourse);
     res.json(updatedCourse);
   } catch (error) {
     console.error("Error updating course:", error);
-    res.status(500).json({ message: "Failed to update course" });
+    res.status(500).json({ message: "Failed to update course", error: error.message });
   }
 };
+
+
+
 
 
 // Get course by slug
@@ -304,6 +318,35 @@ const getCourseBySlug = async (req, res) => {
   }
 };
 
+// Get courses by specialization name
+const getCoursesBySpecialization = async (req, res) => {
+  try {
+    const { specialization } = req.params;
+
+    console.log("Incoming specialization:", specialization);
+
+    if (!specialization || typeof specialization !== "string") {
+      return res.status(400).json({ message: "Invalid specialization provided" });
+    }
+
+    // Optional: if specialization is stored in another model and referenced by ID
+    const matchedSpecialization = await Specialization.findOne({ name: specialization });
+
+    if (!matchedSpecialization) {
+      return res.status(404).json({ message: "Specialization not found" });
+    }
+
+    const courses = await Course.find({ specialization: matchedSpecialization._id })
+      .populate("college_id", "name location")
+      .populate("category", "name");
+
+    return res.status(200).json(courses);
+  } catch (error) {
+    console.error("Error fetching courses by specialization:", error.message);
+    return res.status(500).json({ message: "Failed to fetch courses", error: error.message });
+  }
+};
+
 
 
 // Delete a course
@@ -327,4 +370,5 @@ module.exports = {
   updateCourse,
   deleteCourse,
   getCourseBySlug,
+  getCoursesBySpecialization,
 };

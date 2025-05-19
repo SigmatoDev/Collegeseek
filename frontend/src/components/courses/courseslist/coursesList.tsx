@@ -7,6 +7,11 @@ interface Course {
   name: string;
   title?: string;
   description: string;
+  specialization: string | {
+    _id: string;
+    name: string;
+    __v?: number;
+  };
   instructor: string;
   duration?: string;
   durationRange?: string;
@@ -26,37 +31,46 @@ const CoursesList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      setLoading(true);
-      setError(null);
+ useEffect(() => {
+  const fetchCourses = async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const response = await fetch(`${api_url}courses/filter/by/common/name`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ filters: [] }),
-        });
+    const requestBody = { filters: [] };
+    console.log("🔄 Starting course fetch...");
+    console.log("📦 Request Body:", requestBody);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch courses');
-        }
+    try {
+      const response = await fetch(`${api_url}courses/filter/by/specialization`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-        const data = await response.json();
-        console.log("response",data)
+      console.log("📨 Raw response:", response);
 
-        setCourses(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch courses - Status: ${response.status}`);
       }
-    };
 
-    fetchCourses();
-  }, []);
+      const data = await response.json();
+      console.log("✅ Parsed response data:", data);
+
+      setCourses(data);
+    } catch (err) {
+      console.error("❌ Error fetching courses:", err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      console.log("✅ Finished course fetch.");
+      setLoading(false);
+    }
+  };
+
+  fetchCourses();
+}, []);
+
 
   if (loading) {
     return <div className="text-center">Loading courses...</div>;
@@ -74,7 +88,7 @@ const CoursesList: React.FC = () => {
             <CourseCard
               key={course._id}
               id={course._id}
-              title={course.name}
+  title={typeof course.specialization === 'object' ? course.specialization.name : course.specialization}
               description={course.description}
               slug={course.slug}
               duration={course.durationRange || course.duration || "N/A"}

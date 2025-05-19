@@ -11,9 +11,14 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 
-interface Course {
+interface Specialization {
   _id: string;
   name: string;
+}
+
+interface Course {
+  _id: string;
+  specialization: Specialization; // single specialization object
   description: string;
   duration: string;
   fees: number;
@@ -25,7 +30,7 @@ const AdminCourses = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const coursesPerPage = 10;
+  const coursesPerPage = 100;
   const router = useRouter();
 
   const fetchCourses = async (page: number) => {
@@ -41,10 +46,12 @@ const AdminCourses = () => {
         fetchedCourses.map((course: any) => ({
           ...course,
           fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
+          specialization: course.specialization || { _id: "", name: "N/A" },
         }))
       );
 
       setTotalPages(data?.totalPages || 1);
+      setError(null);
     } catch (err: any) {
       console.error("Error fetching courses:", err);
       setError(err.response?.data?.message || "Failed to fetch courses.");
@@ -91,7 +98,7 @@ const AdminCourses = () => {
           <table className="table-auto w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-600">
               <tr>
-                {["Name", "Description", "Duration", "Fees", "Actions"].map(
+                {["Specialization", "Description", "Duration", "Fees", "Actions"].map(
                   (header) => (
                     <th key={header} className="px-6 py-3 text-sm font-semibold">
                       {header}
@@ -104,7 +111,9 @@ const AdminCourses = () => {
               {courses.length > 0 ? (
                 courses.map((course) => (
                   <tr key={course._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{course.name}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      {course.specialization?.name || "N/A"}
+                    </td>
                     <td className="px-6 py-3 text-sm text-gray-700">{course.description}</td>
                     <td className="px-6 py-3 text-sm text-gray-700">{course.duration}</td>
                     <td className="px-6 py-3 text-sm text-gray-700">₹{course.fees}</td>
@@ -116,7 +125,8 @@ const AdminCourses = () => {
                         <PencilSquareIcon className="h-5 w-5" />
                         <span>Edit</span>
                       </button>
-                      {/* <button
+                      {/* Uncomment to enable delete
+                      <button
                         onClick={() => handleDelete(course._id)}
                         className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                       >
