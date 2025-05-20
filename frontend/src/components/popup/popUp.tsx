@@ -41,9 +41,9 @@ const PopUp = () => {
 
   useEffect(() => {
     setMounted(true);
-  
+
     let count = 0;
-  
+
     const interval = setInterval(() => {
       if (!isLoggedIn && count < 3) {
         setShowPopup(true);
@@ -52,21 +52,25 @@ const PopUp = () => {
         clearInterval(interval);
       }
     }, 60000); // 1 minute in milliseconds
-  
+
     return () => clearInterval(interval);
   }, [isLoggedIn]);
-  
-  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setRegisterData((prev) => ({ ...prev, [name]: value }));
+    if (name === "phone") {
+      // Allow only digits by stripping non-digit characters
+      const numericValue = value.replace(/\D/g, "");
+      setRegisterData((prev) => ({ ...prev, [name]: numericValue }));
+    } else {
+      setRegisterData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleClose = () => {
     setShowPopup(false);
-    const isClosed = sessionStorage.getItem("registerPopupClosed");
-
+    // Optionally set something in sessionStorage here if you want to remember close state
+    // sessionStorage.setItem("registerPopupClosed", "true");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,10 +183,12 @@ const PopUp = () => {
               <input
                 type="tel"
                 name="phone"
+                inputMode="numeric"
                 className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#D35B42]"
                 placeholder="Enter your phone number"
                 value={registerData.phone}
                 onChange={handleInputChange}
+                pattern="[0-9]*"
               />
             </div>
 

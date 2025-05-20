@@ -138,7 +138,7 @@ const FeaturedColleges = () => {
           </Swiper>
 
           {/* Custom Pagination */}
-          <div className="custom-swiper-pagination flex justify-center mt-6 p-[1px]" />
+<div className="custom-swiper-pagination flex justify-center mt-6 p-[1px]" />
 
           {/* Right Arrow */}
           <button

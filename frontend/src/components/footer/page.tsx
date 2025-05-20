@@ -145,7 +145,7 @@ const Footer = () => {
               Privacy Policy
             </Link>
           </div>
-          <p>© {new Date().getFullYear()} Collegeseeker Pvt. Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} collegeseek Pvt. Ltd. All rights reserved.</p>
         </div>
       </div>
     </footer>

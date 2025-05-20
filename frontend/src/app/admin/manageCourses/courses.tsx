@@ -9,7 +9,6 @@ import {
   PencilSquareIcon,
   PlusCircleIcon,
   TrashIcon,
-  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 interface Specialization {
@@ -26,6 +25,7 @@ interface Course {
 }
 
 const AdminCourses = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +34,10 @@ const AdminCourses = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const coursesPerPage = 100;
   const router = useRouter();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchCourses = async (page: number) => {
     setLoading(true);
@@ -44,13 +48,14 @@ const AdminCourses = () => {
 
       const fetchedCourses = data?.courses || [];
 
-      const processedCourses = fetchedCourses.map((course: any) => ({
-        ...course,
-        fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
-        specialization: course.specialization || { _id: "", name: "N/A" },
-      }));
+      setCourses(
+        fetchedCourses.map((course: any) => ({
+          ...course,
+          fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
+          specialization: course.specialization || { _id: "", name: "N/A" },
+        }))
+      );
 
-      setCourses(processedCourses);
       setTotalPages(data?.totalPages || 1);
       setError(null);
     } catch (err: any) {
@@ -62,8 +67,10 @@ const AdminCourses = () => {
   };
 
   useEffect(() => {
-    fetchCourses(currentPage);
-  }, [currentPage]);
+    if (isMounted) {
+      fetchCourses(currentPage);
+    }
+  }, [currentPage, isMounted]);
 
   const handleDelete = async (courseId: string) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
@@ -71,21 +78,17 @@ const AdminCourses = () => {
     try {
       await axios.delete(`${api_url}/courses/${courseId}`);
       toast.success("Course deleted successfully!");
-      fetchCourses(currentPage); // Refresh after deletion
+      fetchCourses(currentPage);
     } catch (err) {
       console.error("Error deleting course:", err);
       toast.error("Failed to delete course.");
     }
   };
 
-  const filteredCourses = courses.filter((course) =>
-    course.specialization.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (!isMounted) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header and Add Button */}
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Courses List</h1>
         <button
@@ -97,25 +100,21 @@ const AdminCourses = () => {
         </button>
       </header>
 
-      {/* Search Input - Right aligned */}
-      <div className="flex justify-end mb-6">
-        <div className="relative w-full max-w-sm">
-          <input
-            type="text"
-            placeholder="Search by specialization or description"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-        </div>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <input
+          suppressHydrationWarning
+          type="text"
+          placeholder="Search courses..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
 
-      {/* Loading and Error States */}
       {loading && <p className="text-center text-gray-500">Loading courses...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
-      {/* Course Table */}
       {!loading && !error && (
         <div className="overflow-x-auto shadow-md rounded bg-white">
           <table className="table-auto w-full text-left border-collapse">
@@ -131,8 +130,16 @@ const AdminCourses = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
+              {courses
+                .filter((course) => {
+                  const term = searchTerm.toLowerCase();
+                  return (
+                    course.description.toLowerCase().includes(term) ||
+                    course.duration.toLowerCase().includes(term) ||
+                    course.specialization?.name.toLowerCase().includes(term)
+                  );
+                })
+                .map((course) => (
                   <tr key={course._id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm text-gray-700">
                       {course.specialization?.name || "N/A"}
@@ -158,8 +165,15 @@ const AdminCourses = () => {
                       </button> */}
                     </td>
                   </tr>
-                ))
-              ) : (
+                ))}
+              {courses.filter((course) => {
+                const term = searchTerm.toLowerCase();
+                return (
+                  course.description.toLowerCase().includes(term) ||
+                  course.duration.toLowerCase().includes(term) ||
+                  course.specialization?.name.toLowerCase().includes(term)
+                );
+              }).length === 0 && (
                 <tr>
                   <td colSpan={5} className="text-center py-4 text-gray-500">
                     No courses found.
@@ -184,9 +198,7 @@ const AdminCourses = () => {
               Page {currentPage} of {totalPages}
             </span>
             <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
                 currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""

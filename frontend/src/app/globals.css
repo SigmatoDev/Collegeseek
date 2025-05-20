@@ -134,4 +134,23 @@ body {
   animation: fadeIn 0.5s ease-out;
 }
 
+/* styles/globals.css or similar */
 
+.external-swiper-pagination .swiper-pagination-bullet {
+  background-color: #d1d5db; /* Tailwind's gray-300 */
+  opacity: 1;
+  transition: background-color 0.3s ease;
+}
+
+.external-swiper-pagination .swiper-pagination-bullet-active {
+  background-color: #D25C40; /* Tailwind's blue-500 */
+}
+
+.custom-swiper-pagination .swiper-pagination-bullet {
+  background-color: #d1d5db; /* Tailwind gray-300 */
+  opacity: 1; /* Make sure bullets are visible */
+}
+
+.custom-swiper-pagination .swiper-pagination-bullet-active {
+  background-color: #D25C40; /* Tailwind blue-500 for active bullet */
+}

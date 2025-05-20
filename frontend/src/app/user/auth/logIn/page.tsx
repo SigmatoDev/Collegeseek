@@ -92,7 +92,7 @@ const LogIn = () => {
     <div className="flex flex-col justify-center items-center min-h-screen bg-white">
       <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
         <div className="flex justify-center">
-          <Image src="/logo/logo.jpg" alt="Logo" width={120} height={50} />
+          <Image src="/logo/cs-logo_a.webp" alt="Logo" width={120} height={50} />
         </div>
 
         <div className="text-center mt-4">

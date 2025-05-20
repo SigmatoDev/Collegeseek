@@ -40,7 +40,12 @@ const AdminColleges = () => {
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState<boolean>(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchColleges = async (
     page: number = 1,
@@ -48,9 +53,10 @@ const AdminColleges = () => {
     query: string = ""
   ) => {
     setLoading(true);
+    setError(null);
     try {
       const { data } = await axios.get(
-        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${query}`
+        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(query)}`
       );
 
       if (!data.success || !Array.isArray(data.data)) {
@@ -67,13 +73,14 @@ const AdminColleges = () => {
     }
   };
 
+  // Debounced fetch effect for search and pagination
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-      fetchColleges(1, pagination.limit, search);
-    }, 500); // debounce delay
+      fetchColleges(pagination.page, pagination.limit, search);
+    }, 500);
 
     return () => clearTimeout(delayDebounce);
-  }, [search]);
+  }, [search, pagination.page, pagination.limit]);
 
   const handleDelete = async (collegeId: string) => {
     if (!window.confirm("Are you sure you want to delete this college?")) return;
@@ -89,45 +96,45 @@ const AdminColleges = () => {
   };
 
   const goToPage = (page: number) => {
-    fetchColleges(page, pagination.limit, search);
+    if (page < 1 || page > pagination.pages) return;
+    setPagination((prev) => ({ ...prev, page }));
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Colleges List</h1>
 
- {/* Controls */}
-<div className="mb-6">
-  {/* Buttons container: Add College left, ImportColleges right */}
-  <div className="flex justify-between items-center mb-2 max-w-[80px]xl">
-    <button
-      onClick={() => router.push("/admin/manageColleges/new")}
-      className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
-    >
-      <PlusCircleIcon className="w-5 h-5 mr-2" />
-      Add College
-    </button>
-    <ImportColleges />
-  </div>
+      {/* Controls */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2 max-w-[80px]xl">
+          <button
+            onClick={() => router.push("/admin/manageColleges/new")}
+            className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+          >
+            <PlusCircleIcon className="w-5 h-5 mr-2" />
+            Add College
+          </button>
+          <ImportColleges />
+        </div>
 
-  {/* Search bar below ImportColleges, aligned left under it */}
-  <div className="relative w-full max-w-sm ml-auto">
-    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-    <input
-      type="text"
-      placeholder="Search by name..."
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-    />
-  </div>
-</div>
-
-
-
+        <div className="relative w-full max-w-sm ml-auto">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+          />
+        </div>
+      </div>
 
       {/* Data Table */}
-      {loading && <p className="text-center text-gray-500">Loading colleges...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">Loading colleges...</p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -136,13 +143,11 @@ const AdminColleges = () => {
             <table className="table-auto w-full text-left border-collapse">
               <thead className="bg-gray-200 text-gray-600">
                 <tr>
-                  {["Name", "Location", "Rank", "Courses", "Website", "Actions"].map(
-                    (header) => (
-                      <th key={header} className="px-6 py-3 text-sm font-semibold">
-                        {header}
-                      </th>
-                    )
-                  )}
+                  {["Name", "Location", "Rank", "Courses", "Website", "Actions"].map((header) => (
+                    <th key={header} className="px-6 py-3 text-sm font-semibold">
+                      {header}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -159,34 +164,36 @@ const AdminColleges = () => {
                           ? college.courses.join(", ")
                           : "No Courses"}
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">
+                      <td className="px-6 py-3 text-sm text-blue-500 hover:underline">
                         <a
                           href={college.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-500 hover:underline"
                         >
                           Visit
                         </a>
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
-                          onClick={() =>
-                            router.push(`/admin/manageColleges/${college._id}`)
-                          }
+                          onClick={() => router.push(`/admin/manageColleges/${college._id}`)}
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
+                          aria-label={`Edit ${college.name}`}
                         >
                           <PencilSquareIcon className="h-5 w-5" />
                           <span>Edit</span>
                         </button>
-                        {/* Uncomment for delete option
+
+                        {/* Uncomment below to enable delete button */}
+                        {/* 
                         <button
                           onClick={() => handleDelete(college._id)}
                           className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
+                          aria-label={`Delete ${college.name}`}
                         >
                           <TrashIcon className="h-5 w-5" />
                           <span>Delete</span>
-                        </button> */}
+                        </button> 
+                        */}
                       </td>
                     </tr>
                   ))
