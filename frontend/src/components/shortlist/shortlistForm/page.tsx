@@ -89,8 +89,10 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md max-w-lg w-full">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Shortlist This College</h2>
+    <div className="bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-md max-w-full sm:max-w-md md:max-w-lg mx-auto w-full">
+      <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">
+        Shortlist This College
+      </h2>
 
       {success && (
         <p className="text-green-600 mb-4 bg-green-100 p-3 rounded-md border border-green-500 transition-all">
@@ -105,7 +107,9 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col space-y-2">
-          <label htmlFor="name" className="text-gray-600">Your Name</label>
+          <label htmlFor="name" className="text-gray-600 text-sm sm:text-base">
+            Your Name
+          </label>
           <input
             type="text"
             name="name"
@@ -113,13 +117,15 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
             placeholder="Your Name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             required
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label htmlFor="email" className="text-gray-600">Your Email</label>
+          <label htmlFor="email" className="text-gray-600 text-sm sm:text-base">
+            Your Email
+          </label>
           <input
             type="email"
             name="email"
@@ -127,34 +133,46 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
             placeholder="Your Email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             required
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label htmlFor="phone" className="text-gray-600">Your Phone Number</label>
+          <label htmlFor="phone" className="text-gray-600 text-sm sm:text-base">
+            Your Phone Number
+          </label>
           <input
             type="text"
             name="phone"
             id="phone"
             placeholder="Your Phone Number"
             value={formData.phone}
-            onChange={handleChange}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+            onChange={(e) => {
+              const numericValue = e.target.value.replace(/\D/g, ""); // remove non-digits
+              setFormData((prev) => ({ ...prev, phone: numericValue }));
+            }}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             required
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label htmlFor="message" className="text-gray-600">Why are you interested in this college?</label>
+          <label
+            htmlFor="message"
+            className="text-gray-600 text-sm sm:text-base"
+          >
+            Why are you interested in this college?
+          </label>
           <textarea
             name="message"
             id="message"
             placeholder="Your message"
             value={formData.message}
             onChange={handleChange}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             rows={4}
           />
         </div>
@@ -162,7 +180,7 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full p-4 text-white rounded-lg transition duration-300 ${
+          className={`w-full p-3 sm:p-4 text-white rounded-lg transition duration-300 ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-[#581845] hover:bg-[#441137] focus:outline-none focus:ring-4 focus:ring-[#581845] focus:ring-opacity-50"
@@ -170,7 +188,7 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
         >
           {loading ? (
             <div className="flex justify-center items-center">
-              <div className="w-4 h-4 border-4 border-white border-t-transparent border-solid rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-4 border-white border-t-transparent border-solid rounded-full animate-spin"></div>
             </div>
           ) : (
             "Shortlist"

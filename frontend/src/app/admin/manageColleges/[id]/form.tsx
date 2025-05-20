@@ -424,7 +424,7 @@ const ActualCollegeForm = () => {
       });
 
       if ([200, 201].includes(response.status)) {
-        alert("College details saved successfully!");
+        toast.success("College details saved successfully!");
         router.push("/admin/manageColleges");
       }
     } catch (err: any) {
@@ -461,15 +461,14 @@ const ActualCollegeForm = () => {
     }
   }, [collegeData.state, states]);
 
-const fieldLabels: Record<string, string> = {
-  name: "College Name (e.g., IIT Delhi)",
-  website: "Official Website (e.g., https://www.iitd.ac.in)",
-  contact: "Primary Phone Number (e.g., 9876543210)",
-  contactEmail: "Contact Email (e.g., info@iitd.ac.in)",
-  avgPackage: "Average Package (LPA) (e.g., 15.5)",
-  location: "Location (e.g., New Delhi, Delhi)",
-};
-
+  const fieldLabels: Record<string, string> = {
+    name: "College Name (e.g., IIT Delhi)",
+    website: "Official Website (e.g., https://www.iitd.ac.in)",
+    contact: "Primary Phone Number (e.g., 9876543210)",
+    contactEmail: "Contact Email (e.g., info@iitd.ac.in)",
+    avgPackage: "Average Package (LPA) (e.g., 15.5)",
+    location: "Location (e.g., New Delhi, Delhi)",
+  };
 
   const handleFeaturedToggle = (newState: boolean) => {
     setIsFeatured(newState); // Update the state to the new featured value
@@ -682,9 +681,12 @@ const fieldLabels: Record<string, string> = {
           </div>
 
           <div className="flex flex-col">
-<label className="text-gray-700 font-medium mb-2">
-  Location <span className="text-gray-700 font-medium mb-2">(optional or Google Map Link)</span>
-</label>
+            <label className="text-gray-700 font-medium mb-2">
+              Location{" "}
+              <span className="text-gray-700 font-medium mb-2">
+                (optional or Google Map Link)
+              </span>
+            </label>
             <LocationAutocomplete onLocationSelect={handleLocationSelect} />
             {collegeData.latitude && collegeData.longitude && (
               <p className="text-sm text-gray-600 mt-2">
@@ -698,8 +700,11 @@ const fieldLabels: Record<string, string> = {
           {/* Number Inputs */}
           <div className="grid grid-cols-2 gap-4">
             {[
-{ key: "rank", label: "NIRF Rank (e.g., 5)" },
-{ key: "fees", label: "Average Tuition Fees (₹) (e.g., 2,00,000)" }
+              { key: "rank", label: "NIRF Rank (e.g., 5)" },
+              {
+                key: "fees",
+                label: "Average Tuition Fees (₹) (e.g., 2,00,000)",
+              },
             ].map(({ key, label }) => (
               <div key={key} className="flex flex-col">
                 <label className="text-gray-700 font-medium">{label}</label>
@@ -783,14 +788,13 @@ const fieldLabels: Record<string, string> = {
           </div>
 
           {/* Description Field */}
-         <Editor
-  value={collegeData.description}
-  onChange={(event) => {
-    console.log(event.target.value); // Inspect this
-    handleEditorChange(event.target.value);
-  }}
-/>
-
+          <Editor
+            value={collegeData.description}
+            onChange={(event) => {
+              console.log(event.target.value); // Inspect this
+              handleEditorChange(event.target.value);
+            }}
+          />
 
           {/* About Field */}
           <div className="flex flex-col space-y-1">

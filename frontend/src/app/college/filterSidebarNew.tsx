@@ -87,7 +87,7 @@ export default function FilterSidebarNew({
   const clearFilters = () => {
     setSelected({});
     onFilterChange({});
-    router.push("/colleges");
+    router.push("/college");
   };
 
   if (!filters) return <div className="p-4">Loading filters...</div>;
@@ -131,9 +131,11 @@ export default function FilterSidebarNew({
                         onChange={() => toggleSelect(key, item.name)}
                         className="form-checkbox accent-black"
                       />
-                      <span>{item.name}</span>
+                      <span>
+                {item.name} <span className="text-gray-800">({item.count})</span>
+              </span>
                     </label>
-                    <span className="text-gray-500">{item.count}</span>
+                   {/* <span className="text-gray-500">({item.count})</span> */}
                   </li>
                 ))}
               </ul>

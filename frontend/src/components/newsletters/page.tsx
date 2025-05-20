@@ -79,15 +79,26 @@ export default function CallbackForm() {
           />
         </div>
         <div className="w-full">
-          <input
-            type="tel"
-            name="mobile"
-            placeholder="Mobile Number"
-            value={formData.mobile}
-            onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
-            required
-          />
+       <input
+  type="tel"
+  name="mobile"
+  placeholder="Mobile Number"
+  value={formData.mobile}
+  onChange={handleChange}
+  inputMode="numeric"
+  pattern="[0-9]*"
+  onKeyDown={(e) => {
+    if (
+      !/[0-9]/.test(e.key) &&
+      !["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)
+    ) {
+      e.preventDefault();
+    }
+  }}
+  className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+  required
+/>
+
         </div>
         <div className="w-full">
           <input

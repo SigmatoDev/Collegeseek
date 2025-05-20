@@ -128,7 +128,7 @@ const FeaturedColleges = () => {
                       {college.city}, {college.state}
                     </div>
 
-                    <span className="inline-block w-full text-center bg-[#D25C40] text-white px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm">
+                    <span className="inline-block w-full text-center bg-[#D25C40] text-white px-4 py-2 rounded-md font-medium transition-all duration-200 hover:bg-[#FFF7ED] hover:text-[#D25C40] hover:border hover:border-[#D25C40] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 shadow-sm">
                       View Details
                     </span>
                   </div>

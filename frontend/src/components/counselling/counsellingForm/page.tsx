@@ -177,31 +177,40 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
             </div>
           ))}
 
-          {(["phone", "college"] as Array<keyof FormDataType>).map((field) => (
-            <div key={field} className="mb-4">
-              <label
-                htmlFor={field}
-                className="block text-lg font-medium text-gray-700 mb-2 capitalize"
-              >
-                {field}
-              </label>
-              <input
-                type={field === "phone" ? "tel" : "text"}
-                id={field}
-                name={field}
-                value={formData[field] || ""} // Ensure default value is an empty string
-                onChange={handleInputChange}
-                className={`w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 ${
-                  errors[field] ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder={`Enter your ${field}`}
-                required
-              />
-              {errors[field] && (
-                <p className="text-xs text-red-500 mt-1">{errors[field]}</p>
-              )}
-            </div>
-          ))}
+   {(["phone", "college"] as Array<keyof FormDataType>).map((field) => (
+  <div key={field} className="mb-4">
+    <label
+      htmlFor={field}
+      className="block text-lg font-medium text-gray-700 mb-2 capitalize"
+    >
+      {field}
+    </label>
+    <input
+      type={field === "phone" ? "tel" : "text"}
+      id={field}
+      name={field}
+      value={formData[field] || ""}
+      onChange={handleInputChange}
+      readOnly={field === "college"}
+      pattern={field === "phone" ? "[0-9]*" : undefined}
+      inputMode={field === "phone" ? "numeric" : undefined}
+      onKeyDown={(e) => {
+        if (field === "phone" && !/[0-9]/.test(e.key) && e.key !== "Backspace" && e.key !== "Tab") {
+          e.preventDefault();
+        }
+      }}
+      className={`w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 ${
+        errors[field] ? "border-red-500" : "border-gray-300"
+      } ${field === "college" ? "bg-gray-100 cursor-not-allowed" : ""}`}
+      placeholder={`Enter your ${field}`}
+      required
+    />
+    {errors[field] && (
+      <p className="text-xs text-red-500 mt-1">{errors[field]}</p>
+    )}
+  </div>
+))}
+
         </div>
 
         <div className="mb-4">

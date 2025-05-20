@@ -17,6 +17,9 @@ const LogIn = () => {
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +34,13 @@ const LogIn = () => {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedPassword = password.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
+    // Field validation
+    const isEmailEmpty = !trimmedEmail;
+    const isPasswordEmpty = !trimmedPassword;
+    setEmailError(isEmailEmpty);
+    setPasswordError(isPasswordEmpty);
+
+    if (isEmailEmpty || isPasswordEmpty) {
       setError("Please enter both email and password.");
       setShowModal(true);
       return;
@@ -54,10 +63,10 @@ const LogIn = () => {
       }
 
       if (res.ok && data.token && data.user) {
-        // Storing the token in sessionStorage
+        // Store token
         sessionStorage.setItem("authToken", data.token);
 
-        // Set user state with token in useUserStore
+        // Set user in Zustand store
         useUserStore.getState().setUser({
           ...data.user,
           token: data.token,
@@ -65,7 +74,7 @@ const LogIn = () => {
 
         setSuccess("Login successful!");
         setShowModal(true);
-        setTimeout(() => router.push("/user/profile"), 2000);  // Redirect to profile after success
+        setTimeout(() => router.push("/user/profile"), 2000);
       } else {
         setError(data.message || "Invalid credentials.");
         setShowModal(true);
@@ -85,31 +94,36 @@ const LogIn = () => {
         <div className="flex justify-center">
           <Image src="/logo/logo.jpg" alt="Logo" width={120} height={50} />
         </div>
-  
+
         <div className="text-center mt-4">
           <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
           <p className="text-gray-500">Login to your account</p>
         </div>
-  
+
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600">Email</label>
             <input
               type="email"
               name="email"
-              className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
+              className={`w-full p-3 border rounded-md focus:outline-none focus:ring ${
+                emailError ? "border-red-500" : "focus:border-[#581845]"
+              }`}
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {emailError && <p className="text-red-500 text-sm mt-1">Email is required.</p>}
           </div>
-  
+
           <div className="relative">
             <label className="block text-sm font-medium text-gray-600">Password</label>
             <input
               type={showPassword ? "text" : "password"}
               name="password"
-              className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
+              className={`w-full p-3 border rounded-md focus:outline-none focus:ring ${
+                passwordError ? "border-red-500" : "focus:border-[#581845]"
+              }`}
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -121,14 +135,15 @@ const LogIn = () => {
             >
               {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
+            {passwordError && <p className="text-red-500 text-sm mt-1">Password is required.</p>}
           </div>
-  
+
           <div className="text-right text-sm">
             <Link href="/user/auth/forgotPassword" className="text-[#581845] hover:text-[#441137] font-medium">
               Forgot Password?
             </Link>
           </div>
-  
+
           <button
             type="submit"
             className="w-full bg-[#581845] text-white p-3 rounded-md hover:bg-[#441137] transition duration-200"
@@ -136,7 +151,7 @@ const LogIn = () => {
             Log In
           </button>
         </form>
-  
+
         <div className="mt-4 text-center text-sm">
           <p className="text-gray-600">Don't have an account?</p>
           <Link href="/user/auth/signUp" className="text-[#581845] hover:text-[#441137] font-medium">
@@ -144,14 +159,14 @@ const LogIn = () => {
           </Link>
         </div>
       </div>
-  
+
       <div className="mt-4 text-sm text-center ml-[300px] p-2">
         <Link href="/" className="text-[#581845] hover:text-[#441137] font-medium">
           ← Go Back
         </Link>
       </div>
     </div>
-  );  
+  );
 };
 
 export default LogIn;

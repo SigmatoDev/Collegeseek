@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
 import {
+  MagnifyingGlassIcon,
   PencilSquareIcon,
   PlusCircleIcon,
   TrashIcon,
@@ -36,15 +37,20 @@ const AdminColleges = () => {
     pages: 1,
     limit: 10,
   });
+  const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const fetchColleges = async (page = 1, limit = 10) => {
+  const fetchColleges = async (
+    page: number = 1,
+    limit: number = 10,
+    query: string = ""
+  ) => {
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `${api_url}colleges?page=${page}&limit=${limit}`
+        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${query}`
       );
 
       if (!data.success || !Array.isArray(data.data)) {
@@ -62,8 +68,12 @@ const AdminColleges = () => {
   };
 
   useEffect(() => {
-    fetchColleges(1, pagination.limit); // default page 1 and initial limit
-  }, []);
+    const delayDebounce = setTimeout(() => {
+      fetchColleges(1, pagination.limit, search);
+    }, 500); // debounce delay
+
+    return () => clearTimeout(delayDebounce);
+  }, [search]);
 
   const handleDelete = async (collegeId: string) => {
     if (!window.confirm("Are you sure you want to delete this college?")) return;
@@ -71,7 +81,7 @@ const AdminColleges = () => {
     try {
       await axios.delete(`${api_url}college/${collegeId}`);
       toast.success("College deleted successfully!");
-      fetchColleges(pagination.page, pagination.limit); // refresh
+      fetchColleges(pagination.page, pagination.limit, search);
     } catch (err) {
       console.error("Error deleting college:", err);
       toast.error("Error deleting college. Please try again.");
@@ -79,26 +89,44 @@ const AdminColleges = () => {
   };
 
   const goToPage = (page: number) => {
-    fetchColleges(page, pagination.limit);
+    fetchColleges(page, pagination.limit, search);
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-800">Colleges List</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">Colleges List</h1>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <button
-          onClick={() => router.push("/admin/manageColleges/new")}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
-        >
-          <PlusCircleIcon className="w-5 h-5 mr-2" />
-          Add College
-        </button>
-        <div className="flex items-center space-x-3">
-          <ImportColleges />
-        </div>
-      </div>
+ {/* Controls */}
+<div className="mb-6">
+  {/* Buttons container: Add College left, ImportColleges right */}
+  <div className="flex justify-between items-center mb-2 max-w-[80px]xl">
+    <button
+      onClick={() => router.push("/admin/manageColleges/new")}
+      className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+    >
+      <PlusCircleIcon className="w-5 h-5 mr-2" />
+      Add College
+    </button>
+    <ImportColleges />
+  </div>
 
+  {/* Search bar below ImportColleges, aligned left under it */}
+  <div className="relative w-full max-w-sm ml-auto">
+    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+    <input
+      type="text"
+      placeholder="Search by name..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+    />
+  </div>
+</div>
+
+
+
+
+      {/* Data Table */}
       {loading && <p className="text-center text-gray-500">Loading colleges...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
@@ -151,7 +179,8 @@ const AdminColleges = () => {
                           <PencilSquareIcon className="h-5 w-5" />
                           <span>Edit</span>
                         </button>
-                        {/* <button
+                        {/* Uncomment for delete option
+                        <button
                           onClick={() => handleDelete(college._id)}
                           className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                         >
@@ -189,7 +218,9 @@ const AdminColleges = () => {
                 onClick={() => goToPage(pagination.page + 1)}
                 disabled={pagination.page === pagination.pages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                  pagination.page === pagination.pages ? "opacity-50 cursor-not-allowed" : ""
+                  pagination.page === pagination.pages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 Next

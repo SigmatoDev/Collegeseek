@@ -9,6 +9,7 @@ import {
   PencilSquareIcon,
   PlusCircleIcon,
   TrashIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 interface Specialization {
@@ -18,7 +19,7 @@ interface Specialization {
 
 interface Course {
   _id: string;
-  specialization: Specialization; // single specialization object
+  specialization: Specialization;
   description: string;
   duration: string;
   fees: number;
@@ -30,6 +31,7 @@ const AdminCourses = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const coursesPerPage = 100;
   const router = useRouter();
 
@@ -42,14 +44,13 @@ const AdminCourses = () => {
 
       const fetchedCourses = data?.courses || [];
 
-      setCourses(
-        fetchedCourses.map((course: any) => ({
-          ...course,
-          fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
-          specialization: course.specialization || { _id: "", name: "N/A" },
-        }))
-      );
+      const processedCourses = fetchedCourses.map((course: any) => ({
+        ...course,
+        fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
+        specialization: course.specialization || { _id: "", name: "N/A" },
+      }));
 
+      setCourses(processedCourses);
       setTotalPages(data?.totalPages || 1);
       setError(null);
     } catch (err: any) {
@@ -70,15 +71,21 @@ const AdminCourses = () => {
     try {
       await axios.delete(`${api_url}/courses/${courseId}`);
       toast.success("Course deleted successfully!");
-      fetchCourses(currentPage); // Refresh the current page after deletion
+      fetchCourses(currentPage); // Refresh after deletion
     } catch (err) {
       console.error("Error deleting course:", err);
       toast.error("Failed to delete course.");
     }
   };
 
+  const filteredCourses = courses.filter((course) =>
+    course.specialization.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Header and Add Button */}
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Courses List</h1>
         <button
@@ -90,9 +97,25 @@ const AdminCourses = () => {
         </button>
       </header>
 
+      {/* Search Input - Right aligned */}
+      <div className="flex justify-end mb-6">
+        <div className="relative w-full max-w-sm">
+          <input
+            type="text"
+            placeholder="Search by specialization or description"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+        </div>
+      </div>
+
+      {/* Loading and Error States */}
       {loading && <p className="text-center text-gray-500">Loading courses...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
+      {/* Course Table */}
       {!loading && !error && (
         <div className="overflow-x-auto shadow-md rounded bg-white">
           <table className="table-auto w-full text-left border-collapse">
@@ -108,8 +131,8 @@ const AdminCourses = () => {
               </tr>
             </thead>
             <tbody>
-              {courses.length > 0 ? (
-                courses.map((course) => (
+              {filteredCourses.length > 0 ? (
+                filteredCourses.map((course) => (
                   <tr key={course._id} className="border-b hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm text-gray-700">
                       {course.specialization?.name || "N/A"}

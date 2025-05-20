@@ -6,7 +6,7 @@ const Course = require('../../models/admin/courseModel');
 
 exports.getCategoryData = async (req, res) => {
   try {
-    console.log('Fetching category data...');
+    // console.log('Fetching category data...');
 
     // Fetch 15 random streams, exams, and courses categories
     const streams = await Stream.aggregate([{ $sample: { size: 15 } }]);
@@ -93,10 +93,10 @@ exports.getCategoryData = async (req, res) => {
       tabCounts,  // <-- send this to frontend too
     };
 
-    console.log('Sending category data response:', response);
+    // console.log('Sending category data response:', response);
     res.json(response);
   } catch (error) {
-    console.error('Error fetching category data:', error);
+    // console.error('Error fetching category data:', error);
     res.status(500).json({ message: 'Server error fetching category data' });
   }
 };

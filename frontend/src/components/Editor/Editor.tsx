@@ -1,61 +1,113 @@
-import { useEffect, useState, useRef } from "react";
-import { EditorState, convertFromHTML, ContentState } from "draft-js";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
-import { Editor } from "react-draft-wysiwyg";
+import React, { useEffect, useRef } from "react";
+import EditorJS, { OutputData } from "@editorjs/editorjs";
 
-const CustomEditor = ({ value, onChange }: { value: string; onChange: (val: string) => void }) => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
-  const isMounted = useRef(false); // Track if the component is mounted
+// Editor.js Tools
+
+import Header from "@editorjs/header";
+
+import List from "@editorjs/list";
+
+import Quote from "@editorjs/quote";
+
+import Code from "@editorjs/code";
+
+import Embed from "@editorjs/embed";
+
+import Table from "@editorjs/table";
+
+interface EditorComponentProps {
+  data?: OutputData;
+  onChange: (data: OutputData) => void;
+}
+
+const EditorComponent: React.FC<EditorComponentProps> = ({ data, onChange }) => {
+  const ejInstance = useRef<EditorJS | null>(null);
 
   useEffect(() => {
-    isMounted.current = true; // Mark as mounted on mount
+    if (ejInstance.current) return;
 
-    if (value) {
-      try {
-        const blocks = convertFromHTML(value);
-        const content = ContentState.createFromBlockArray(blocks.contentBlocks, blocks.entityMap);
-        const state = EditorState.createWithContent(content);
+    const editor = new EditorJS({
+      holder: "editorjs",
+      autofocus: true,
+      /**
+       * 👇 Ensure data is either valid OutputData or undefined
+       */
+      data: data ?? {
+        time: Date.now(),
+        blocks: [],
+        version: "2.27.0", // Or your current version
+      },
+      tools: {
+        // 👇 Suppress type mismatch for tools
+        header: {
+          // @ts-expect-error
+          class: Header,
+          config: {
+            levels: [1, 2, 3],
+            defaultLevel: 2,
+          },
+        },
+        list: {
+          // @ts-expect-error
+          class: List,
+          inlineToolbar: true,
+        },
+        quote: {
+          class: Quote,
+          inlineToolbar: true,
+          config: {
+            quotePlaceholder: "Enter a quote",
+            captionPlaceholder: "Quote's author",
+          },
+        },
+        code: Code,
+        embed: {
+          class: Embed,
+          config: {
+            services: {
+              youtube: true,
+              coub: true,
+            },
+          },
+        },
+        table: {
+          // @ts-expect-error
+          class: Table,
+          inlineToolbar: true,
+          config: {
+            rows: 2,
+            cols: 3,
+          },
+        },
+      },
+      onReady: () => {
+        ejInstance.current = editor;
+      },
+      onChange: async () => {
+        const savedData = await editor.save();
+        onChange(savedData);
+      },
+    });
 
-        // Only update state if mounted
-        if (isMounted.current) {
-          setEditorState(state);
-        }
-      } catch (error) {
-        console.error("Error converting HTML to editor content:", error);
-      }
-    }
-
-    // Cleanup on unmount
     return () => {
-      isMounted.current = false; 
+      ejInstance.current?.isReady
+        .then(() => ejInstance.current?.destroy())
+        .catch((err) => console.error("Editor cleanup error:", err));
+      ejInstance.current = null;
     };
-  }, [value]);
-
-  const handleEditorChange = (state: EditorState) => {
-    if (isMounted.current) {
-      setEditorState(state);
-      const contentText = state.getCurrentContent().getPlainText();
-      onChange(contentText);
-    }
-  };
-
-  const handleFocus = () => {
-    if (isMounted.current) {
-      console.log("Editor focused.");
-    }
-  };
+  }, [data, onChange]);
 
   return (
-    <div className="border border-gray-300 rounded">
-      <Editor
-        editorState={editorState}
-        onEditorStateChange={handleEditorChange}
-        onFocus={handleFocus}  // Ensure focus only happens when mounted
-        wrapperClassName="demo-wrapper"
-        editorClassName="demo-editor px-2 min-h-[200px]"
-      />
-    </div>
+    <div
+      id="editorjs"
+      style={{
+        border: "1px solid #ccc",
+        padding: "10px",
+        borderRadius: "6px",
+        minHeight: "300px",
+      }}
+    />
   );
 };
 
-export default CustomEditor;
+export default EditorComponent;

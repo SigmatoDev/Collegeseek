@@ -650,13 +650,13 @@ const deleteCollege = async (req, res) => {
 };
 
 const getFeaturedColleges = async (req, res) => {
-  console.log("API hit: getFeaturedColleges");
+  // console.log("API hit: getFeaturedColleges");
 
   try {
     // Query colleges where featured is true
     const featuredColleges = await College.find({ featured: true });
 
-    console.log(`Found ${featuredColleges.length} featured colleges.`);
+      // console.log(`Found ${featuredColleges.length} featured colleges.`);
 
     // Return the featured colleges as a response
     res.status(200).json({ success: true, colleges: featuredColleges });

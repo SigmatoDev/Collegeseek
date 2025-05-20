@@ -122,17 +122,21 @@ const Register = () => {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-600">Phone Number</label>
-            <input
-              type="tel"
-              name="phone"
-              className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
-              placeholder="Enter your phone number"
-              value={registerData.phone}
-              onChange={handleInputChange}
-            />
-          </div>
+        <input
+  type="tel"
+  name="phone"
+  className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
+  placeholder="Enter your phone number"
+  value={registerData.phone}
+  onChange={(e) => {
+    const onlyNums = e.target.value.replace(/\D/g, ""); // Allow only digits
+    setRegisterData((prev) => ({
+      ...prev,
+      phone: onlyNums,
+    }));
+  }}
+/>
+
 
           <div className="relative">
             <label className="block text-sm font-medium text-gray-600">Password</label>

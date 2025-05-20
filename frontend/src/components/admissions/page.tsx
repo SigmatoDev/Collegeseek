@@ -74,13 +74,14 @@ export default function CollegeAdmissions() {
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-8">
         <Link href="/college">
-          <Button className="bg-[#D25C41] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-yellow-700">
-            Start Your Application
-          </Button>
+          <Button className="bg-[#D25C41] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-[#FFF7ED] hover:text-[#D25C41] hover:border hover:border-[#D25C41] border border-transparent">
+  Start Your Application
+</Button>
+
         </Link>
 
         <Link href="/contactUs">
-          <Button className="border border-[#D25C41] text-[#D25C41] px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-blue-50">
+          <Button className="border border-[#D25C41] text-[#D25C41] px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-[#FFF7ED]">
             Contact an Admissions Counselor
           </Button>
         </Link>

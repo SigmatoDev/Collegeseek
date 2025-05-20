@@ -39,9 +39,10 @@ export default function HeroSection() {
 
         <div className="pt-4 mb-[110px]">
           <Link href="/college">
-            <Button className="bg-[#D25C40]  hover:bg-[#e78168]  text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300">
-              Find Your College
-            </Button>
+            <Button className="bg-[#D25C40] text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300 border border-transparent hover:bg-[#FFF7ED] hover:text-[#D25C40] hover:border-[#D25C40]">
+  Find Your College
+</Button>
+
           </Link>
         </div>
       </div>

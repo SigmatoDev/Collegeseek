@@ -148,7 +148,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex space-x-4 items-center">
               {[
-                { name: "Online", href: "/college?programModes=681c3ad286ab8ec6b6cf1e27" },
+                { name: "Online", href: "/college?programModes=Online" },
                 { name: "Colleges", href: "/college" },
               ].map((item, index) => (
                 <Link key={index} href={item.href}>
