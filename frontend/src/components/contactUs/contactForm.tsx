@@ -65,7 +65,7 @@ export default function ContactForm() {
       onSubmit={handleSubmit}
       className="bg-white shadow-md p-8 rounded-xl space-y-6"
     >
-      <h2 className="text-2xl font-semibold text-gray-800">
+      <h2 className="text-2xl font-semibold text-[#D17563]">
         Send us a message
       </h2>
       <div className="space-y-4">
@@ -128,7 +128,7 @@ export default function ContactForm() {
         ></textarea>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition"
+          className="w-full bg-[#D17563] text-white py-3 rounded-xl font-semibold hover:bg-orange-700 transition"
         >
           Submit
         </button>

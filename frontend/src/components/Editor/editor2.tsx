@@ -235,13 +235,13 @@ const Editor2 = ({ value, onChange }: Editor2Props) => {
   return (
     <div className="editor-container">
       <div className="editor-toolbar">
-        <button onClick={() => format('bold')}><b>B</b></button>
-        <button onClick={() => format('italic')}><i>I</i></button>
-        <button onClick={() => format('underline')}><u>U</u></button>
-        <button onClick={() => format('strikeThrough')}><s>S</s></button>
-        <button onClick={insertCodeBlock}>{"{}"}</button>
-        <button onClick={() => format('superscript')}>x²</button>
-        <button onClick={() => format('subscript')}>x₂</button>
+        <button type="button" onClick={() => format('bold')}><b>B</b></button>
+        <button type="button" onClick={() => format('italic')}><i>I</i></button>
+        <button type="button" onClick={() => format('underline')}><u>U</u></button>
+        <button type="button" onClick={() => format('strikeThrough')}><s>S</s></button>
+        <button type="button" onClick={insertCodeBlock}>{"{}"}</button>
+        <button type="button" onClick={() => format('superscript')}>x²</button>
+        <button type="button" onClick={() => format('subscript')}>x₂</button>
 
         <select onChange={handleHeadingChange}>
           <option value="p">Normal</option>
@@ -265,25 +265,25 @@ const Editor2 = ({ value, onChange }: Editor2Props) => {
           <option value="Times New Roman">Times New Roman</option>
         </select>
 
-        <button onClick={insertUnorderedList}>• List</button>
-        <button onClick={insertOrderedList}>1. List</button>
+        <button type="button" onClick={insertUnorderedList}>• List</button>
+        <button type="button" onClick={insertOrderedList}>1. List</button>
 
-        <button onClick={() => format('justifyLeft')}>⇤</button>
-        <button onClick={() => format('justifyCenter')}>☰</button>
-        <button onClick={() => format('justifyRight')}>⇥</button>
-        <button onClick={() => format('justifyFull')}>☰☰</button>
+        <button type="button" onClick={() => format('justifyLeft')}>⇤</button>
+        <button type="button" onClick={() => format('justifyCenter')}>☰</button>
+        <button type="button" onClick={() => format('justifyRight')}>⇥</button>
+        <button type="button" onClick={() => format('justifyFull')}>☰☰</button>
 
         <input type="color" onChange={(e) => format('foreColor', e.target.value)} />
 
-        <button onClick={insertLink}>🔗</button>
-        <button onClick={removeLink}>❌🔗</button>
+        <button type="button" onClick={insertLink}>🔗</button>
+        <button type="button" onClick={removeLink}>❌🔗</button>
 
-        <button onClick={insertTable}>🧮</button>
-        <button onClick={insertEmoji}>😊</button>
-        <button onClick={insertImage}>🖼️</button>
+        <button type="button" onClick={insertTable}>🧮</button>
+        <button type="button" onClick={insertEmoji}>😊</button>
+        <button type="button" onClick={insertImage}>🖼️</button>
 
-        <button onClick={undo}>↩️</button>
-        <button onClick={redo}>↪️</button>
+        <button type="button" onClick={undo}>↩️</button>
+        <button type="button" onClick={redo}>↪️</button>
       </div>
 
       <div

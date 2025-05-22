@@ -154,3 +154,87 @@ body {
 .custom-swiper-pagination .swiper-pagination-bullet-active {
   background-color: #D25C40; /* Tailwind blue-500 for active bullet */
 }
+/* Apply disc style and dark marker color to all ul lists */
+ul {
+  list-style-type: disc;
+  padding-left: 1.25rem; /* same as Tailwind's pl-5 */
+  color: #1f2937; /* Tailwind's gray-800 */
+}
+
+ul li::marker {
+  color: #1f2937; /* gray-800 for bullets */
+}
+
+/* Apply decimal style and dark marker color to all ol lists */
+ol {
+  list-style-type: decimal;
+  padding-left: 1.25rem; /* same as Tailwind's pl-5 */
+  color: #1f2937; /* Tailwind's gray-800 */
+}
+
+ol li::marker {
+  color: #1f2937; /* gray-800 for numbers */
+}
+.rich-content {
+  font-family: 'DM Sans', sans-serif;
+  color: #1f2937; /* Tailwind's text-gray-800 */
+  line-height: 1.75;
+}
+
+/* Headings */
+.rich-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.rich-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.rich-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.rich-content h4,
+.rich-content h5,
+.rich-content h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Lists */
+.rich-content ul,
+.rich-content ol {
+  margin-left: 1.25rem;
+  margin-bottom: 1rem;
+}
+.rich-content ul {
+  list-style-type: disc;
+}
+.rich-content ol {
+  list-style-type: decimal;
+}
+.rich-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Tables */
+.rich-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+.rich-content th,
+.rich-content td {
+  border: 1px solid #d1d5db; /* Tailwind's gray-300 */
+  padding: 0.75rem;
+  text-align: left;
+}
+
+/* Paragraphs */
+.rich-content p {
+  margin-bottom: 1rem;
+}

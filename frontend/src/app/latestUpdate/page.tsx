@@ -4,6 +4,8 @@ import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
 import NewsletterForm from "@/components/newsletters/page";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb"; // 🧩 Import Breadcrumb
+import AdBox1 from "@/components/adBox/adBox1";
+import AdBox2 from "@/components/adBox/adBox2";
 
 const HomePage = () => {
   return (
@@ -18,8 +20,10 @@ const HomePage = () => {
           ]}
         />
       </div>
+       
 
       <BlogAll />
+      
       <NewsletterForm />
       <Footer />
     </div>

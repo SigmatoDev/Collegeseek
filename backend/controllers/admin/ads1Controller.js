@@ -25,7 +25,7 @@ const uploadImagee = (req, res) => {
     }
 
     try {
-      const { description } = req.body;
+      const { description, link } = req.body; // Added link here
       let imagePath = req.file ? req.file.path.replace(/\\/g, '/') : ''; // Normalize path
 
       if (!imagePath) {
@@ -35,6 +35,7 @@ const uploadImagee = (req, res) => {
       const ad = new Ads({
         description,
         image: imagePath,
+        link, // Save link here
       });
 
       await ad.save();
@@ -62,7 +63,7 @@ const getAds = async (req, res) => {
 
     // Map ads and generate full image URLs
     const adsWithImageUrls = ads.map(ad => ({
-      ...ad._doc, // Spread the original ad fields
+      ...ad._doc, // Spread the original ad fields including link
       imageUrl: `${req.protocol}://${req.get('host')}/${ad.image}`, // Generate the image URL
     }));
 
@@ -112,6 +113,11 @@ const updateImage = (req, res) => {
       // Update the ad image in the database
       ad.image = imagePath;
 
+      // Also update link if provided in body
+      if (req.body.link !== undefined) {
+        ad.link = req.body.link;
+      }
+
       // Save the updated ad
       await ad.save();
 
@@ -126,6 +132,7 @@ const updateImage = (req, res) => {
     }
   });
 };
+
 module.exports = {
   uploadImagee,
   getAds,

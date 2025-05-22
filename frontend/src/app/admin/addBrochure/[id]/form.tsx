@@ -108,6 +108,8 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
   };
 
   return (
+        <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+
     <form onSubmit={handleSubmit} className="p-4 border rounded shadow">
       {existingFile && (
         <div className="mb-4">
@@ -155,5 +157,6 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
         {loading ? (existingFile ? "Updating..." : "Uploading...") : existingFile ? "Update" : "Upload"}
       </button>
     </form>
+    </div>
   );
 }

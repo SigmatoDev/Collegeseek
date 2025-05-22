@@ -164,7 +164,7 @@ const handleChange = useCallback(
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-8xl mx-auto p-4 border rounded-lg shadow"
+      className="max-w-[1580px] mx-auto p-4 border rounded-lg shadow"
     >
       <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
         {courseId && courseId !== "new" ? "Edit Course" : "Create New Course"}

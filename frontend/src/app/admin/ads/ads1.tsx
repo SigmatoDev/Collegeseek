@@ -9,6 +9,7 @@ export default function AdminCollegePage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [ad, setAd] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [link, setLink] = useState('');  // <-- New state for link
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,6 +48,7 @@ export default function AdminCollegePage() {
       setLoading(true);
       const formData = new FormData();
       if (image) formData.append('image', image);
+      formData.append('link', link); // <-- Append link to formData
 
       const res = await fetch(`${api_url}update-ad-image/${ad._id}`, {
         method: 'PUT',
@@ -59,10 +61,10 @@ export default function AdminCollegePage() {
       setAd(data.ad);
       setImage(null);
       setPreview(null);
-      toast.success('Image updated successfully!');
+      toast.success('Ad updated successfully!');
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || 'Failed to update image.');
+      toast.error(error.message || 'Failed to update ad.');
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,10 @@ export default function AdminCollegePage() {
     try {
       const res = await fetch(`${api_url}ads`);
       const data = await res.json();
-      if (res.ok && data.ads.length > 0) setAd(data.ads[0]);
+      if (res.ok && data.ads.length > 0) {
+        setAd(data.ads[0]);
+        setLink(data.ads[0]?.link || '');  // <-- Initialize link state on fetch
+      }
     } catch (err) {
       console.error('Failed to fetch ad:', err);
     }
@@ -135,6 +140,18 @@ export default function AdminCollegePage() {
             <p className="text-xs text-gray-500 mt-1">
               Required dimensions: <strong>288 x 384</strong> pixels.
             </p>
+          </div>
+
+          {/* New Link Input Field */}
+          <div>
+            <label className="block font-medium text-gray-700">Advertisement Link</label>
+            <input
+              type="url"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="https://example.com"
+              className="mt-1 block w-full text-sm text-gray-600 border rounded-md p-2"
+            />
           </div>
 
           <button

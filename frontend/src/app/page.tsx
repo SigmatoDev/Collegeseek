@@ -31,17 +31,7 @@ const HomePage = () => {
     <div className="bg-[#fffdff]">
       <Header />
       <HeroSection />
-      <TrendingNow exams={[
-  "JEE Main and Other Top Engineering Entrance Exams",
-  "Colleges for 60 to 70 Percentile in JEE Main 2025",
-  "(GATE) India’s Premier Engineering Exam",
-  "(CAT) Top Management Entrance Exam",
-  "(UPSC CSE) Civil Services Exam Overview",
-  "(SSC CGL) Government Job Exam Guide",
-  "(CLAT) Law Entrance Exam Insights",
-  "(BITSAT) BITS Pilani Admission Exam",
-  "(NDA) National Defence Academy Exam"
-]} />
+      <TrendingNow/>
       <FeaturedColleges/>
 
       <CollegeAdmissions />

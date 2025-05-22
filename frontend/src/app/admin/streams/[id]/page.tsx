@@ -7,7 +7,7 @@ const StreamPage = () => {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold mb-4">Manage Streams</h1>
+        <h1 className="text-2xl pl-9 font-bold mb-4">Manage Streams</h1>
         <StreamForm /> {/* Use the StreamForm component here */}
       </div>
     </AdminLayout>

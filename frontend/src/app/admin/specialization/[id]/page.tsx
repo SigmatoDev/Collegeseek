@@ -7,7 +7,7 @@ const SpecializationPage = () => {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold mb-4">Manage Specializations</h1>
+        <h1 className="text-2xl pl-9 font-bold mb-4">Manage Specializations</h1>
         <SpecializationForm />
       </div>
     </AdminLayout>

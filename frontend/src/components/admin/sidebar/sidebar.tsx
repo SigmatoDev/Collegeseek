@@ -99,6 +99,8 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/pages", icon: <FileText size={18} />, text: "Pages", isOpen },
+        { href: "/admin/trendingNow", icon: <Plug size={18} />, text: "Trending Now", isOpen }, // ✅ Added Trending Now submenu
+
       ],
     },
     { href: "/admin/blogs", icon: <FileText size={20} />, text: "Blogs & News", isOpen },
@@ -126,8 +128,8 @@ const Sidebar = () => {
         { href: "/admin/streams", icon: <Grid size={18} />, text: "Streams", isOpen },
         { href: "/admin/programMode", icon: <School size={18} />, text: "Program Mode", isOpen },
         { href: "/admin/examExpected", icon: <BookOpenIcon className="h-5 w-5" />, text: "Exam Expected", isOpen },
-        { href: "/admin/ads", icon: <Monitor size={18} />, text: "Advertisement", isOpen }, // ✅ Added Advertisement submenu
-        { href: "/admin/specialization", icon: <Grid size={18} />, text: "Modules", isOpen },
+        { href: "/admin/ads", icon: <Monitor size={18} />, text: "Advertisement", isOpen },
+        { href: "/admin/specialization", icon: <Grid size={18} />, text: "specialization", isOpen },
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
         { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
       ],
@@ -188,12 +190,11 @@ const Sidebar = () => {
 };
 
 const SidebarLink: React.FC<SidebarLinkProps> = ({ href, icon, text, isOpen }) => (
-  <Link href={href} legacyBehavior>
-    <a className="flex items-center space-x-4 p-2 rounded-lg hover:bg-[#4f2780] transition-all">
-      {icon}
-      {isOpen && <span className="text-sm">{text}</span>}
-    </a>
+  <Link href={href} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-[#4f2780] transition-all">
+    {icon}
+    {isOpen && <span className="text-sm">{text}</span>}
   </Link>
 );
+
 
 export default Sidebar;

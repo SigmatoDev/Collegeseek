@@ -7,7 +7,7 @@ const CoursePage = () => {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold mb-4">Manage Courses</h1>
+        <h1 className="text-2xl pl-8 font-bold mb-4">Manage Courses</h1>
         <Form />
       </div>
     </AdminLayout>

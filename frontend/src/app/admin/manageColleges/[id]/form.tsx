@@ -8,7 +8,7 @@ import { Loader } from "lucide-react";
 import { State, City } from "country-state-city";
 import Select from "react-select";
 import LocationAutocomplete from "@/components/location/page";
-import Editor from "react-simple-wysiwyg";
+import { Editor } from "@tinymce/tinymce-react";
 import ApprovalDropdown from "@/components/approvels/page";
 import AffiliatedByDropdown from "@/components/affiliatedBy/page";
 import ExamExpectedDropdown from "@/components/examExpected/page";
@@ -477,7 +477,7 @@ const ActualCollegeForm = () => {
 
   return (
     <div>
-      <div className="mx-5 p-8 bg-white shadow-xl rounded-2xl border border-gray-200">
+      <div className="max-w-[1580px] mx-auto p-[40px] border rounded-lg shadow">
         {/* Title */}
         <h1 className="text-3xl font-bold text-center text-gray-900">
           {collegeId && collegeId !== "new"
@@ -768,10 +768,17 @@ const ActualCollegeForm = () => {
                   {/* Show Editor only when this tab is active */}
                   {activeTab === index && (
                     <Editor
-                      value={tab.description}
-                      onChange={(e) =>
-                        handleTabChange(index, "description", e.target.value)
+                      apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm" // Your TinyMCE API key
+                      value={tab.description} // Value from each tab
+                      onEditorChange={(content) =>
+                        handleTabChange(index, "description", content)
                       }
+                      init={{
+                        plugins:
+                          "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+                        toolbar:
+                          "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
+                      }}
                     />
                   )}
                 </div>
@@ -788,7 +795,15 @@ const ActualCollegeForm = () => {
           </div>
 
           {/* Description Field */}
+          <label
+            htmlFor="shortDescription"
+            className="block mb-1 font-semibold"
+          >
+            Short Description
+          </label>
           <Editor
+            apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm" // <-- put your free TinyMCE API key here
+            id="shortDescription"
             value={collegeData.description}
             onChange={(event) => {
               console.log(event.target.value); // Inspect this
@@ -799,13 +814,17 @@ const ActualCollegeForm = () => {
           {/* About Field */}
           <div className="flex flex-col space-y-1">
             <label className="text-gray-800 font-medium">About</label>
-            <textarea
-              name="about"
+            <Editor
+              apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm" // <-- put your free TinyMCE API key here
               value={collegeData.about}
-              onChange={handleChange}
-              required
-              placeholder="Enter about..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 h-28 bg-white"
+              init={{
+                plugins:
+                  "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+                toolbar:
+                  "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
+              }}
+              onEditorChange={handleEditorChange}
+              textareaName="about"
             />
           </div>
 

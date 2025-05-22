@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { api_url, img_url } from "@/utils/apiCall";
 import Image from "next/image";
-import DOMPurify from "dompurify"; // Import DOMPurify for sanitizing
+import DOMPurify from "dompurify";
 
 interface Blog {
   _id: string;
@@ -15,7 +15,6 @@ interface Blog {
   createdAt: string;
 }
 
-// Define BlogDetailsProps interface to accept 'slug' as a prop
 interface BlogDetailsProps {
   slug: string;
 }
@@ -33,33 +32,13 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
       return;
     }
 
-    // const fetchBlogBySlug = async () => {
-    //   console.log(`📡 Fetching blog from: ${api_url}blog/by/slug?slug=${slug}`);
-    //   try {
-    //     const response = await axios.get(`${api_url}blog/by/slug?slug=${slug}`);
-    //     console.log("✅ Blog fetched:", response.data);
-
-    //     if (response.data && response.data.length > 0) {
-    //       setBlog(response.data[0]); // Assuming you're getting an array of blogs and using the first one.
-    //     } else {
-    //       console.warn("⚠️ No blog returned from API");
-    //       setError("Blog not found.");
-    //     }
-    //   } catch (err: any) {
-    //     console.error("❌ Error fetching blog by slug:", err.response?.status, err.response?.data);
-    //     const errorMessage = err.response?.data?.message || "Blog not found or an error occurred.";
-    //     setError(errorMessage);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
     const fetchBlogBySlug = async () => {
       try {
         const response = await axios.get(`${api_url}blog/by/slug?slug=${slug}`);
         console.log("API Response:", response.data);
-    
+
         if (response.data) {
-          setBlog(response.data); // Since it's an object, no need to access the first element like an array
+          setBlog(response.data);
         } else {
           console.warn("No blog returned from API");
           setError("Blog not found.");
@@ -71,7 +50,6 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
         setLoading(false);
       }
     };
-    
 
     fetchBlogBySlug();
   }, [slug]);
@@ -106,15 +84,18 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
     );
   }
 
-  // Sanitize the content using DOMPurify
   const sanitizedContent = DOMPurify.sanitize(blog.content);
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-6 space-y-12">
-      <h1 className="text-5xl font-extrabold text-gray-900 mb-6">{blog.title}</h1>
+      <h1 className="text-5xl font-extrabold text-gray-900 mb-6">
+        {blog.title}
+      </h1>
       <p className="text-lg text-gray-600 mb-8">
         By <span className="font-semibold text-gray-800">{blog.author}</span> |{" "}
-        {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : "Date Unavailable"}
+        {blog.createdAt
+          ? new Date(blog.createdAt).toLocaleDateString()
+          : "Date Unavailable"}
       </p>
 
       <div className="flex flex-col md:flex-row gap-12">
@@ -124,7 +105,10 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
             <Image
               src={
                 blog.image
-                  ? `${img_url}${blog.image.replace(/^\/uploads\//, "uploads/")}`
+                  ? `${img_url}${blog.image.replace(
+                      /^\/uploads\//,
+                      "uploads/"
+                    )}`
                   : "/uploads/default-placeholder.png"
               }
               alt={blog.title}
@@ -138,7 +122,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
         {/* Content Section */}
         <div className="w-full md:w-2/3">
           <div
-            className="prose lg:prose-lg max-w-none text-gray-800 space-y-6"
+            className="rich-content"
             dangerouslySetInnerHTML={{ __html: sanitizedContent }}
           />
         </div>

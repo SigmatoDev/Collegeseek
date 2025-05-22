@@ -7,7 +7,7 @@ const ProgramModePage = () => {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold mb-4">Manage Program Modes</h1>
+        <h1 className="text-2xl pl-9 font-bold mb-4">Manage Program Modes</h1>
         <ProgramModeForm />
       </div>
     </AdminLayout>

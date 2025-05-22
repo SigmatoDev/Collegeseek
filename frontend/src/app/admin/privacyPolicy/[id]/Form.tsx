@@ -63,8 +63,8 @@ const CreateOrEditPrivacyPolicy = ({ params }: { params: { id: string } }) => {
   if (loading) return null;
 
   return (
-    <div className="min-h-screen flex justify-center">
-      <div className="bg-white shadow-lg rounded-lg w-full max-w-8xl p-8">
+    <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+      <div className="w-full max-w-8xl p-8">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
           {id !== 'new' ? 'Edit' : 'Create'} Privacy Policy
         </h1>

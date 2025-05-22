@@ -52,9 +52,9 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
-      <div className="flex-1 p-8">
+      <div className="flex-1">
         <Header />
-        <div className="mt-8">
+        <div className="mt-4 p-8">
           {error && <p className="text-red-500">Error: {error}</p>}
           {loading && !error && <p className="text-gray-500">Loading data...</p>}
           {!loading && !error && data.length === 0 && (

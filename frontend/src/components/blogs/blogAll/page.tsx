@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import BlogCard from "../BlogCard/BlogCard";
 import { api_url } from "@/utils/apiCall";
+import AdBanner from "@/components/adBox/adBox5";
 
 export default function BlogAll() {
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -28,9 +29,9 @@ export default function BlogAll() {
   return (
     <section className="container-1 mx-auto px-6 py-[70px] bg-blue-50">
       <h2 className="text-4xl font-extrabold text-center text-gray-900 mb-8 pb-[20px]">
-        College Blog & News
+         Blog & News
       </h2>
-
+{/* <AdBanner/> */}
       {error && <p className="text-center text-red-500">{error}</p>}
       {loading && (
         <div className="flex justify-center items-center space-x-2">
@@ -44,7 +45,8 @@ export default function BlogAll() {
       )}
 
       {!loading && blogs.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mt-7">
           {blogs.map((blog, index) => (
             <BlogCard key={blog.id || index} {...blog} />
           ))}

@@ -26,7 +26,6 @@ export default function CategoryGrid() {
     Courses: [],
   });
 
-  // New state for tab counts dynamically
   const [tabCounts, setTabCounts] = useState<{ [key: string]: number }>({
     Colleges: 0,
     Exams: 0,
@@ -66,7 +65,6 @@ export default function CategoryGrid() {
         const result: CategoryData = await response.json();
         setData(result);
 
-        // Calculate dynamic counts for tabs
         setTabCounts({
           Colleges: result.Streams.reduce((acc, item) => acc + item.count, 0),
           Exams: result.Exams.reduce((acc, item) => acc + item.count, 0),
@@ -82,6 +80,9 @@ export default function CategoryGrid() {
 
   const formatQuery = (str: string) => encodeURIComponent(str).replace(/%20/g, '+');
 
+  const toTitleCase = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
   return (
     <section className="bg-gradient-to-b from-orange-50 to-orange-50 py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -91,7 +92,6 @@ export default function CategoryGrid() {
 
         <div role="tablist" aria-label="Category tabs" className="flex justify-center mb-14">
           <div className="relative flex w-full max-w-md bg-white border border-[#D35E45] rounded-full shadow-md overflow-hidden">
-            {/* Sliding Indicator */}
             <div
               className="absolute top-0 left-0 h-full bg-[#D35E45] rounded-full transition-transform duration-500 ease-in-out z-0"
               style={{
@@ -100,7 +100,6 @@ export default function CategoryGrid() {
               }}
             />
 
-            {/* Tab Buttons */}
             {tabs.map((tab) => (
               <button
                 key={tab}
@@ -114,19 +113,18 @@ export default function CategoryGrid() {
               >
                 <span>{tab}</span>
                 <span className="inline-block bg-[#D35E45] text-white text-xs font-semibold rounded-full px-2 py-0.5 leading-none select-none">
-                {`(${tabCounts[tab] ?? 0})`} 
+                  {`(${tabCounts[tab] ?? 0})`}
                 </span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Category Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {data[tabKeyMap[activeTab]]?.map((item) => {
             let href = '#';
             if (activeTab === 'Exams') {
-              href = `/college?exams=${formatQuery(item.name)}`;
+              href = `/college?exams=${formatQuery(toTitleCase(item.name))}`;
             } else if (activeTab === 'Colleges') {
               href = `/college?streams=${formatQuery(item.name)}`;
             } else if (activeTab === 'Courses') {

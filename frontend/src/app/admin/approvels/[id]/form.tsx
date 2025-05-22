@@ -115,7 +115,7 @@ const handleFormSubmit = async (e: React.FormEvent) => {
   }
 
   return (
-    <div className="max-w-1xl mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+    <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
       <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
         {approvalId && approvalId !== "new" ? "Edit Approval" : "Create New Approval"}
       </h1>

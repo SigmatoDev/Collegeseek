@@ -7,7 +7,7 @@ const OwnershipPage = () => {
   return (
     <AdminLayout>
       <div>
-        <h1 className="text-2xl font-bold mb-4">Manage Ownerships</h1>
+        <h1 className="text-2xl pl-9 font-bold mb-4">Manage Ownerships</h1>
         <OwnershipForm /> {/* Use the OwnershipForm component here */}
       </div>
     </AdminLayout>

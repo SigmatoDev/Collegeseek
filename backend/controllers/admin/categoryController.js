@@ -26,20 +26,11 @@ exports.getCategoryData = async (req, res) => {
     );
 
     // Exams count by counting colleges referencing the exam
-    function toTitleCase(str) {
-      return str
-        .toLowerCase()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-    }
-
     const examsData = await Promise.all(
       exams.map(async (e) => {
-        const formattedName = toTitleCase(e.code.trim());
         const count = await College.countDocuments({ examExpected: e._id });
         return {
-          name: formattedName,
+          name: e.code.trim(),
           count,
           icon: e.image || '📝',
         };
@@ -100,4 +91,3 @@ exports.getCategoryData = async (req, res) => {
     res.status(500).json({ message: 'Server error fetching category data' });
   }
 };
-

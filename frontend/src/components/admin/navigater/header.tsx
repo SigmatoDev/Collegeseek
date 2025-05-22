@@ -11,16 +11,16 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-[#0a0536] text-white p-4 sm:p-5 flex justify-between items-center shadow-lg rounded-lg">
+    <header className="bg-[#0a0536] text-white p-4 sm:p-5 flex justify-between items-center shadow-lg">
       {/* Left Side: Dashboard Title */}
-      <h1 className="text-2xl font-semibold tracking-wide">Admin Dashboard</h1>
+      <h1 className="text-2xl font-semibold tracking-wide"></h1>
 
       {/* Right Side: Notifications and Profile */}
       <div className="flex items-center space-x-6">
         {/* Notification Icon */}
         <div className="relative cursor-pointer">
-          <Bell className="w-6 h-6 text-white hover:text-gray-400 transition duration-300" />
-          <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+          {/* <Bell className="w-6 h-6 text-white hover:text-gray-400 transition duration-300" /> */}
+          {/* <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full"></span> */}
         </div>
 
         {/* Profile Dropdown */}

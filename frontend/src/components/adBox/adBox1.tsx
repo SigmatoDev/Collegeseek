@@ -39,17 +39,30 @@ const AdBox1 = () => {
       ) : (
         <>
           <p className="text-center font-semibold">Sponsored Ad</p>
-          {ad?.image && (
-            <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
-              <Image
-                src={`${api_url.replace(/api\/?$/, '')}${ad.image.replace(/\\/g, '/')}`}
-                alt="Advertisement 1"
-                fill
-                className="rounded-lg object-cover"
-              />
-            </div>
+          {ad?.image ? (
+            // If link exists, wrap in anchor tag with target _blank, else just div
+            ad.link ? (
+              <a href={ad.link} target="_blank" rel="noopener noreferrer" className="mt-4 w-full h-full relative rounded-lg overflow-hidden block">
+                <Image
+                  src={`${api_url.replace(/api\/?$/, '')}${ad.image.replace(/\\/g, '/')}`}
+                  alt="Advertisement 1"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </a>
+            ) : (
+              <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
+                <Image
+                  src={`${api_url.replace(/api\/?$/, '')}${ad.image.replace(/\\/g, '/')}`}
+                  alt="Advertisement 1"
+                  fill
+                  className="rounded-lg object-cover"
+                />
+              </div>
+            )
+          ) : (
+            <p className="text-center mt-4">No image available</p>
           )}
-          {!ad?.image && <p className="text-center mt-4">No image available</p>}
         </>
       )}
     </div>

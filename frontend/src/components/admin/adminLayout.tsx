@@ -23,7 +23,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex p-8 flex-col flex-1 h-screen">
+      <div className="flex flex-col flex-1 h-screen">
         {/* Header (Fixed) */}
         <Header />
 

@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/breadcrumb/breadcrumb"; // 🧩 Import Brea
 import { useState } from "react";
 import AdBox3 from "@/components/adBox/adBox3";
 import AdBox4 from "@/components/adBox/adBox4";
+import AdBanner from "@/components/adBox/adBox5";
 
 
 const CollegesPage = () => {
@@ -35,6 +36,8 @@ const CollegesPage = () => {
 
         {/* College List */}
         <div className="flex-1">
+                    <AdBanner/>
+
           <CoursesList />
         </div>
 

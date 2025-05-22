@@ -84,6 +84,8 @@ app.use("/api", require("./routes/admin/ads4Routes"));
 app.use("/api", require("./routes/filter/filterRoutes"));
 app.use("/api", require("./routes/admin/categoryRoutes"));
 app.use("/api", require("./routes/admin/collegesearchRoutes"));
+app.use("/api", require("./routes/admin/trendingNowRoutes"));
+app.use("/api", require("./routes/admin/ads5Routes"));
 
 // Start the server
 app.listen(PORT, () => {
