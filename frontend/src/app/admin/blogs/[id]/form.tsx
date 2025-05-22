@@ -202,7 +202,7 @@ const ActualBlogForm = () => {
             Content
           </label>
          <Editor
-  apiKey={tinymceApiKey}
+  apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
   value={blogData.content}
   init={{
     plugins:
