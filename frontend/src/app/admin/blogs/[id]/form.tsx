@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
 import { Editor } from "@tinymce/tinymce-react";
-import { api_url, img_url } from "@/utils/apiCall";
+import { api_url, img_url, tinymceApiKey } from "@/utils/apiCall";
 import { Loader } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomToast from "@/components/customToast/page";
@@ -201,17 +201,18 @@ const ActualBlogForm = () => {
           <label className="block text-gray-700 text-sm font-medium mb-1">
             Content
           </label>
-          <Editor
-            apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm"
-            value={blogData.content}
-            init={{
-              plugins:
-                "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
-              toolbar:
-                "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
-            }}
-            onEditorChange={handleEditorChange}
-          />
+         <Editor
+  apiKey={tinymceApiKey}
+  value={blogData.content}
+  init={{
+    plugins:
+      "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+    toolbar:
+      "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
+  }}
+  onEditorChange={handleEditorChange}
+/>
+
         </div>
 
         <input
