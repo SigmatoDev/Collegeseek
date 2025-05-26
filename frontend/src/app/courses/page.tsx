@@ -36,7 +36,7 @@ const CollegesPage = () => {
 
         {/* College List */}
         <div className="flex-1">
-                    <AdBanner/>
+                    {/* <AdBanner/> */}
 
           <CoursesList />
         </div>

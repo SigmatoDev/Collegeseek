@@ -76,14 +76,11 @@ interface Props {
   onSelectionChange: (selectedStreams: StreamType[]) => void;
 }
 
-
 const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = [] }) => {
-  const [streams, setStreams] = useState<StreamType[]>([]); // Update here too
+  const [streams, setStreams] = useState<StreamType[]>([]);
   const [selectedStreams, setSelectedStreams] = useState<StreamType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-
-  // const [allStreams, setAllStreams] = useState<StreamType[]>([]); // Update here too
 
   // Fetch all streams
   useEffect(() => {
@@ -92,11 +89,9 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
         const { data } = await axios.get(`${api_url}get/streams`);
         if (Array.isArray(data)) {
           setStreams(data);
-        } else {
-          // console.error("Unexpected API response format:", data);
         }
       } catch (error) {
-        // console.error("Error fetching streams:", error);
+        console.error("Error fetching streams:", error);
       }
     };
 
@@ -106,24 +101,15 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
   // Update selectedStreams if defaultSelected changes
   useEffect(() => {
     if (streams.length > 0) {
-      // console.log('Streams:', streams);
-      // console.log('Default Selected IDs:', defaultSelected);
+      const ids = defaultSelected.map((item) =>
+        typeof item === "string" ? item : item._id
+      );
 
-      // Ensure defaultSelected contains only IDs (extracting _id if it's an object)
-      const ids = defaultSelected.map((item) => (typeof item === 'string' ? item : item._id));
-      
-      // Map the defaultSelected IDs to the full stream objects
       const defaultStreamObjects = ids
-        .map((id) => {
-          const foundStream = streams.find((stream) => stream._id === id);
-          // console.log(`Finding stream for ID: ${id}, Found: `, foundStream);  // Log each find attempt
-          return foundStream;
-        })
-        .filter((stream): stream is StreamType => stream !== undefined);  // Filter out undefined streams
+        .map((id) => streams.find((stream) => stream._id === id))
+        .filter((stream): stream is StreamType => stream !== undefined);
 
-      // console.log('Mapped Stream Objects:', defaultStreamObjects);
-
-      setSelectedStreams(defaultStreamObjects); // Set state with the mapped stream objects
+      setSelectedStreams(defaultStreamObjects);
     }
   }, [defaultSelected, streams]);
 
@@ -148,10 +134,10 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
     onSelectionChange(updated);
   };
 
-  // Filtered results
-  const filteredStreams = streams.filter((s) =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtered results excluding already selected
+  const filteredStreams = streams
+    .filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter((s) => !selectedStreams.some((sel) => sel._id === s._id));
 
   return (
     <div className="w-full max-w-[800px] mx-auto">
@@ -187,7 +173,7 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
 
         {/* Dropdown */}
         {isFocused && filteredStreams.length > 0 && (
-          <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md">
+          <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md z-10 relative">
             {filteredStreams.map((stream) => (
               <div
                 key={stream._id}

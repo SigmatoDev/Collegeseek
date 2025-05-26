@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { api_url } from '@/utils/apiCall'; // Ensure this is correctly configured
-import Editor, { ContentEditableEvent } from 'react-simple-wysiwyg'; 
+import { Loader } from 'lucide-react';
+import { Editor } from '@tinymce/tinymce-react';
 
 const CreateOrEditTerm = ({ params }: { params: { id: string } }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [dynamicApiKey, setDynamicApiKey] = useState<string | null>(null);
+
 
   const router = useRouter();
   const id = params?.id;
@@ -36,6 +39,27 @@ const CreateOrEditTerm = ({ params }: { params: { id: string } }) => {
     }
   }, [id]);
 
+   
+  // Fetch TinyMCE API key from backend
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await axios.get(`${api_url}settings`);
+        if (response.data?.tinymceApiKey) {
+          setDynamicApiKey(response.data.tinymceApiKey);
+        } else {
+          console.error("API key not found in settings response");
+          setDynamicApiKey(""); // fallback empty string or handle differently
+        }
+      } catch (err) {
+        console.error("Failed to fetch TinyMCE API key", err);
+        setDynamicApiKey("");
+      }
+    };
+
+    fetchApiKey();
+  }, []);
+
   const handleEditorChange = (value: string) => {
     setContent(value);
   };
@@ -55,6 +79,20 @@ const CreateOrEditTerm = ({ params }: { params: { id: string } }) => {
       setError(id !== 'new' ? 'Error updating term' : 'Error creating term');
     }
   };
+
+    const handleCancel = () => {
+    router.push('/admin/termsandconditions');
+  };
+
+   // Show loader while TinyMCE API key is loading
+  if (dynamicApiKey === null) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader className="animate-spin h-10 w-10 text-blue-600" />
+      </div>
+    );
+  }
+
 
   if (loading) return null;
 
@@ -87,20 +125,38 @@ const CreateOrEditTerm = ({ params }: { params: { id: string } }) => {
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
               Content
             </label>
-              <Editor
-                value={content}
-                onChange={(e: ContentEditableEvent) => handleEditorChange(e.target.value)} // Handle content change
-                placeholder="Enter content"
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <Editor
+    apiKey={dynamicApiKey}
+      value={content}
+      onEditorChange={(newValue) => handleEditorChange(newValue)}
+     init={{
+              plugins:
+                "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+              toolbar:
+                "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
+            }}
+    />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {id !== 'new' ? 'Update Term' : 'Create Term'}
-          </button>
+          {/* Buttons */}
+       <div className="flex flex-col sm:flex-row gap-4 mt-6">
+  <button
+    type="submit"
+    className="w-full sm:w-1/6 bg-blue-600 text-white py-3 px-5 rounded-lg font-semibold text-base hover:bg-blue-700 transition"
+  >
+    {id !== 'new' ? 'Update' : 'Create'}
+  </button>
+  {id !== 'new' && (
+    <button
+      type="button"
+      onClick={handleCancel}
+      className="w-full sm:w-1/6 bg-gray-100 text-gray-800 py-3 px-5 rounded-lg font-semibold text-base hover:bg-gray-200 transition"
+    >
+      Cancel
+    </button>
+  )}
+</div>
+
         </form>
       </div>
     </div>

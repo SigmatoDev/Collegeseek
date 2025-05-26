@@ -87,8 +87,6 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
         const { data } = await axios.get(`${api_url}get/Approvals`);
         if (Array.isArray(data)) {
           setApprovals(data);
-        } else {
-          // console.error("Unexpected API response format:", data);
         }
       } catch (error) {
         // console.error("Error fetching approvals:", error);
@@ -101,24 +99,12 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
   // Update selectedApprovals if defaultSelected changes
   useEffect(() => {
     if (approvals.length > 0) {
-      // console.log('Approvals:', approvals);
-      // console.log('Default Selected IDs:', defaultSelected);
-
-      // Ensure defaultSelected contains only IDs (extracting _id if it's an object)
       const ids = defaultSelected.map((item) => (typeof item === 'string' ? item : item._id));
-      
-      // Map the defaultSelected IDs to the full approval objects
       const defaultApprovalObjects = ids
-        .map((id) => {
-          const foundApproval = approvals.find((approval) => approval._id === id);
-          // console.log(`Finding approval for ID: ${id}, Found: `, foundApproval);
-          return foundApproval;
-        })
+        .map((id) => approvals.find((approval) => approval._id === id))
         .filter((approval): approval is Approval => approval !== undefined);
 
-      // console.log('Mapped Approval Objects:', defaultApprovalObjects);
-
-      setSelectedApprovals(defaultApprovalObjects); // Set state with the mapped approval objects
+      setSelectedApprovals(defaultApprovalObjects);
     }
   }, [defaultSelected, approvals]);
 
@@ -143,10 +129,10 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
     onSelectionChange(updated);
   };
 
-  // Filtered results
-  const filteredApprovals = approvals.filter((a) =>
-    a.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtered results (exclude already selected approvals)
+  const filteredApprovals = approvals
+    .filter((a) => a.code.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter((a) => !selectedApprovals.some((sel) => sel._id === a._id));
 
   return (
     <div className="w-full max-w-[800px] mx-auto">
@@ -181,7 +167,7 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
         />
 
         {/* Dropdown */}
-        {(isFocused || searchQuery) && (
+        {(isFocused || searchQuery) && filteredApprovals.length > 0 && (
           <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md">
             {filteredApprovals.map((approval) => (
               <div
@@ -200,4 +186,3 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
 };
 
 export default ApprovalDropdown;
-

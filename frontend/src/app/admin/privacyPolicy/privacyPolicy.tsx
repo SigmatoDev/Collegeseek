@@ -57,13 +57,13 @@ const AdminPrivacyPolicy = () => {
     <div className="container mx-auto px-4 py-8">
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Privacy Policy</h1>
-        <button
+        {/* <button
           onClick={() => router.push("/admin/privacyPolicy/new")}
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
         >
           <PlusCircleIcon className="w-5 h-5 mr-2" />
           Create Privacy Policy
-        </button>
+        </button> */}
       </header>
 
       {loading && <p className="text-center text-gray-500">Loading privacy policies...</p>}
@@ -97,13 +97,13 @@ const AdminPrivacyPolicy = () => {
                         <PencilSquareIcon className="h-5 w-5" />
                         <span>Edit</span>
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(policy._id)}
                         className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                       >
                         <TrashIcon className="h-5 w-5" />
                         <span>Delete</span>
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))

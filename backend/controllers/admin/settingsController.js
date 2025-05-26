@@ -29,32 +29,31 @@ const upload = multer({ storage, fileFilter });
 // ================================
 const updateSettings = async (req, res) => {
   try {
-    const { siteName } = req.body;
-    // Handle file uploads if present
+    const { siteName, tinymceApiKey } = req.body; // ← added tinymceApiKey
+
     const siteLogo = req.files["siteLogo"] ? req.files["siteLogo"][0].filename : null;
     const favicon = req.files["favicon"] ? req.files["favicon"][0].filename : null;
 
-    // Find existing settings or create a new one
     let settings = await Settings.findOne();
     if (!settings) {
       settings = new Settings();
     }
 
-    // Update the settings data with new values, if provided
     settings.siteName = siteName || settings.siteName;
+    settings.tinymceApiKey = tinymceApiKey || settings.tinymceApiKey; // ← set the key
+
     if (siteLogo) settings.siteLogo = `/uploads/settings/${siteLogo}`;
     if (favicon) settings.favicon = `/uploads/settings/${favicon}`;
 
-    // Save the updated settings to the database
     await settings.save();
 
-    // Sending back the updated settings with the full URL to the client
     res.status(200).json({
       message: "Settings updated successfully",
       settings: {
         siteName: settings.siteName,
-        siteLogo: settings.siteLogo, // This will be the relative URL for the logo
-        favicon: settings.favicon, // This will be the relative URL for the favicon
+        siteLogo: settings.siteLogo,
+        favicon: settings.favicon,
+        tinymceApiKey: settings.tinymceApiKey, // ← send back the key
       },
     });
   } catch (error) {
@@ -62,6 +61,7 @@ const updateSettings = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 // ================================
 // 🚀 GET SETTINGS CONTROLLER
@@ -72,12 +72,19 @@ const getSettings = async (req, res) => {
     if (!settings) {
       return res.status(404).json({ message: "No settings found" });
     }
-    res.status(200).json(settings); // Send back the settings with URLs for siteLogo and favicon
+
+    res.status(200).json({
+      siteName: settings.siteName,
+      siteLogo: settings.siteLogo,
+      favicon: settings.favicon,
+      tinymceApiKey: settings.tinymceApiKey, // ✅ included here
+    });
   } catch (error) {
     console.error("Error fetching settings:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 // ================================
 // 🚀 EXPORT CONTROLLERS

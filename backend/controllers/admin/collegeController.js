@@ -467,7 +467,7 @@ const updateCollege = async (req, res) => {
       ownership,
     } = req.body;
 
-    console.log("Files:", req.files); // Log uploaded files if any
+    // console.log("Files:", req.files); // Log uploaded files if any
     const featured = req.body.featured === "true";
 
     // Validate required fields
@@ -485,7 +485,7 @@ const updateCollege = async (req, res) => {
       !affiliatedby ||
       !ownership
     ) {
-      console.error("Missing required fields");
+      // console.error("Missing required fields");
       return res.status(400).json({ error: "Missing required fields" });
     }
 

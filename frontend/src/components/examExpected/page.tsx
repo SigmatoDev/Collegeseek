@@ -93,27 +93,24 @@ import { api_url } from "@/utils/apiCall";
 interface ExamExpected {
   _id: string;
   code: string;
-  date: string; // Example: expected date for the exam
+  date: string;
 }
 
 interface Props {
-  onSelectionChange: (selectedExams: ExamExpected[]) => void; // Callback function to pass selected exams
-  defaultSelected: string[] | { _id: string }[]; // Array of selected approval IDs or objects
+  onSelectionChange: (selectedExams: ExamExpected[]) => void;
+  defaultSelected: string[] | { _id: string }[];
 }
 
 const ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = [] }) => {
   const [exams, setExams] = useState<ExamExpected[]>([]);
   const [selectedExams, setSelectedExams] = useState<ExamExpected[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isFocused, setIsFocused] = useState(false); // New state to handle focus
+  const [isFocused, setIsFocused] = useState(false);
 
-  // Fetch exams from API
   useEffect(() => {
     const fetchExams = async () => {
       try {
         const { data } = await axios.get(`${api_url}get/Exams`);
-
-        // Check if the response is an array directly
         if (Array.isArray(data)) {
           setExams(data);
         } else {
@@ -123,47 +120,52 @@ const ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelec
         console.error("Error fetching exams:", error);
       }
     };
-
     fetchExams();
   }, []);
-  
+
   useEffect(() => {
     if (exams.length > 0 && defaultSelected.length > 0) {
-      const ids = defaultSelected.map(item => typeof item === 'string' ? item : item._id);
+      const ids = defaultSelected.map(item =>
+        typeof item === "string" ? item : item._id
+      );
 
       const selectedFromDefault = ids
         .map(id => exams.find(exam => exam._id === id))
         .filter((exam): exam is ExamExpected => exam !== undefined);
 
-      // Check if selected exams have actually changed
-      if (selectedFromDefault.length !== selectedExams.length || 
-          selectedFromDefault.some((exam, index) => exam._id !== selectedExams[index]?._id)) {
+      if (
+        selectedFromDefault.length !== selectedExams.length ||
+        selectedFromDefault.some((exam, index) => exam._id !== selectedExams[index]?._id)
+      ) {
         setSelectedExams(selectedFromDefault);
         onSelectionChange(selectedFromDefault);
       }
     }
-  }, [exams, defaultSelected, onSelectionChange, selectedExams]); // Added selectedExams to dependencies
+  }, [exams, defaultSelected, onSelectionChange, selectedExams]);
 
-  // Handle selecting an exam
   const handleSelect = useCallback(
     (exam: ExamExpected) => {
-      if (!selectedExams.some((e) => e._id === exam._id)) {
+      if (!selectedExams.some(e => e._id === exam._id)) {
         const updatedExams = [...selectedExams, exam];
         setSelectedExams(updatedExams);
-        onSelectionChange(updatedExams); // Ensure this function is called
+        onSelectionChange(updatedExams);
       }
-      setSearchQuery(""); // Reset input
-      setIsFocused(false); // Close dropdown after selection
+      setSearchQuery("");
+      setIsFocused(false);
     },
     [selectedExams, onSelectionChange]
   );
 
-  // Handle removing an exam
   const handleRemove = (id: string) => {
-    const updatedExams = selectedExams.filter((e) => e._id !== id);
+    const updatedExams = selectedExams.filter(e => e._id !== id);
     setSelectedExams(updatedExams);
-    onSelectionChange(updatedExams); // Ensure this function is called
+    onSelectionChange(updatedExams);
   };
+
+  // Filter exams for dropdown to exclude already selected ones
+  const filteredExams = exams
+    .filter(e => !selectedExams.some(se => se._id === e._id))
+    .filter(e => e.code.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="w-full max-w-[1500px] mx-auto">
@@ -198,21 +200,17 @@ const ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelec
         />
 
         {/* Exam Suggestions */}
-        {isFocused && (
+        {isFocused && filteredExams.length > 0 && (
           <div className="border mt-2 rounded-lg max-h-40 overflow-y-auto bg-white shadow-md">
-            {exams
-              .filter((e) =>
-                e.code.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-              .map((exam) => (
-                <div
-                  key={exam._id}
-                  className="p-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleSelect(exam)}
-                >
-                  {exam.code} - {exam.date}
-                </div>
-              ))}
+            {filteredExams.map((exam) => (
+              <div
+                key={exam._id}
+                className="p-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleSelect(exam)}
+              >
+                {exam.code} - {exam.date}
+              </div>
+            ))}
           </div>
         )}
       </div>

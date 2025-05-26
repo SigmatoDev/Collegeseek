@@ -5,7 +5,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
-import { PencilSquareIcon, PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 interface Term {
   _id: string;
@@ -57,13 +61,13 @@ const AdminTerms = () => {
     <div className="container mx-auto px-4 py-8">
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Terms & Conditions</h1>
-        <button
+        {/* <button
           onClick={() => router.push("/admin/termsandconditions/new")}
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
         >
           <PlusCircleIcon className="w-5 h-5 mr-2" />
           Create Term
-        </button>
+        </button> */}
       </header>
 
       {loading && <p className="text-center text-gray-500">Loading terms...</p>}
@@ -85,25 +89,29 @@ const AdminTerms = () => {
               {terms.length > 0 ? (
                 terms.map((term) => (
                   <tr key={term._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{term.title}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      {term.title}
+                    </td>
                     <td className="px-6 py-3 text-sm text-gray-700">
                       {new Date(term.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-3 flex space-x-2">
                       <button
-                        onClick={() => router.push(`/admin/termsandconditions/${term._id}`)}
+                        onClick={() =>
+                          router.push(`/admin/termsandconditions/${term._id}`)
+                        }
                         className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                       >
                         <PencilSquareIcon className="h-5 w-5" />
                         <span>Edit</span>
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(term._id)}
                         className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                       >
                         <TrashIcon className="h-5 w-5" />
                         <span>Delete</span>
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))

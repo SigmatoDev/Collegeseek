@@ -4,6 +4,7 @@ import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { api_url } from "@/utils/apiCall";
+import toast from "react-hot-toast";
 
 const ApprovalForm = () => {
   const router = useRouter();
@@ -87,7 +88,7 @@ const handleFormSubmit = async (e: React.FormEvent) => {
     const response = await method(url, approvalData);  // Send approvalData as JSON
 
     if ([200, 201].includes(response.status)) {
-      alert("Approval saved successfully!");
+      toast.success("Approval saved successfully!");
       router.push("/admin/approvels");
     } else {
       setError("Failed to save approval. Please try again.");

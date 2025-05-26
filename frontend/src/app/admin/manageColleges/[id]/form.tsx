@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
-import { api_url, img_url, tinymceApiKey } from "@/utils/apiCall";
+import { api_url, img_url } from "@/utils/apiCall";
 import { Loader } from "lucide-react";
 import { State, City } from "country-state-city";
 import Select from "react-select";
@@ -70,6 +70,8 @@ const ActualCollegeForm = () => {
   const [cities, setCities] = useState<{ name: string }[]>([]);
   const [activeTab, setActiveTab] = useState<number | null>(null); // which tab is currently being edited
   const [isFeatured, setIsFeatured] = useState<boolean>(false);
+  // State for dynamically fetched TinyMCE API key
+  const [dynamicApiKey, setDynamicApiKey] = useState<string | null>(null);
 
   interface Course {
     _id: string;
@@ -95,6 +97,26 @@ const ActualCollegeForm = () => {
       longitude: lng.toString(),
     }));
   };
+
+  // Fetch TinyMCE API key from backend
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await axios.get(`${api_url}settings`);
+        if (response.data?.tinymceApiKey) {
+          setDynamicApiKey(response.data.tinymceApiKey);
+        } else {
+          console.error("API key not found in settings response");
+          setDynamicApiKey(""); // fallback empty string or handle differently
+        }
+      } catch (err) {
+        console.error("Failed to fetch TinyMCE API key", err);
+        setDynamicApiKey("");
+      }
+    };
+
+    fetchApiKey();
+  }, []);
 
   useEffect(() => {
     const fetchCollegeData = async () => {
@@ -168,6 +190,12 @@ const ActualCollegeForm = () => {
     setCollegeData((prev) => ({
       ...prev,
       description: value,
+    }));
+  };
+
+  const handleeditorChange = (value: string) => {
+    setCollegeData((prev) => ({
+      ...prev,
       about: value,
     }));
   };
@@ -475,6 +503,15 @@ const ActualCollegeForm = () => {
     // console.log("Featured status:", newState); // You can handle the logic here (e.g., API calls)
   };
 
+  // Show loader while TinyMCE API key is loading
+  if (dynamicApiKey === null) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader className="animate-spin h-10 w-10 text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="max-w-[1580px] mx-auto p-[40px] border rounded-lg shadow">
@@ -768,7 +805,7 @@ const ActualCollegeForm = () => {
                   {/* Show Editor only when this tab is active */}
                   {activeTab === index && (
                     <Editor
-                      apiKey={tinymceApiKey} // Your TinyMCE API key
+                      apiKey={dynamicApiKey}
                       value={tab.description} // Value from each tab
                       onEditorChange={(content) =>
                         handleTabChange(index, "description", content)
@@ -802,12 +839,11 @@ const ActualCollegeForm = () => {
             Short Description
           </label>
           <Editor
-            apiKey={tinymceApiKey} // <-- put your free TinyMCE API key here
+            apiKey={dynamicApiKey}
             id="shortDescription"
             value={collegeData.description}
-            onChange={(event) => {
-              console.log(event.target.value); // Inspect this
-              handleEditorChange(event.target.value);
+            onEditorChange={(content, editor) => {
+              handleEditorChange(content); // content is the typed HTML
             }}
           />
 
@@ -815,7 +851,7 @@ const ActualCollegeForm = () => {
           <div className="flex flex-col space-y-1">
             <label className="text-gray-800 font-medium">About</label>
             <Editor
-              apiKey={tinymceApiKey}
+              apiKey={dynamicApiKey}
               value={collegeData.about}
               init={{
                 plugins:
@@ -823,7 +859,7 @@ const ActualCollegeForm = () => {
                 toolbar:
                   "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
               }}
-              onEditorChange={handleEditorChange}
+              onEditorChange={handleeditorChange}
               textareaName="about"
             />
           </div>

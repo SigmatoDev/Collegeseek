@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
 import { Editor } from "@tinymce/tinymce-react";
-import { api_url, img_url, tinymceApiKey } from "@/utils/apiCall";
+import { api_url, img_url } from "@/utils/apiCall"; // removed tinymceApiKey import
 import { Loader } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomToast from "@/components/customToast/page";
@@ -24,6 +24,9 @@ const ActualBlogForm = () => {
   const router = useRouter();
   const { id: blogId } = useParams();
 
+  // State for dynamically fetched TinyMCE API key
+  const [dynamicApiKey, setDynamicApiKey] = useState<string | null>(null);
+
   const [blogData, setBlogData] = useState({
     title: "",
     content: "",
@@ -38,6 +41,27 @@ const ActualBlogForm = () => {
   const [error, setError] = useState("");
   const [imageSrc, setImageSrc] = useState("/default-placeholder.png");
 
+  // Fetch TinyMCE API key from backend
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await axios.get(`${api_url}settings`);
+        if (response.data?.tinymceApiKey) {
+          setDynamicApiKey(response.data.tinymceApiKey);
+        } else {
+          console.error("API key not found in settings response");
+          setDynamicApiKey(""); // fallback empty string or handle differently
+        }
+      } catch (err) {
+        console.error("Failed to fetch TinyMCE API key", err);
+        setDynamicApiKey("");
+      }
+    };
+
+    fetchApiKey();
+  }, []);
+
+  // Fetch blog data when editing an existing blog
   useEffect(() => {
     const fetchBlogData = async () => {
       if (!blogId || blogId === "new") return;
@@ -159,6 +183,15 @@ const ActualBlogForm = () => {
     }
   };
 
+  // Show loader while TinyMCE API key is loading
+  if (dynamicApiKey === null) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader className="animate-spin h-10 w-10 text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
       <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
@@ -202,7 +235,7 @@ const ActualBlogForm = () => {
             Content
           </label>
           <Editor
-            apiKey={tinymceApiKey}
+            apiKey={dynamicApiKey}
             value={blogData.content}
             init={{
               plugins:
