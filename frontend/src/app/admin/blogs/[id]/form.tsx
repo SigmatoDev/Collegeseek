@@ -201,18 +201,17 @@ const ActualBlogForm = () => {
           <label className="block text-gray-700 text-sm font-medium mb-1">
             Content
           </label>
-         <Editor
-  apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-  value={blogData.content}
-  init={{
-    plugins:
-      "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
-    toolbar:
-      "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
-  }}
-  onEditorChange={handleEditorChange}
-/>
-
+          <Editor
+            apiKey={tinymceApiKey}
+            value={blogData.content}
+            init={{
+              plugins:
+                "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+              toolbar:
+                "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
+            }}
+            onEditorChange={handleEditorChange}
+          />
         </div>
 
         <input

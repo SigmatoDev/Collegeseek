@@ -88,10 +88,10 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
         if (Array.isArray(data)) {
           setApprovals(data);
         } else {
-          console.error("Unexpected API response format:", data);
+          // console.error("Unexpected API response format:", data);
         }
       } catch (error) {
-        console.error("Error fetching approvals:", error);
+        // console.error("Error fetching approvals:", error);
       }
     };
 
@@ -101,8 +101,8 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
   // Update selectedApprovals if defaultSelected changes
   useEffect(() => {
     if (approvals.length > 0) {
-      console.log('Approvals:', approvals);
-      console.log('Default Selected IDs:', defaultSelected);
+      // console.log('Approvals:', approvals);
+      // console.log('Default Selected IDs:', defaultSelected);
 
       // Ensure defaultSelected contains only IDs (extracting _id if it's an object)
       const ids = defaultSelected.map((item) => (typeof item === 'string' ? item : item._id));
@@ -111,12 +111,12 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
       const defaultApprovalObjects = ids
         .map((id) => {
           const foundApproval = approvals.find((approval) => approval._id === id);
-          console.log(`Finding approval for ID: ${id}, Found: `, foundApproval);
+          // console.log(`Finding approval for ID: ${id}, Found: `, foundApproval);
           return foundApproval;
         })
         .filter((approval): approval is Approval => approval !== undefined);
 
-      console.log('Mapped Approval Objects:', defaultApprovalObjects);
+      // console.log('Mapped Approval Objects:', defaultApprovalObjects);
 
       setSelectedApprovals(defaultApprovalObjects); // Set state with the mapped approval objects
     }

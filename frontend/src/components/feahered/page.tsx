@@ -1,39 +1,3 @@
-// import React, { useState } from 'react';
-
-// const SlidingButton: React.FC = () => {
-//   const [isOn, setIsOn] = useState(false);
-
-//   const toggleButtons = () => {
-//     setIsOn(!isOn);
-//   };
-
-//   return (
-//     <button
-//       onClick={toggleButtons}
-//       className={`relative inline-flex items-center w-16 h-8 rounded-full transition duration-300 
-//         ${isOn ? 'bg-green-500' : 'bg-gray-300'}`}
-//     >
-//       <span
-//         className={`absolute w-7 h-7 bg-white rounded-full transition-transform duration-300 
-//           ${isOn ? 'transform translate-x-8' : 'transform translate-x-1'}`}
-//       ></span>
-//       <span className={`absolute text-sm text-white ${isOn ? 'left-2' : 'right-2'}`}>
-//         {isOn ? 'ON' : 'OFF'}
-//       </span>
-//     </button>
-//   );
-// };
-
-// const CollegeFeatureToggle: React.FC = () => {
-//   return (
-//     <div className="flex flex-col space-y-3">
-//       <label className="text-lg font-semibold">Featured College</label>
-//       <SlidingButton />
-//     </div>
-//   );
-// };
-
-// export default CollegeFeatureToggle;
 import { useState, useEffect } from 'react';
 
 interface FeaturedProps {
@@ -45,7 +9,7 @@ const FeaturedComponent: React.FC<FeaturedProps> = ({ initialFeatured = false, o
   const [isFeatured, setIsFeatured] = useState<boolean>(initialFeatured);
 
   useEffect(() => {
-    console.log("🟡 Prop changed: initialFeatured =", initialFeatured);
+    // console.log("🟡 Prop changed: initialFeatured =", initialFeatured);
     setIsFeatured(initialFeatured); // ✅ NO negation
   }, [initialFeatured]);
 
@@ -55,7 +19,7 @@ const FeaturedComponent: React.FC<FeaturedProps> = ({ initialFeatured = false, o
   // }, [isFeatured]);
 
   useEffect(() => {
-    console.log('isFeatured state in FeaturedComponent:', isFeatured);
+    // console.log('isFeatured state in FeaturedComponent:', isFeatured);
   }, [isFeatured]);
 
   const toggleFeatured = (event: React.MouseEvent) => {

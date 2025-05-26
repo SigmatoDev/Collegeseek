@@ -160,6 +160,7 @@ const getBlogById = async (req, res) => {
 };
 
 // ✅ Update a blog
+// ✅ Update a blog
 const updateBlog = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
@@ -168,16 +169,35 @@ const updateBlog = async (req, res) => {
 
     try {
       const { title, content, author, category, tags, publishedDate } = req.body;
-      let updatedFields = { title, content, author, category, tags, publishedDate };
+      
+      let updatedFields = {
+        title,
+        content,
+        author,
+        category,
+        tags,
+        publishedDate,
+      };
+
+      // ✅ Generate and update slug
+      if (title) {
+        updatedFields.slug = slugify(title, { lower: true, strict: true });
+      }
 
       // ✅ Handle Image Update
       if (req.file) {
         updatedFields.image = `/uploads/${req.file.filename}`;
       }
 
-      const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, updatedFields, { new: true });
+      const updatedBlog = await Blog.findByIdAndUpdate(
+        req.params.id,
+        updatedFields,
+        { new: true }
+      );
 
-      if (!updatedBlog) return res.status(404).json({ message: "Blog not found" });
+      if (!updatedBlog) {
+        return res.status(404).json({ message: "Blog not found" });
+      }
 
       res.status(200).json(updatedBlog);
     } catch (error) {
@@ -186,7 +206,6 @@ const updateBlog = async (req, res) => {
     }
   });
 };
-
 const getBlogBySlug = async (req, res) => {
   try {
     const { slug } = req.query;

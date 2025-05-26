@@ -83,7 +83,7 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
-  const [allStreams, setAllStreams] = useState<StreamType[]>([]); // Update here too
+  // const [allStreams, setAllStreams] = useState<StreamType[]>([]); // Update here too
 
   // Fetch all streams
   useEffect(() => {
@@ -93,10 +93,10 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
         if (Array.isArray(data)) {
           setStreams(data);
         } else {
-          console.error("Unexpected API response format:", data);
+          // console.error("Unexpected API response format:", data);
         }
       } catch (error) {
-        console.error("Error fetching streams:", error);
+        // console.error("Error fetching streams:", error);
       }
     };
 
@@ -106,8 +106,8 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
   // Update selectedStreams if defaultSelected changes
   useEffect(() => {
     if (streams.length > 0) {
-      console.log('Streams:', streams);
-      console.log('Default Selected IDs:', defaultSelected);
+      // console.log('Streams:', streams);
+      // console.log('Default Selected IDs:', defaultSelected);
 
       // Ensure defaultSelected contains only IDs (extracting _id if it's an object)
       const ids = defaultSelected.map((item) => (typeof item === 'string' ? item : item._id));
@@ -116,12 +116,12 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
       const defaultStreamObjects = ids
         .map((id) => {
           const foundStream = streams.find((stream) => stream._id === id);
-          console.log(`Finding stream for ID: ${id}, Found: `, foundStream);  // Log each find attempt
+          // console.log(`Finding stream for ID: ${id}, Found: `, foundStream);  // Log each find attempt
           return foundStream;
         })
         .filter((stream): stream is StreamType => stream !== undefined);  // Filter out undefined streams
 
-      console.log('Mapped Stream Objects:', defaultStreamObjects);
+      // console.log('Mapped Stream Objects:', defaultStreamObjects);
 
       setSelectedStreams(defaultStreamObjects); // Set state with the mapped stream objects
     }

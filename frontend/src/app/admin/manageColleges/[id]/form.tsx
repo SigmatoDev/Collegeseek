@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
-import { api_url, img_url } from "@/utils/apiCall";
+import { api_url, img_url, tinymceApiKey } from "@/utils/apiCall";
 import { Loader } from "lucide-react";
 import { State, City } from "country-state-city";
 import Select from "react-select";
@@ -68,7 +68,6 @@ const ActualCollegeForm = () => {
   const [galleryPreview, setGalleryPreview] = useState<string[]>([]);
   const [states, setStates] = useState<{ name: string; isoCode: string }[]>([]);
   const [cities, setCities] = useState<{ name: string }[]>([]);
-  const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
   const [activeTab, setActiveTab] = useState<number | null>(null); // which tab is currently being edited
   const [isFeatured, setIsFeatured] = useState<boolean>(false);
 
@@ -79,7 +78,7 @@ const ActualCollegeForm = () => {
 
   /*** ✅ Fetch College Data ***/
   useEffect(() => {
-    console.log("🔍 Retrieved collegeId:", collegeId);
+    // console.log("🔍 Retrieved collegeId:", collegeId);
   }, [collegeId]);
 
   useEffect(() => {
@@ -102,9 +101,9 @@ const ActualCollegeForm = () => {
       if (!collegeId || collegeId === "new") return;
 
       try {
-        console.log(`📡 Fetching college data for collegeId: ${collegeId}`);
+        // console.log(`📡 Fetching college data for collegeId: ${collegeId}`);
         const response = await axios.get(`${api_url}colleges/${collegeId}`);
-        console.log("✅ Fetched College Data:", response.data);
+        // console.log("✅ Fetched College Data:", response.data);
 
         const data = response.data.data;
         setCollegeData({
@@ -134,10 +133,10 @@ const ActualCollegeForm = () => {
           image: null,
           imageGallery: [],
         });
-        console.log(
-          "Featured prop passed to FeaturedComponent:",
-          data.featured
-        );
+        // console.log(
+        //   "Featured prop passed to FeaturedComponent:",
+        //   data.featured
+        // );
 
         // ✅ Update Image Previews
         setImagePreview(
@@ -169,6 +168,7 @@ const ActualCollegeForm = () => {
     setCollegeData((prev) => ({
       ...prev,
       description: value,
+      about: value,
     }));
   };
 
@@ -177,7 +177,7 @@ const ActualCollegeForm = () => {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
 
-      console.log("📌 Changing Field:", name, "➡️ New Value:", value); // Debugging log
+      // console.log("📌 Changing Field:", name, "➡️ New Value:", value); // Debugging log
 
       setCollegeData((prev) => ({
         ...prev,
@@ -302,13 +302,13 @@ const ActualCollegeForm = () => {
       formData.append("featured", collegeData.featured ? "true" : "false");
     }
     for (const [key, value] of formData.entries()) {
-      console.log(`🔹 ${key}: ${value}`);
+      // console.log(`🔹 ${key}: ${value}`);
     }
 
     // Log stream data before appending
-    console.log("Stream data before appending:", collegeData.stream);
-    console.log("Stream data before appending:", collegeData.examExpected);
-    console.log("Stream data before appending:", collegeData.approvel);
+    // console.log("Stream data before appending:", collegeData.stream);
+    // console.log("Stream data before appending:", collegeData.examExpected);
+    // console.log("Stream data before appending:", collegeData.approvel);
 
     // Check if collegeData.stream is an array and has data
     if (Array.isArray(collegeData.stream) && collegeData.stream.length > 0) {
@@ -321,17 +321,17 @@ const ActualCollegeForm = () => {
           "name" in streamItem
         ) {
           formData.append("stream", (streamItem as { name: string }).name); // Append the 'name' of each stream
-          console.log(
-            "Appending stream name:",
-            (streamItem as { name: string }).name
-          ); // Log each appended stream item
+          // console.log(
+          //   "Appending stream name:",
+          //   (streamItem as { name: string }).name
+          // ); // Log each appended stream item
         } else if (typeof streamItem === "string") {
           formData.append("stream", streamItem); // If it's already a string, append it directly
-          console.log("Appending stream string:", streamItem); // Log the string
+          // console.log("Appending stream string:", streamItem); // Log the string
         }
       });
     } else {
-      console.log("Stream is empty, appending empty array or skipping");
+      // console.log("Stream is empty, appending empty array or skipping");
       formData.append("stream", JSON.stringify([])); // Or skip if not required
     }
 
@@ -346,17 +346,17 @@ const ActualCollegeForm = () => {
           "name" in examItem
         ) {
           formData.append("examExpected", (examItem as { name: string }).name);
-          console.log(
-            "Appending examExpected name:",
-            (examItem as { name: string }).name
-          );
+          // console.log(
+          //   "Appending examExpected name:",
+          //   (examItem as { name: string }).name
+          // );
         } else if (typeof examItem === "string") {
           formData.append("examExpected", examItem);
-          console.log("Appending examExpected string:", examItem);
+          // console.log("Appending examExpected string:", examItem);
         }
       });
     } else {
-      console.log("examExpected is empty, appending empty array or skipping");
+      // console.log("examExpected is empty, appending empty array or skipping");
       formData.append("examExpected", JSON.stringify([])); // Or skip if not required
     }
 
@@ -372,17 +372,17 @@ const ActualCollegeForm = () => {
           "name" in approvelItem
         ) {
           formData.append("approvel", (approvelItem as { name: string }).name);
-          console.log(
-            "Appending approvel name:",
-            (approvelItem as { name: string }).name
-          );
+          // console.log(
+          //   "Appending approvel name:",
+          //   (approvelItem as { name: string }).name
+          // );
         } else if (typeof approvelItem === "string") {
           formData.append("approvel", approvelItem);
-          console.log("Appending approvel string:", approvelItem);
+          // console.log("Appending approvel string:", approvelItem);
         }
       });
     } else {
-      console.log("approvel is empty, appending empty array or skipping");
+      // console.log("approvel is empty, appending empty array or skipping");
       formData.append("approvel", JSON.stringify([])); // Or skip if not required
     }
 
@@ -407,7 +407,7 @@ const ActualCollegeForm = () => {
 
     // Log formData entries before submission
     for (const pair of formData.entries()) {
-      console.log("🔹", pair[0], pair[1]);
+      // console.log("🔹", pair[0], pair[1]);
     }
 
     try {
@@ -428,10 +428,10 @@ const ActualCollegeForm = () => {
         router.push("/admin/manageColleges");
       }
     } catch (err: any) {
-      console.error(
-        "❌ Error saving college:",
-        err.response?.data || err.message
-      );
+      // console.error(
+      //   "❌ Error saving college:",
+      //   err.response?.data || err.message
+      // );
       setError(
         err.response?.data?.message ||
           "Failed to save college. Please check your input."
@@ -472,7 +472,7 @@ const ActualCollegeForm = () => {
 
   const handleFeaturedToggle = (newState: boolean) => {
     setIsFeatured(newState); // Update the state to the new featured value
-    console.log("Featured status:", newState); // You can handle the logic here (e.g., API calls)
+    // console.log("Featured status:", newState); // You can handle the logic here (e.g., API calls)
   };
 
   return (
@@ -768,7 +768,7 @@ const ActualCollegeForm = () => {
                   {/* Show Editor only when this tab is active */}
                   {activeTab === index && (
                     <Editor
-                      apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm" // Your TinyMCE API key
+                      apiKey={tinymceApiKey} // Your TinyMCE API key
                       value={tab.description} // Value from each tab
                       onEditorChange={(content) =>
                         handleTabChange(index, "description", content)
@@ -802,7 +802,7 @@ const ActualCollegeForm = () => {
             Short Description
           </label>
           <Editor
-            apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm" // <-- put your free TinyMCE API key here
+            apiKey={tinymceApiKey} // <-- put your free TinyMCE API key here
             id="shortDescription"
             value={collegeData.description}
             onChange={(event) => {
@@ -815,7 +815,7 @@ const ActualCollegeForm = () => {
           <div className="flex flex-col space-y-1">
             <label className="text-gray-800 font-medium">About</label>
             <Editor
-              apiKey="ngdm20net2gismgz9p9i8j90k9a013sosx2wng37c7895rhm" // <-- put your free TinyMCE API key here
+              apiKey={tinymceApiKey}
               value={collegeData.about}
               init={{
                 plugins:

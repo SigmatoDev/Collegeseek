@@ -239,7 +239,7 @@ const getallColleges = async (req, res) => {
     const colleges = await College.find();
     res.status(200).json({ success: true, data: colleges });
   } catch (error) {
-    console.error("Error fetching colleges:", error);
+    // console.error("Error fetching colleges:", error);
     res.status(500).json({ success: false, error: "Failed to fetch colleges" });
   }
 };
@@ -438,7 +438,7 @@ const getCollegeBySlug = async (req, res) => {
 
 // ✅ Update College
 const updateCollege = async (req, res) => {
-  console.log("Received body:", req.body); // Log entire body
+  // console.log("Received body:", req.body); // Log entire body
 
   try {
     const {
