@@ -84,7 +84,7 @@ export default function CollegeCourses({ college_id }: Props) {
 
     const fetchSpecializations = async () => {
       try {
-        const res = await fetch(`${api_url}get/Specialization`);
+        const res = await fetch(`${api_url}get2/Specialization`);
         if (!res.ok) throw new Error("Failed to fetch specializations");
         const data: Specialization[] = await res.json();
         setSpecializations(data);
