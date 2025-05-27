@@ -55,7 +55,7 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
       const fetchSpecialization = async () => {
         try {
           const response = await fetch(
-            `${api_url}/Specialization/${course.specialization}`
+            `${api_url}/id/Specialization/${course.specialization}`
           );
           const data = await response.json();
           console.log("Fetched specialization:", data);
