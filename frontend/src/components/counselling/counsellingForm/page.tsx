@@ -1,12 +1,10 @@
 import { api_url } from "@/utils/apiCall";
 import React, { useState, useEffect } from "react";
 
-// Define the type for the props (including `collegeId`)
 interface CounsellingFormProps {
-  collegeId: string; // Accept the collegeId prop
+  collegeId: string;
 }
 
-// Define the form data structure
 interface FormDataType {
   name: string;
   email: string;
@@ -15,7 +13,6 @@ interface FormDataType {
   message: string;
 }
 
-// Define the structure of college data
 interface College {
   id: string;
   name: string;
@@ -26,24 +23,22 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
     name: "",
     email: "",
     phone: "",
-    college: "", // Set to an empty string initially
+    college: "",
     message: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key in keyof FormDataType]?: string }>({});
-  const [college, setCollege] = useState<College | null>(null); // State for storing college data
-  const [fetchError, setFetchError] = useState<string | null>(null); // State for fetch error
+  const [college, setCollege] = useState<College | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
-  // Fetch college by ID when the component mounts
   useEffect(() => {
     const fetchCollege = async () => {
-      console.log(`Fetching college data for collegeId: ${collegeId}`); // Add console log here
       try {
-        const response = await fetch(`${api_url}/colleges/${collegeId}`); // Adjust this URL according to your backend API
+        const response = await fetch(`${api_url}/colleges/${collegeId}`);
         const data = await response.json();
         if (data) {
-          console.log("Fetched college data:", data.data); // Add log for fetched data
-          setCollege(data.data); // Set the college data
+          setCollege(data.data);
         } else {
           setFetchError("No data found for this college.");
         }
@@ -56,35 +51,36 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
     fetchCollege();
   }, [collegeId]);
 
-  // When college is fetched, update the form's college field
   useEffect(() => {
     if (college) {
       setFormData((prevData) => ({
         ...prevData,
-        college: college.name, // Update the college name in the form
+        college: college.name,
       }));
     }
-  }, [college]); // Run when college is updated
+  }, [college]);
 
-  // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    if (name === "name" && /\d/.test(value)) {
+      return;
+    }
+
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
   };
 
-  // Simple validation function
   const validateForm = () => {
     const newErrors: { [key in keyof FormDataType]?: string } = {};
 
-    Object.keys(formData).forEach((field) => {
-      const value = formData[field as keyof FormDataType];
+    // Only validate required fields — message is optional
+    (["name", "email", "phone", "college"] as Array<keyof FormDataType>).forEach((field) => {
+      const value = formData[field];
       if (!value) {
-        newErrors[field as keyof FormDataType] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
       }
     });
 
@@ -92,11 +88,9 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setLoading(true);
 
     try {
@@ -110,60 +104,54 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
 
       const data = await response.json();
       if (response.ok) {
-        console.log("Counselling request successful:", data);
-        // Handle success (show success message, reset form, etc.)
         setFormData({
           name: "",
           email: "",
           phone: "",
-          college: "", // Reset college field
+          college: college?.name || "",
           message: "",
         });
+        setSuccessMessage("Thanks! We’ll connect with you shortly.");
+        setTimeout(() => setSuccessMessage(""), 5000); // Optional: clear after 5 sec
       } else {
         console.error("Error:", data.message);
-        // Handle error (show error message)
       }
     } catch (error) {
       console.error("Error:", error);
-      // Handle error (show error message)
     } finally {
       setLoading(false);
     }
   };
 
   if (fetchError) {
-    return <div className="text-center text-xl text-red-500">{fetchError}</div>; // Display fetch error
+    return <div className="text-center text-xl text-red-500">{fetchError}</div>;
   }
 
   if (!college) {
-    return <div className="text-center text-xl text-gray-700">Loading college details...</div>; // Show loading state while the college is being fetched
+    return <div className="text-center text-xl text-gray-700">Loading college details...</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6 sm:p-8 bg-white rounded-lg shadow-xl border border-gray-200">
       <h3 className="text-1xl font-semibold text-center mb-2 text-gray-800 text-[28px]">
-  Get Free Counselling for College
-</h3>
-<h3 className="text-[16px] pt-2 pb-5 font-medium text-center text-blue-600">
-  {college.name}
-</h3>
-
+        Get Free Counselling for College
+      </h3>
+      <h3 className="text-[16px] pt-2 pb-5 font-medium text-center text-blue-600">
+        {college.name}
+      </h3>
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {(["name", "email"] as Array<keyof FormDataType>).map((field) => (
             <div key={field} className="mb-4">
-              <label
-                htmlFor={field}
-                className="block text-lg font-medium text-gray-700 mb-2 capitalize"
-              >
+              <label htmlFor={field} className="block text-lg font-medium text-gray-700 mb-2 capitalize">
                 {field}
               </label>
               <input
                 type={field === "email" ? "email" : "text"}
                 id={field}
                 name={field}
-                value={formData[field] || ""} // Ensure default value is an empty string
+                value={formData[field] || ""}
                 onChange={handleInputChange}
                 className={`w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 ${
                   errors[field] ? "border-red-500" : "border-gray-300"
@@ -171,46 +159,43 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
                 placeholder={`Enter your ${field}`}
                 required
               />
-              {errors[field] && (
-                <p className="text-xs text-red-500 mt-1">{errors[field]}</p>
-              )}
+              {errors[field] && <p className="text-xs text-red-500 mt-1">{errors[field]}</p>}
             </div>
           ))}
 
-   {(["phone", "college"] as Array<keyof FormDataType>).map((field) => (
-  <div key={field} className="mb-4">
-    <label
-      htmlFor={field}
-      className="block text-lg font-medium text-gray-700 mb-2 capitalize"
-    >
-      {field}
-    </label>
-    <input
-      type={field === "phone" ? "tel" : "text"}
-      id={field}
-      name={field}
-      value={formData[field] || ""}
-      onChange={handleInputChange}
-      readOnly={field === "college"}
-      pattern={field === "phone" ? "[0-9]*" : undefined}
-      inputMode={field === "phone" ? "numeric" : undefined}
-      onKeyDown={(e) => {
-        if (field === "phone" && !/[0-9]/.test(e.key) && e.key !== "Backspace" && e.key !== "Tab") {
-          e.preventDefault();
-        }
-      }}
-      className={`w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 ${
-        errors[field] ? "border-red-500" : "border-gray-300"
-      } ${field === "college" ? "bg-gray-100 cursor-not-allowed" : ""}`}
-      placeholder={`Enter your ${field}`}
-      required
-    />
-    {errors[field] && (
-      <p className="text-xs text-red-500 mt-1">{errors[field]}</p>
-    )}
-  </div>
-))}
-
+          {(["phone", "college"] as Array<keyof FormDataType>).map((field) => (
+            <div key={field} className="mb-4">
+              <label htmlFor={field} className="block text-lg font-medium text-gray-700 mb-2 capitalize">
+                {field}
+              </label>
+              <input
+                type={field === "phone" ? "tel" : "text"}
+                id={field}
+                name={field}
+                value={formData[field] || ""}
+                onChange={handleInputChange}
+                readOnly={field === "college"}
+                pattern={field === "phone" ? "[0-9]*" : undefined}
+                inputMode={field === "phone" ? "numeric" : undefined}
+                onKeyDown={(e) => {
+                  if (
+                    field === "phone" &&
+                    !/[0-9]/.test(e.key) &&
+                    e.key !== "Backspace" &&
+                    e.key !== "Tab"
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
+                className={`w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 ${
+                  errors[field] ? "border-red-500" : "border-gray-300"
+                } ${field === "college" ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                placeholder={`Enter your ${field}`}
+                required
+              />
+              {errors[field] && <p className="text-xs text-red-500 mt-1">{errors[field]}</p>}
+            </div>
+          ))}
         </div>
 
         <div className="mb-4">
@@ -220,7 +205,7 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
           <textarea
             id="message"
             name="message"
-            value={formData.message || ""} // Ensure default value is an empty string
+            value={formData.message || ""}
             onChange={handleInputChange}
             className="w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 border-gray-300"
             rows={4}
@@ -238,6 +223,12 @@ const CounsellingForm = ({ collegeId }: CounsellingFormProps) => {
           {loading ? "Submitting..." : "Submit"}
         </button>
       </form>
+
+      {successMessage && (
+        <div className="mt-4 text-green-600 text-center text-lg font-medium">
+          {successMessage}
+        </div>
+      )}
     </div>
   );
 };

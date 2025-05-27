@@ -136,16 +136,35 @@ const getUserById = async (req, res) => {
 
 
 
-// Get All Users
+// Get All Users with Pagination
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password"); // Exclude passwords from response
-    res.status(200).json({ success: true, data: users });
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 users per page
+    const skip = (page - 1) * limit;
+
+    const totalUsers = await User.countDocuments();
+    const users = await User.find()
+      .select("-password")
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      data: users,
+      pagination: {
+        totalUsers,
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / limit),
+        pageSize: limit,
+      },
+    });
   } catch (error) {
     console.error("Get Users Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 // Delete User
 const deleteUser = async (req, res) => {

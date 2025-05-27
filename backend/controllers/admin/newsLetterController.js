@@ -21,16 +21,37 @@ const submitCallback = async (req, res) => {
 // Get all callback requests (for admin)
 const getCallbacks = async (req, res) => {
   try {
-    const callbacks = await Callback.find().sort({ createdAt: -1 });
+    // Parse page and limit from query params, with defaults
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate how many documents to skip
+    const skip = (page - 1) * limit;
+
+    // Get total count of documents
+    const total = await Callback.countDocuments();
+
+    // Fetch paginated data sorted by createdAt descending
+    const callbacks = await Callback.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
       success: true,
-      data: callbacks, // Always return a consistent format
+      data: callbacks,
+      total,
+      page,
+      totalPages,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
+
 
 // Delete callback request
 const deleteCallback = async (req, res) => {

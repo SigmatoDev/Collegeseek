@@ -17,7 +17,8 @@ const {
   getStreams,
   getStreamById,
   updateStream,
-  deleteStream
+  deleteStream,
+  getStreams2
 } = require('../../controllers/admin/streamsController');
 
 const router = express.Router();
@@ -49,6 +50,7 @@ const upload = multer({
 // ✅ Use `upload.single("image")` for POST and PUT
 router.post('/create/streams/', upload.single("image"), createStream);
 router.get('/get/streams/', getStreams);            // Get all streams
+router.get('/get2/streams/', getStreams2);            // Get all streams
 router.get('/id/streams/:id', getStreamById);      // Get a single stream by ID
 router.put('/update/streams/:id', upload.single("image"), updateStream);
 router.delete('/d/streams/:id', deleteStream);    // Delete a stream by ID

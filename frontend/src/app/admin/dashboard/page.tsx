@@ -5,21 +5,20 @@ import Sidebar from '../../../components/admin/sidebar/page';
 import Header from '../../../components/admin/navigater/page';
 import { api_url } from '@/utils/apiCall';
 
-interface Banner {
-  title: string;
-  description: string;
-}
+import {
+  AcademicCapIcon,
+  BookmarkSquareIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
 
 export default function AdminDashboard() {
-  const [data, setData] = useState<Banner[]>([]); // For banners
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState({
-    coursesEnrolled: 0,  // Initially set to 0
-    collegesShortlisted: 0  // Initially set to 0
+    coursesEnrolled: 0,
+    collegesShortlisted: 0,
   });
 
-  // Fetch data from the backend API
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -27,15 +26,11 @@ export default function AdminDashboard() {
         const response = await fetch(`${api_url}dashboard`);
         const data = await response.json();
 
-        console.log(data); // Log the response to see its structure
-
         if (response.ok) {
           setUserData({
-            coursesEnrolled: data.data.coursesEnrolled || 0,  // Default to 0 if undefined
-            collegesShortlisted: data.data.collegesShortlisted || 0  // Default to 0 if undefined
+            coursesEnrolled: data.data.coursesEnrolled || 0,
+            collegesShortlisted: data.data.collegesShortlisted || 0,
           });
-
-          setData(data.banners || []);  // Set banners if they exist
         } else {
           setError(data.message || 'Error fetching dashboard data');
         }
@@ -47,45 +42,129 @@ export default function AdminDashboard() {
     };
 
     fetchDashboardData();
-  }, []); // Empty dependency array ensures it runs only once after initial render
+  }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-100 to-gray-50">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         <Header />
-        <div className="mt-4 p-8">
-          {error && <p className="text-red-500">Error: {error}</p>}
-          {loading && !error && <p className="text-gray-500">Loading data...</p>}
-          {!loading && !error && data.length === 0 && (
-            <p className="text-gray-500"></p> // Handling case when there are no banners
-          )}
-          {!loading && !error && data.length > 0 && (
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <h2 className="text-xl font-bold mb-4">Dashboard Data</h2>
-              <ul className="list-disc list-inside">
-                {data.map((item, index) => (
-                  <li key={index} className="py-1">{item.title} - {item.description}</li>
-                ))}
-              </ul>
+        <main className="flex-1 overflow-y-auto p-8 max-w-[1600px] mx-auto w-full">
+          {/* Welcome / Title */}
+          <header className="mb-10">
+            <h1 className="text-4xl font-extrabold text-gray-900 mb-2 leading-tight">
+              Welcome back, Admin
+            </h1>
+            <p className="text-gray-600 text-lg leading-relaxed">
+              Here's a quick overview of user activity and engagement.
+            </p>
+          </header>
+
+          {/* Loading shimmer placeholders */}
+          {loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[1, 2].map((_) => (
+                <div
+                  key={_}
+                  className="animate-pulse bg-white rounded-xl p-8 space-y-4"
+                >
+                  <div className="h-12 w-12 rounded-full bg-gray-300" />
+                  <div className="h-6 bg-gray-300 rounded w-3/4" />
+                  <div className="h-10 bg-gray-300 rounded w-1/2" />
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                </div>
+              ))}
             </div>
           )}
 
-          {/* Displaying Numbers for Courses Enrolled and Colleges Shortlisted */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Number of Courses Enrolled */}
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">Courses Enrolled by Users</h3>
-              <p className="text-xl font-bold text-green-600">{userData.coursesEnrolled}</p>
+          {/* Error */}
+          {error && (
+            <div
+              className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-lg shadow-sm"
+              role="alert"
+            >
+              <strong className="font-semibold">Error: </strong>
+              <span>{error}</span>
             </div>
+          )}
 
-            {/* Number of Colleges Shortlisted */}
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-4">Colleges Shortlisted by Users</h3>
-              <p className="text-xl font-bold text-blue-600">{userData.collegesShortlisted}</p>
-            </div>
-          </div>
-        </div>
+          {/* Metrics Cards */}
+          {!loading && !error && (
+            <section className="grid grid-cols-1 md:grid-cols-2 mx-[80px] gap-8">
+              {/* Courses Enrolled */}
+              <div className="bg-white shadow-lg rounded-xl p-8 flex flex-col space-y-4 hover:shadow-2xl transition-shadow duration-300">
+                <div className="flex items-center space-x-6">
+                  <div className="bg-orange-100 p-3 rounded-full">
+                    <AcademicCapIcon className="h-10 w-10 text-orange-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-700 mb-1 flex items-center space-x-2 leading-snug">
+                      <span>Courses Enrolled</span>
+                      <InformationCircleIcon
+                        title="Total courses users have enrolled in"
+                        className="h-5 w-5 text-gray-400 cursor-help"
+                      />
+                    </h3>
+                    <p className="text-5xl font-extrabold text-orange-600">
+                      {userData.coursesEnrolled}
+                    </p>
+                    <p className="text-gray-400 mt-1">
+                      Total user enrollments
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                  <div
+                    className="bg-orange-600 h-3 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        (userData.coursesEnrolled / 100) * 100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              
+              </div>
+
+              {/* Colleges Shortlisted */}
+              <div className="bg-white shadow-lg rounded-xl p-8 flex flex-col space-y-4 hover:shadow-2xl transition-shadow duration-300">
+                <div className="flex items-center space-x-6">
+                  <div className="bg-[#dcd9fa] p-3 rounded-full">
+                    <BookmarkSquareIcon className="h-10 w-10 text-[#413A82]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-700 mb-1 flex items-center space-x-2 leading-snug">
+                      <span>Colleges Shortlisted</span>
+                      <InformationCircleIcon
+                        title="Total colleges shortlisted by users"
+                        className="h-5 w-5 text-gray-400 cursor-help"
+                      />
+                    </h3>
+                    <p className="text-5xl font-extrabold text-[#413A82]">
+                      {userData.collegesShortlisted}
+                    </p>
+                    <p className="text-gray-400 mt-1">
+                      Total colleges shortlisted by users
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
+                  <div
+                    className="bg-[#413A82] h-3 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(
+                        (userData.collegesShortlisted / 50) * 100,
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+             
+              </div>
+            </section>
+          )}
+        </main>
       </div>
     </div>
   );

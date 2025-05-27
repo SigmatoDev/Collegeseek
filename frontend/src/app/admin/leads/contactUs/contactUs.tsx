@@ -19,31 +19,36 @@ const AdminContactUs = () => {
   const [contacts, setContacts] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const limit = 10;
+
+  const fetchContacts = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get(`${api_url}get/contacts?page=${page}&limit=${limit}`);
+
+      if (!data || !Array.isArray(data.contacts)) {
+        console.error("Unexpected API response format:", data);
+        setError("Invalid data format received.");
+        return;
+      }
+
+      setContacts(data.contacts);
+      setTotalPages(data.pagination?.totalPages || 1);
+    } catch (err: any) {
+      console.error("API Fetch Error:", err);
+      setError(err.response?.data?.message || "Failed to load contacts.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}get/contacts`);
-
-        if (!data || !Array.isArray(data.contacts)) {
-          console.error("Unexpected API response format:", data);
-          setError("Invalid data format received.");
-          return;
-        }
-
-        setContacts(data.contacts);
-      } catch (err: any) {
-        console.error("API Fetch Error:", err);
-        setError(err.response?.data?.message || "Failed to load contacts.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (typeof window !== "undefined") {
       fetchContacts();
     }
-  }, []);
+  }, [page]);
 
   const handleDelete = async (contactId: string) => {
     if (!window.confirm("Are you sure you want to delete this message?")) return;
@@ -68,51 +73,79 @@ const AdminContactUs = () => {
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="overflow-x-auto shadow-md rounded bg-white">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-600">
-              <tr>
-                {["Name", "Email", "Phone", "Message", "Created At", "Actions"].map((header) => (
-                  <th key={header} className="px-6 py-3 text-sm font-semibold">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {contacts.length > 0 ? (
-                contacts.map((contact) => (
-                  <tr key={contact._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{contact.name}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{contact.email}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{contact.phone}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700 max-w-xs truncate" title={contact.message}>
-                      {contact.message}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {new Date(contact.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-3">
-                      <button
-                        onClick={() => handleDelete(contact._id)}
-                        className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>Delete</span>
-                      </button>
+        <>
+          <div className="overflow-x-auto shadow-md rounded bg-white">
+            <table className="table-auto w-full text-left border-collapse">
+              <thead className="bg-gray-200 text-gray-600">
+                <tr>
+                  {["Name", "Email", "Phone", "Message", "Created At", "Actions"].map((header) => (
+                    <th key={header} className="px-6 py-3 text-sm font-semibold">
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {contacts.length > 0 ? (
+                  contacts.map((contact) => (
+                    <tr key={contact._id} className="border-b hover:bg-gray-50">
+                      <td className="px-6 py-3 text-sm text-gray-700">{contact.name}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{contact.email}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{contact.phone}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700 max-w-xs truncate" title={contact.message}>
+                        {contact.message}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {new Date(contact.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-3">
+                        <button
+                          onClick={() => handleDelete(contact._id)}
+                          className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="text-center py-4 text-gray-500">
+                      No contact messages found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="text-center py-4 text-gray-500">
-                    No contact messages found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+             {/* Pagination Controls */}
+            <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+              <button
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  page === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Previous
+              </button>
+              <span className="text-gray-700 text-sm">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  page === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+          
+        </>
       )}
     </div>
   );

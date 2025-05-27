@@ -43,13 +43,33 @@ const upload = multer({ storage, fileFilter });
 // @access Public
 const getUploadFiles = async (req, res) => {
   try {
-    const files = await Upload.find().populate("college_id", "name");
-    res.status(200).json(files);
+    // Get page and limit from query params, set defaults if not provided
+    const page = parseInt(req.query.page) || 1;      // current page number
+    const limit = parseInt(req.query.limit) || 10;   // number of items per page
+
+    const skip = (page - 1) * limit;
+
+    // Fetch total count of files (for client-side total pages calculation)
+    const total = await Upload.countDocuments();
+
+    // Fetch paginated data with college info populated
+    const files = await Upload.find()
+      .populate("college_id", "name")
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      total,      // total number of files
+      page,       // current page
+      totalPages: Math.ceil(total / limit),
+      files,      // files for the current page
+    });
   } catch (error) {
     console.error("Error fetching uploaded files:", error);
     res.status(500).json({ message: "Failed to fetch uploaded files" });
   }
 };
+
 
 // @desc Get single uploaded file by ID
 // @route GET /api/uploads/documents/:id
@@ -57,32 +77,23 @@ const getUploadFiles = async (req, res) => {
 
 
 const getUploadFileById = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const file = await Upload.findById(id);  // Fetch file details from DB
+    const { id } = req.params;
+    const file = await Upload.findById(id).lean();  // lean() gives plain JS object
+
     if (!file) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    // Ensure only the relative file path (uploads/documents/filename.pdf) is used (without the leading slash)
-    const filePath = path.join(__dirname, "..", "..", "public", file.filePath); 
-    console.log("Serving file from:", filePath);  // Debugging log
+    // Send the file data JSON (you can also populate college_id if needed)
+    return res.status(200).json({ success: true, data: file });
 
-    // Check if the file exists before serving it
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);  // Check if file exists
-      console.log("File exists, starting download...");
-      res.download(filePath, file.fileName);  // Serve the file
-    } catch (err) {
-      console.error("File not found:", err);
-      return res.status(404).json({ message: "File not found" });
-    }
   } catch (error) {
     console.error("Error fetching file:", error);
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // @desc Upload a new file
 // @route POST /api/uploads/documents

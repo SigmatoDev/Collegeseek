@@ -31,7 +31,7 @@ const createExam = async (req, res) => {
 
 
 // Get all exams
-const getAllExams = async (req, res) => {
+const getAllExamss = async (req, res) => {
   try {
     const exams = await ExamsAccepted.find();
     res.status(200).json(exams);
@@ -39,6 +39,35 @@ const getAllExams = async (req, res) => {
     res.status(500).json({ message: 'Error fetching exams', error });
   }
 };
+
+const getAllExams = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;       // Default to page 1
+    const limit = parseInt(req.query.limit) || 10;     // Default limit to 10
+
+    const skip = (page - 1) * limit;
+
+    const [exams, totalExams] = await Promise.all([
+      ExamsAccepted.find().skip(skip).limit(limit),
+      ExamsAccepted.countDocuments(),
+    ]);
+
+    const totalPages = Math.ceil(totalExams / limit);
+
+    res.status(200).json({
+      data: exams,
+      pagination: {
+        totalExams,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching exams', error });
+  }
+};
+
 
 // Get single exam by ID
 const getExamById = async (req, res) => {
@@ -106,6 +135,7 @@ const deleteExam = async (req, res) => {
 module.exports = {
   createExam,
   getAllExams,
+  getAllExamss,
   getExamById,
   updateExam,
   deleteExam

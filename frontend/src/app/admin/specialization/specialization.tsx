@@ -5,7 +5,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
-import { PencilSquareIcon, PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 interface Specialization {
   _id: string;
@@ -16,40 +20,59 @@ const AdminSpecializations = () => {
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const limit = 10;
+
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchSpecializations = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}get/Specialization`);
-        if (!Array.isArray(data) || data.length === 0) {
-          setError("No specialization data received.");
-          return;
-        }
-        setSpecializations(data);
-      } catch (err: any) {
-        console.error("Fetch error:", err);
-        setError(err.response?.data?.message || "Failed to load specializations.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchSpecializations = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await axios.get(
+        `${api_url}get/Specialization?page=${page}&limit=${limit}`
+      );
 
+      if (!Array.isArray(data.specializations)) {
+        setError("No specialization data received.");
+        return;
+      }
+
+      setSpecializations(data.specializations);
+      setTotalPages(data.totalPages || 1);
+    } catch (err: any) {
+      console.error("Fetch error:", err);
+      setError(err.response?.data?.message || "Failed to load specializations.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       fetchSpecializations();
     }
-  }, []);
+  }, [page]);
 
   const handleDelete = async (specializationId: string) => {
     if (!window.confirm("Are you sure you want to delete this specialization?")) return;
 
     try {
       await axios.delete(`${api_url}d/Specialization/${specializationId}`);
-      setSpecializations((prev) => prev.filter((item) => item._id !== specializationId));
+      setSpecializations((prev) =>
+        prev.filter((item) => item._id !== specializationId)
+      );
       toast.success("Specialization deleted successfully!");
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Failed to delete specialization.");
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
     }
   };
 
@@ -70,50 +93,78 @@ const AdminSpecializations = () => {
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="overflow-x-auto shadow-md rounded bg-white">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-600">
-              <tr>
-                {["Name", "Actions"].map((header) => (
-                  <th key={header} className="px-6 py-3 text-sm font-semibold">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {specializations.length > 0 ? (
-                specializations.map((specialization) => (
-                  <tr key={specialization._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{specialization.name}</td>
-                    <td className="px-6 py-3 flex space-x-2">
-                      <button
-                        onClick={() => router.push(`/admin/specialization/${specialization._id}`)}
-                        className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
-                      >
-                        <PencilSquareIcon className="h-5 w-5" />
-                        <span>Edit</span>
-                      </button>
-                      {/* <button
-                        onClick={() => handleDelete(specialization._id)}
-                        className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>Delete</span>
-                      </button> */}
+        <>
+          <div className="overflow-x-auto shadow-md rounded bg-white">
+            <table className="table-auto w-full text-left border-collapse">
+              <thead className="bg-gray-200 text-gray-600">
+                <tr>
+                  <th className="px-6 py-3 text-sm font-semibold">Name</th>
+                  <th className="px-6 py-3 text-sm font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {specializations.length > 0 ? (
+                  specializations.map((specialization) => (
+                    <tr key={specialization._id} className="border-b hover:bg-gray-50">
+                      <td className="px-6 py-3 text-sm text-gray-700">{specialization.name}</td>
+                      <td className="px-6 py-3 flex space-x-2">
+                        <button
+                          onClick={() =>
+                            router.push(`/admin/specialization/${specialization._id}`)
+                          }
+                          className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
+                        >
+                          <PencilSquareIcon className="h-5 w-5" />
+                          <span>Edit</span>
+                        </button>
+                        {/* <button
+                          onClick={() => handleDelete(specialization._id)}
+                          className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                          <span>Delete</span>
+                        </button> */}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} className="text-center py-4 text-gray-500">
+                      No specializations found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={2} className="text-center py-4 text-gray-500">
-                    No specializations found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+
+            {/* Pagination */}
+            <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+              <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  page === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Previous
+              </button>
+
+              <span className="text-gray-700 text-sm">
+                Page {page} of {totalPages}
+              </span>
+
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  page === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -110,7 +110,7 @@ const ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelec
   useEffect(() => {
     const fetchExams = async () => {
       try {
-        const { data } = await axios.get(`${api_url}get/Exams`);
+        const { data } = await axios.get(`${api_url}get2/Exams`);
         if (Array.isArray(data)) {
           setExams(data);
         } else {

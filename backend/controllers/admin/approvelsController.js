@@ -26,10 +26,48 @@ const createApproval = async (req, res) => {
 
 
 // Get all approvals
-const getAllApprovals = async (req, res) => {
+const getAllApprovals2 = async (req, res) => {
   try {
     const approvals = await Approval.find();
     res.status(200).json(approvals);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+const getAllApprovals = async (req, res) => {
+  try {
+    // Parse page and limit from query params, set defaults
+    const page = parseInt(req.query.page, 10) || 1; 
+    const limit = parseInt(req.query.limit, 10) || 10; 
+
+    // Calculate how many documents to skip
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination info
+    const totalApprovals = await Approval.countDocuments();
+
+    // Fetch approvals with pagination
+    const approvals = await Approval.find()
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalApprovals / limit);
+
+    // Return data with pagination metadata
+    res.status(200).json({
+      success: true,
+      data: approvals,
+      pagination: {
+        totalItems: totalApprovals,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error', error });
@@ -97,6 +135,7 @@ const deleteApproval = async (req, res) => {
 module.exports = {
   createApproval,
   getAllApprovals,
+  getAllApprovals2,
   getApprovalById,
   updateApproval,
   deleteApproval

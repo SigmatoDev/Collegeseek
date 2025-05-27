@@ -19,10 +19,16 @@ const AdminCallbacks = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Pagination states
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const limit = 10; // Items per page
+
   useEffect(() => {
     const fetchCallbacks = async () => {
+      setLoading(true);
       try {
-        const { data } = await axios.get(`${api_url}/callbacks`);
+        const { data } = await axios.get(`${api_url}/callbacks?page=${page}&limit=${limit}`);
 
         if (!data.success || !Array.isArray(data.data)) {
           console.error("Unexpected API response:", data);
@@ -31,6 +37,7 @@ const AdminCallbacks = () => {
         }
 
         setCallbacks(data.data);
+        setTotalPages(data.totalPages || 1);
       } catch (err: any) {
         console.error("API Error:", err);
         setError(err.response?.data?.message || "Failed to load callbacks.");
@@ -40,19 +47,25 @@ const AdminCallbacks = () => {
     };
 
     fetchCallbacks();
-  }, []);
+  }, [page]); // refetch when page changes
 
   const handleDelete = async (callbackId: string) => {
     if (!window.confirm("Are you sure you want to delete this callback request?")) return;
 
     try {
       await axios.delete(`${api_url}/callbacks/${callbackId}`);
+      // Remove deleted callback locally
       setCallbacks((prev) => prev.filter((callback) => callback._id !== callbackId));
       toast.success("Callback request deleted successfully!");
     } catch (err: any) {
       console.error("Error deleting callback:", err);
       toast.error("Failed to delete callback request.");
     }
+  };
+
+  const goToPage = (pageNumber: number) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setPage(pageNumber);
   };
 
   return (
@@ -67,50 +80,85 @@ const AdminCallbacks = () => {
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          <strong className="font-bold">Error:</strong> <span className="block sm:inline">{error}</span>
-          <button onClick={() => setError(null)} className="absolute top-0 bottom-0 right-0 px-4 py-3">✖</button>
+          <strong className="font-bold">Error:</strong>{" "}
+          <span className="block sm:inline">{error}</span>
+          <button onClick={() => setError(null)} className="absolute top-0 bottom-0 right-0 px-4 py-3">
+            ✖
+          </button>
         </div>
       )}
 
       {!loading && !error && (
-        <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-          <table className="w-full border-collapse">
-            <thead className="bg-gray-100 border-b-2 border-gray-300">
-              <tr>
-                {["Name", "Mobile", "Email", "Stream", "Actions"].map((header) => (
-                  <th key={header} className="px-6 py-3 text-left text-gray-600 font-semibold text-sm">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {callbacks.length > 0 ? (
-                callbacks.map((callback) => (
-                  <tr key={callback._id} className="border-b hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-gray-700">{callback.name}</td>
-                    <td className="px-6 py-4 text-gray-700">{callback.mobile}</td>
-                    <td className="px-6 py-4 text-gray-700">{callback.email}</td>
-                    <td className="px-6 py-4 text-gray-700">{callback.stream}</td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleDelete(callback._id)}
-                        className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>Delete</span>
-                      </button>
+        <>
+          <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-100 border-b-2 border-gray-300">
+                <tr>
+                  {["Name", "Mobile", "Email", "Stream", "Actions"].map((header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-left text-gray-600 font-semibold text-sm"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {callbacks.length > 0 ? (
+                  callbacks.map((callback) => (
+                    <tr key={callback._id} className="border-b hover:bg-gray-50 transition">
+                      <td className="px-6 py-4 text-gray-700">{callback.name}</td>
+                      <td className="px-6 py-4 text-gray-700">{callback.mobile}</td>
+                      <td className="px-6 py-4 text-gray-700">{callback.email}</td>
+                      <td className="px-6 py-4 text-gray-700">{callback.stream}</td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleDelete(callback._id)}
+                          className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6 text-gray-500">
+                      No callback requests found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="text-center py-6 text-gray-500">No callback requests found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+              {/* Pagination Controls */}
+            <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+              <button
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  page === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Previous
+              </button>
+              <span className="text-gray-700 text-sm">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  page === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+        </>
       )}
     </div>
   );

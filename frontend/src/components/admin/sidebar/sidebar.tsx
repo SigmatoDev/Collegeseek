@@ -88,9 +88,7 @@ const Sidebar = () => {
       icon: <Grid size={20} />,
       text: "MenuBuilder",
       isOpen,
-      subMenu: [
-        { href: "/admin/menuBuilder", icon: <Book size={18} />, text: "CourseMenu", isOpen },
-      ],
+      subMenu: [{ href: "/admin/menuBuilder", icon: <Book size={18} />, text: "CourseMenu", isOpen }],
     },
     {
       href: "#",
@@ -99,8 +97,7 @@ const Sidebar = () => {
       isOpen,
       subMenu: [
         { href: "/admin/pages", icon: <FileText size={18} />, text: "Pages", isOpen },
-        { href: "/admin/trendingNow", icon: <Plug size={18} />, text: "Trending Now", isOpen }, // ✅ Added Trending Now submenu
-
+        { href: "/admin/trendingNow", icon: <Plug size={18} />, text: "Trending Now", isOpen },
       ],
     },
     { href: "/admin/blogs", icon: <FileText size={20} />, text: "Blogs & News", isOpen },
@@ -129,7 +126,7 @@ const Sidebar = () => {
         { href: "/admin/programMode", icon: <School size={18} />, text: "Program Mode", isOpen },
         { href: "/admin/examExpected", icon: <BookOpenIcon className="h-5 w-5" />, text: "Exam Expected", isOpen },
         { href: "/admin/ads", icon: <Monitor size={18} />, text: "Advertisement", isOpen },
-        { href: "/admin/specialization", icon: <Grid size={18} />, text: "specialization", isOpen },
+        { href: "/admin/specialization", icon: <Grid size={18} />, text: "Specialization", isOpen },
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
         { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
       ],
@@ -138,22 +135,24 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex flex-col transition-all duration-300 ease-in-out h-screen shadow-lg bg-gradient-to-b from-[#0a0536] to-[#2b1b67] text-white ${isOpen ? "w-64" : "w-20"}`}
+      className={`flex flex-col h-screen transition-all duration-300 ease-in-out shadow-lg bg-gradient-to-b from-[#0a0536] to-[#2b1b67] text-white ${
+        isOpen ? "w-64" : "w-20"
+      }`}
     >
       {/* Sidebar Header */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-700">
+      <div className="flex justify-between items-center p-4 border-b border-gray-700 flex-shrink-0">
         {isOpen && logo && <img src={logo} alt="Logo" className="w-40 h-auto" />}
         <button onClick={toggleSidebar} className="text-white text-xl hover:text-gray-400 transition-all">
           {isOpen ? <ArrowLeftCircle size={24} /> : <ArrowRightCircle size={24} />}
         </button>
       </div>
 
-      {/* Sidebar Links */}
-      <nav className="flex flex-col space-y-2 p-4">
-        {menuItems.map(({ href, icon, text, isOpen, subMenu }) => (
+      {/* Scrollable Sidebar Links */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        {menuItems.map(({ href, icon, text, subMenu }) => (
           <div key={text}>
             {subMenu ? (
-              <div>
+              <>
                 <button
                   onClick={() => toggleMenu(text)}
                   className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-[#4f2780] transition-all"
@@ -167,34 +166,40 @@ const Sidebar = () => {
                   )}
                 </button>
                 {activeMenu === text && (
-                  <div className="pl-8 mt-1">
+                  <div className="pl-8 mt-1 space-y-1">
                     {subMenu.map(({ href, icon, text }) => (
                       <SidebarLink key={href} href={href} icon={icon} text={text} isOpen={isOpen} />
                     ))}
                   </div>
                 )}
-              </div>
+              </>
             ) : (
               <SidebarLink key={href} href={href} icon={icon} text={text} isOpen={isOpen} />
             )}
           </div>
         ))}
-      </nav>
+      </div>
 
-      {/* Footer */}
-      <div className="mt-auto p-4 text-center text-gray-400 text-xs">
+      {/* Sidebar Footer */}
+      <div className="p-4 text-center text-gray-400 text-xs border-t border-gray-700 flex-shrink-0">
         © 2025 Company Name
       </div>
     </div>
   );
 };
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ href, icon, text, isOpen }) => (
-  <Link href={href} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-[#4f2780] transition-all">
-    {icon}
-    {isOpen && <span className="text-sm">{text}</span>}
-  </Link>
-);
-
+function SidebarLink({ href, icon, text, isOpen }: SidebarLinkProps) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center space-x-4 p-2 rounded-lg hover:bg-[#4f2780] transition-all ${
+        isOpen ? "justify-start" : "justify-center"
+      }`}
+    >
+      {icon}
+      {isOpen && <span className="text-sm">{text}</span>}
+    </Link>
+  );
+}
 
 export default Sidebar;

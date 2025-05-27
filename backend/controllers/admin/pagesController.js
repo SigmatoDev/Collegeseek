@@ -111,13 +111,32 @@ exports.getPageBySlug = async (req, res) => {
 };
 exports.getPages = async (req, res) => {
   try {
-    // Fetch all pages from the database
-    const pages = await Page.find();
-    if (!pages || pages.length === 0) {
+    // Get page and limit from query params, set defaults if not provided
+    const page = parseInt(req.query.page) || 1;       // Default page 1
+    const limit = parseInt(req.query.limit) || 10;    // Default 10 items per page
+
+    // Calculate how many documents to skip
+    const skip = (page - 1) * limit;
+
+    // Fetch total number of pages for metadata
+    const totalPages = await Page.countDocuments();
+
+    if (totalPages === 0) {
       return res.status(404).json({ message: "No pages found" });
     }
-    // Return the list of pages
-    res.status(200).json(pages);
+
+    // Fetch pages with pagination
+    const pages = await Page.find()
+      .skip(skip)
+      .limit(limit);
+
+    // Return paginated results with metadata
+    res.status(200).json({
+      totalPages,
+      currentPage: page,
+      pagesPerPage: limit,
+      pages,
+    });
   } catch (error) {
     console.error("Error fetching pages:", error);
     res.status(500).json({ message: "Server error", error });

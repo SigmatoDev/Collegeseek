@@ -25,7 +25,7 @@ const SpecializationDropdown: React.FC<SpecializationDropdownProps> = ({
     const fetchSpecializations = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${api_url}get/Specialization`);
+        const response = await axios.get(`${api_url}get2/Specialization`);
         setSpecializations(response.data);
         setLoading(false);
       } catch (err) {

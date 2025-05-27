@@ -17,46 +17,58 @@ interface CounsellingRequest {
   createdAt: string;
 }
 
+interface PaginationInfo {
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
 const AdminCounselling = () => {
   const [counsellingRequests, setCounsellingRequests] = useState<CounsellingRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCounsellingRequests = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}/counselling`);
-  
-        // Check if data is an object and if it has a key `data` containing an array
-        if (!data || !Array.isArray(data.data)) {
-          console.error("Unexpected API response format:", data);
-          setError("Invalid data format received.");
-          return;
-        }
-  
-        setCounsellingRequests(data.data); // Access data from the 'data' key
-      } catch (err: any) {
-        console.error("API Fetch Error:", err);
-        setError(err.response?.data?.message || "Failed to load counselling requests.");
-      } finally {
-        setLoading(false);
+  const fetchCounsellingRequests = async (currentPage: number) => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`${api_url}/counselling`, {
+        params: { page: currentPage, limit: 10 },
+      });
+
+      if (!data || !Array.isArray(data.data)) {
+        console.error("Unexpected API response format:", data);
+        setError("Invalid data format received.");
+        return;
       }
-    };
-  
-    if (typeof window !== "undefined") {
-      fetchCounsellingRequests();
+
+      setCounsellingRequests(data.data);
+      setPagination(data.pagination);
+      setError(null);
+    } catch (err: any) {
+      console.error("API Fetch Error:", err);
+      setError(err.response?.data?.message || "Failed to load counselling requests.");
+    } finally {
+      setLoading(false);
     }
-  }, []);
-  
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      fetchCounsellingRequests(page);
+    }
+  }, [page]);
 
   const handleDelete = async (counsellingId: string) => {
     if (!window.confirm("Are you sure you want to delete this counselling request?")) return;
 
     try {
       await axios.delete(`${api_url}/counselling/${counsellingId}`);
-      setCounsellingRequests((prev) => prev.filter((request) => request._id !== counsellingId));
       toast.success("Counselling request deleted successfully!");
+      fetchCounsellingRequests(page); // refresh current page
     } catch (err) {
       console.error("Error deleting counselling request:", err);
       toast.error("Error deleting counselling request. Please try again.");
@@ -69,63 +81,90 @@ const AdminCounselling = () => {
         <h1 className="text-2xl font-bold text-gray-800">Counselling Requests</h1>
       </header>
 
-      {/* Loading & Error Messages */}
       {loading && <p className="text-center text-gray-500">Loading counselling requests...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
-      {/* Counselling Requests Table */}
       {!loading && !error && (
-        <div className="overflow-x-auto shadow-md rounded bg-white">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-600">
-              <tr>
-                {["Name", "Email", "Phone", "College", "Message", "Created At", "Actions"].map((header) => (
-                  <th key={header} className="px-6 py-3 text-sm font-semibold">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {counsellingRequests.length > 0 ? (
-                counsellingRequests.map((request) => (
-                  <tr key={request._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{request.name}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{request.email}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{request.phone}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{request.college}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{request.message}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {new Date(request.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-3 flex space-x-2">
-                      <button
-                        onClick={() => router.push(`/admin/leads/getFreeCounselling/${request._id}`)}
-                        className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
-                      >
-                        <PencilSquareIcon className="h-5 w-5" />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(request._id)}
-                        className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>Delete</span>
-                      </button>
+        <>
+          <div className="overflow-x-auto shadow-md rounded bg-white">
+            <table className="table-auto w-full text-left border-collapse">
+              <thead className="bg-gray-200 text-gray-600">
+                <tr>
+                  {["Name", "Email", "Phone", "College", "Message", "Created At", "Actions"].map((header) => (
+                    <th key={header} className="px-6 py-3 text-sm font-semibold">
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {counsellingRequests.length > 0 ? (
+                  counsellingRequests.map((request) => (
+                    <tr key={request._id} className="border-b hover:bg-gray-50">
+                      <td className="px-6 py-3 text-sm text-gray-700">{request.name}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{request.email}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{request.phone}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{request.college}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{request.message}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-3 flex space-x-2">
+                        <button
+                          onClick={() => router.push(`/admin/leads/getFreeCounselling/${request._id}`)}
+                          className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
+                        >
+                          <PencilSquareIcon className="h-5 w-5" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(request._id)}
+                          className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="text-center py-4 text-gray-500">
+                      No counselling requests found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="text-center py-4 text-gray-500">
-                    No counselling requests found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            {pagination && (
+              <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+                <button
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page === 1}
+                  className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                    page === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="text-gray-700 text-sm">
+                  Page {page} of {pagination.totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((prev) => Math.min(prev + 1, pagination.totalPages))}
+                  disabled={page === pagination.totalPages}
+                  className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                    page === pagination.totalPages ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

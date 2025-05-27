@@ -31,7 +31,8 @@ const {
   getAllExams,
   getExamById,
   updateExam,
-  deleteExam
+  deleteExam,
+  getAllExamss
 } = require('../../controllers/admin/examExpectedController');
 
 const router = express.Router();
@@ -62,6 +63,8 @@ const upload = multer({
 // Routes with image upload on create and update
 router.post('/create/exams/', upload.single("image"), createExam);
 router.get('/get/exams/', getAllExams);
+router.get('/get2/exams/', getAllExamss);
+
 router.get('/id/exams/:id', getExamById);
 router.put('/update/exams/:id', upload.single("image"), updateExam);
 router.delete('/d/exams/:id', deleteExam);

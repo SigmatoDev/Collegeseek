@@ -35,13 +35,31 @@ const createEnrollment = async (req, res) => {
 // Function to get all enrollments
 const getAllEnrollments = async (req, res) => {
   try {
-    const enrollments = await Enrollment.find(); // Fetch all enrollments
-    return res.status(200).json({ enrollments });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Enrollment.countDocuments();
+    const enrollments = await Enrollment.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // Optional: Sort by latest first
+
+    return res.status(200).json({
+      data: enrollments,
+      pagination: {
+        total,
+        page,
+        totalPages: Math.ceil(total / limit),
+        limit,
+      },
+    });
   } catch (error) {
     console.error("Error fetching enrollments:", error);
     return res.status(500).json({ message: "An error occurred while fetching enrollments" });
   }
 };
+
 
 // Function to get a single enrollment by ID
 const getEnrollmentById = async (req, res) => {

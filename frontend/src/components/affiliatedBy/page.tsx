@@ -29,7 +29,7 @@ const AffiliatedByDropdown: React.FC<AffiliatedByDropdownProps> = ({
     const fetchAffiliations = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${api_url}get/affiliated`);
+        const response = await axios.get(`${api_url}get2/affiliated`);
 
         setAffiliations(response.data.data);
         setLoading(false);

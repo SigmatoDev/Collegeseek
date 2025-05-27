@@ -1,4 +1,4 @@
-const Specialization = require('../../models/admin/specialization');
+const Specialization = require("../../models/admin/specialization");
 
 // Create a new specialization
 const createSpecialization = async (req, res) => {
@@ -6,13 +6,19 @@ const createSpecialization = async (req, res) => {
     const { name } = req.body;
 
     if (!name) {
-      return res.status(400).json({ message: 'Specialization name is required' });
+      return res
+        .status(400)
+        .json({ message: "Specialization name is required" });
     }
 
     // Check if the specialization name already exists
-    const existingSpecialization = await Specialization.findOne({ name: name.trim() });
+    const existingSpecialization = await Specialization.findOne({
+      name: name.trim(),
+    });
     if (existingSpecialization) {
-      return res.status(409).json({ message: 'Specialization with this name already exists' });
+      return res
+        .status(409)
+        .json({ message: "Specialization with this name already exists" });
     }
 
     const newSpecialization = new Specialization({ name: name.trim() });
@@ -20,19 +26,41 @@ const createSpecialization = async (req, res) => {
 
     res.status(201).json(savedSpecialization);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 // Get all specializations
-const getAllSpecializations = async (req, res) => {
+const getAllSpecializations2 = async (_req, res) => {
   try {
     const specializations = await Specialization.find();
     res.status(200).json(specializations);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
+
+// Get all specializations with pagination
+const getAllSpecializations = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const specializations = await Specialization.find().skip(skip).limit(limit);
+    const total = await Specialization.countDocuments();
+
+    res.status(200).json({
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      specializations,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 
 // Get single specialization by ID
 const getSpecializationById = async (req, res) => {
@@ -40,12 +68,12 @@ const getSpecializationById = async (req, res) => {
     const specialization = await Specialization.findById(req.params.id);
 
     if (!specialization) {
-      return res.status(404).json({ message: 'Specialization not found' });
+      return res.status(404).json({ message: "Specialization not found" });
     }
 
     res.status(200).json(specialization);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -56,13 +84,20 @@ const updateSpecialization = async (req, res) => {
     const id = req.params.id;
 
     if (!name) {
-      return res.status(400).json({ message: 'Specialization name is required' });
+      return res
+        .status(400)
+        .json({ message: "Specialization name is required" });
     }
 
     // Check if specialization with the new name already exists (excluding the current one)
-    const existingSpecialization = await Specialization.findOne({ name: name.trim(), _id: { $ne: id } });
+    const existingSpecialization = await Specialization.findOne({
+      name: name.trim(),
+      _id: { $ne: id },
+    });
     if (existingSpecialization) {
-      return res.status(409).json({ message: 'Specialization with this name already exists' });
+      return res
+        .status(409)
+        .json({ message: "Specialization with this name already exists" });
     }
 
     const updated = await Specialization.findByIdAndUpdate(
@@ -72,15 +107,14 @@ const updateSpecialization = async (req, res) => {
     );
 
     if (!updated) {
-      return res.status(404).json({ message: 'Specialization not found' });
+      return res.status(404).json({ message: "Specialization not found" });
     }
 
     res.status(200).json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 // Delete specialization
 const deleteSpecialization = async (req, res) => {
@@ -88,18 +122,19 @@ const deleteSpecialization = async (req, res) => {
     const deleted = await Specialization.findByIdAndDelete(req.params.id);
 
     if (!deleted) {
-      return res.status(404).json({ message: 'Specialization not found' });
+      return res.status(404).json({ message: "Specialization not found" });
     }
 
-    res.status(200).json({ message: 'Specialization deleted successfully' });
+    res.status(200).json({ message: "Specialization deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 module.exports = {
   createSpecialization,
   getAllSpecializations,
+  getAllSpecializations2,
   getSpecializationById,
   updateSpecialization,
   deleteSpecialization,

@@ -8,8 +8,6 @@ import { toast } from "react-hot-toast";
 import {
   PencilSquareIcon,
   PlusCircleIcon,
-  TrashIcon,
-  ClipboardIcon,
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "lucide-react";
@@ -24,21 +22,33 @@ const AdminPages = () => {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [copiedSlug, setCopiedSlug] = useState<string | null>(null); // Track copied slug
-  const [isHovered, setIsHovered] = useState<string | null>(null); // Track hovered slug
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [isHovered, setIsHovered] = useState<string | null>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [pagesPerPage] = useState<number>(10); // Or any number you prefer
+
   const router = useRouter();
 
-  const fetchPages = async () => {
+  const fetchPages = async (page: number = 1) => {
     setLoading(true);
     setError(null);
 
     try {
-      const { data } = await axios.get(`${api_url}get/Pages`);
-      if (!Array.isArray(data)) {
+      const { data } = await axios.get(
+        `${api_url}get/Pages?page=${page}&limit=${pagesPerPage}`
+      );
+
+      // data format: { totalPages, currentPage, pagesPerPage, pages: [...] }
+      if (!Array.isArray(data.pages)) {
         throw new Error("Unexpected API response format: expected an array.");
       }
 
-      setPages(data);
+      setPages(data.pages);
+      setCurrentPage(data.currentPage);
+      setTotalPages(data.totalPages);
     } catch (err: any) {
       console.error("Error fetching pages:", err);
       setError(err.response?.data?.message || "Failed to load pages.");
@@ -48,8 +58,8 @@ const AdminPages = () => {
   };
 
   useEffect(() => {
-    fetchPages();
-  }, []);
+    fetchPages(currentPage);
+  }, [currentPage]);
 
   const handleDelete = async (pageId: string) => {
     if (!window.confirm("Are you sure you want to delete this page?")) return;
@@ -57,7 +67,7 @@ const AdminPages = () => {
     try {
       await axios.delete(`${api_url}deletePage/${pageId}`);
       toast.success("Page deleted successfully!");
-      fetchPages();
+      fetchPages(currentPage);
     } catch (err) {
       console.error("Error deleting page:", err);
       toast.error("Error deleting page. Please try again.");
@@ -69,10 +79,10 @@ const AdminPages = () => {
       .writeText(slug)
       .then(() => {
         toast.success("Slug copied to clipboard!");
-        setCopiedSlug(slug); // Update the copied slug state
-        setTimeout(() => setCopiedSlug(null), 2000); // Reset after 2 seconds
+        setCopiedSlug(slug);
+        setTimeout(() => setCopiedSlug(null), 2000);
       })
-      .catch((error) => {
+      .catch(() => {
         toast.error("Failed to copy slug.");
       });
   };
@@ -83,7 +93,7 @@ const AdminPages = () => {
 
       <div className="flex items-center justify-between gap-4 mb-6">
         <button
-  onClick={() => router.push("/admin/pages/new")}  // Change this to the correct path for your 'create.tsx'
+          onClick={() => router.push("/admin/pages/new")}
           className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200"
         >
           <PlusCircleIcon className="w-6 h-6 mr-2" />
@@ -108,25 +118,22 @@ const AdminPages = () => {
               {pages.length > 0 ? (
                 pages.map((page) => (
                   <tr key={page._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      {page.title}
-                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{page.title}</td>
                     <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
-                      {/* Display the slug as a clickable link */}
                       <a
                         href={`/pages/${page.slug}`}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition duration-200"
                         title={`Go to ${page.title} page`}
                       >
                         {page.slug}
                       </a>
 
-                      {/* Button to copy the slug */}
                       <button
                         onClick={() => handleCopySlug(page.slug)}
-                        onMouseEnter={() => setIsHovered(page.slug)} // Hover effect
-                        onMouseLeave={() => setIsHovered(null)} // Remove hover effect
+                        onMouseEnter={() => setIsHovered(page.slug)}
+                        onMouseLeave={() => setIsHovered(null)}
                         className="relative flex items-center justify-center gap-2 text-blue-500 hover:text-blue-700 ml-2 rounded-full p-2 transition-all duration-300 transform hover:scale-105"
                         aria-label={
                           copiedSlug === page.slug ? "Slug Copied" : "Copy Slug"
@@ -138,7 +145,6 @@ const AdminPages = () => {
                           <ClipboardDocumentIcon className="w-6 h-6 text-blue-500" />
                         )}
 
-                        {/* Tooltip with Smooth Fade-in and Fade-out */}
                         <span
                           className={`absolute top-[-40px] left-1/2 transform -translate-x-1/2 text-sm text-white font-semibold p-2 rounded-md bg-[#000000] shadow-lg opacity-0 transition-opacity duration-300 ${
                             copiedSlug === page.slug || isHovered === page.slug
@@ -148,32 +154,21 @@ const AdminPages = () => {
                         >
                           {copiedSlug === page.slug ? "Copied!" : "Copy"}
                           <span
-                            className={`absolute left-1/2  transform -translate-x-1/2 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-[#000000]`}
+                            className={`absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-[#000000]`}
                           ></span>
                         </span>
-                        {/* Screen Reader Text for Accessibility */}
-                        {/* <span className="sr-only">
-                          {copiedSlug === page.slug ? "Copied" : "Copy"}
-                        </span> */}
                       </button>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       <div className="flex items-center gap-2">
                         <button
-                            onClick={() => router.push(`/admin/pages/edit/${page._id}`)} // Navigates to edit page
-
+                          onClick={() => router.push(`/admin/pages/edit/${page._id}`)}
                           className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition duration-200"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
                           <span className="text-sm font-medium">Edit</span>
                         </button>
-                        {/* <button
-                          onClick={() => handleDelete(page._id)}
-                          className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition duration-200"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                          <span className="text-sm font-medium">Delete</span>
-                        </button> */}
+                        {/* You can add a delete button here if needed */}
                       </div>
                     </td>
                   </tr>
@@ -187,6 +182,31 @@ const AdminPages = () => {
               )}
             </tbody>
           </table>
+
+          {/* Pagination Controls */}
+          <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Previous
+            </button>
+            <span className="text-gray-700 text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

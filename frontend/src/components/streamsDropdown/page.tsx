@@ -86,7 +86,7 @@ const StreamDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected = 
   useEffect(() => {
     const fetchStreams = async () => {
       try {
-        const { data } = await axios.get(`${api_url}get/streams`);
+        const { data } = await axios.get(`${api_url}get2/streams`);
         if (Array.isArray(data)) {
           setStreams(data);
         }

@@ -4,35 +4,77 @@ const path = require("path");
 const fs = require("fs");
 
 // ✅ Get All Courses
-const getCourseList = async (req, res) => {
+const getCourseList2 = async (req, res) => {
   try {
     const clist = await Course.find(); // Use the Course model
     res.status(200).json({ success: true, data: clist });
   } catch (error) {
     console.error("Error fetching courselist:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch courselist" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to fetch courselist" });
+  }
+};
+
+const getCourseList = async (req, res) => {
+  try {
+    // Parse page and limit from query params, set defaults if not provided
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate how many docs to skip
+    const skip = (page - 1) * limit;
+
+    // Get total count of courses
+    const total = await Course.countDocuments();
+
+    // Fetch paginated courses
+    const clist = await Course.find().skip(skip).limit(limit);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      data: clist,
+      pagination: {
+        total,
+        page,
+        totalPages,
+        limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching courselist:", error);
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to fetch courselist" });
   }
 };
 
 const createCourseList = async (req, res) => {
   try {
     const { name, code } = req.body;
-   const image = req.file ? `uploads/${req.file.filename}` : null;
+    const image = req.file ? `uploads/${req.file.filename}` : null;
 
     if (!name || !code) {
-      return res.status(400).json({ success: false, error: "Course name and code are required." });
+      return res
+        .status(400)
+        .json({ success: false, error: "Course name and code are required." });
     }
 
     // Check for duplicate by name or code
-    const existingCourse = await Course.findOne({ 
-      $or: [
-        { code }, 
-        { name }
-      ]
+    const existingCourse = await Course.findOne({
+      $or: [{ code }, { name }],
     });
 
     if (existingCourse) {
-      return res.status(400).json({ success: false, error: "Course with this name or code already exists." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          error: "Course with this name or code already exists.",
+        });
     }
 
     const newCourse = new Course({ name, code, image });
@@ -41,11 +83,14 @@ const createCourseList = async (req, res) => {
     res.status(201).json({ success: true, data: savedCourse });
   } catch (error) {
     console.error("Error creating course:", error);
-    res.status(500).json({ success: false, error: error.message || "Failed to create course" });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: error.message || "Failed to create course",
+      });
   }
 };
-
-
 
 // ✅ Get Course by ID
 const getCourseListById = async (req, res) => {
@@ -57,14 +102,18 @@ const getCourseListById = async (req, res) => {
 
     // If no course found with the provided ID
     if (!course) {
-      return res.status(404).json({ success: false, error: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Course not found" });
     }
 
     // Return the found course
     res.status(200).json({ success: true, data: course });
   } catch (error) {
     console.error("Error fetching course by ID:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch course by ID" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to fetch course by ID" });
   }
 };
 
@@ -76,20 +125,24 @@ const updateCourseList = async (req, res) => {
     const image = req.file ? `uploads/${req.file.filename}` : null;
 
     if (!name || !code) {
-      return res.status(400).json({ success: false, error: "Course name and code are required." });
+      return res
+        .status(400)
+        .json({ success: false, error: "Course name and code are required." });
     }
 
     // Check for duplicates excluding the current course
-    const existingCourse = await Course.findOne({ 
-      $or: [
-        { code }, 
-        { name }
-      ],
-      _id: { $ne: id }
+    const existingCourse = await Course.findOne({
+      $or: [{ code }, { name }],
+      _id: { $ne: id },
     });
 
     if (existingCourse) {
-      return res.status(400).json({ success: false, error: "Course with this name or code already exists." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          error: "Course with this name or code already exists.",
+        });
     }
 
     const updateData = { name, code };
@@ -97,14 +150,14 @@ const updateCourseList = async (req, res) => {
       updateData.image = image;
     }
 
-    const updatedCourse = await Course.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
-    );
+    const updatedCourse = await Course.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedCourse) {
-      return res.status(404).json({ success: false, error: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Course not found" });
     }
 
     res.status(200).json({ success: true, data: updatedCourse });
@@ -114,8 +167,6 @@ const updateCourseList = async (req, res) => {
   }
 };
 
-
-
 // ✅ Delete a Course
 const deleteCourseList = async (req, res) => {
   try {
@@ -124,10 +175,14 @@ const deleteCourseList = async (req, res) => {
     const deletedCourse = await Course.findByIdAndDelete(id);
 
     if (!deletedCourse) {
-      return res.status(404).json({ success: false, error: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Course not found" });
     }
 
-    res.status(200).json({ success: true, message: "Course deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Course deleted successfully" });
   } catch (error) {
     console.error("Error deleting course:", error);
     res.status(500).json({ success: false, error: "Failed to delete course" });
@@ -137,6 +192,7 @@ const deleteCourseList = async (req, res) => {
 // Export functions (CommonJS)
 module.exports = {
   getCourseList,
+  getCourseList2,
   createCourseList,
   getCourseListById,
   updateCourseList,

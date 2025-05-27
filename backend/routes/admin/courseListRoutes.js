@@ -10,6 +10,7 @@ const {
   getCourseListById,
   updateCourseList,
   deleteCourseList,
+  getCourseList2,
 } = require("../../controllers/admin/coursesListControlller");
 
 
@@ -40,6 +41,7 @@ const router = express.Router();
 
 // ✅ Get All Courses
 router.get("/course-list", getCourseList);
+router.get("/course-list2", getCourseList2);
 
 
 // ✅ Create a new Course

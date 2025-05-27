@@ -1,95 +1,111 @@
 const mongoose = require("mongoose");
-const Course = require("./models/admin/courseModel"); // Adjust path as needed
-const College = require("./models/admin/collegemodel"); // Adjust path as needed
-const CoursesList = require("./models/admin/coursesList"); // Adjust path as needed
-const { randomInt } = require("crypto"); // For generating random values
+const Course = require("./models/admin/courseModel");
+const College = require("./models/admin/collegemodel");
+const CoursesList = require("./models/admin/coursesList");
+const Specialization = require("./models/admin/specialization");
+const ProgramMode = require("./models/admin/programMode");
 
-// Categories to use for the courses
-const categories = [
-  new mongoose.Types.ObjectId("67fbed6eee8f2c5042b71c3b"), // BTech
-  new mongoose.Types.ObjectId("67fbed6eee8f2c5042b71c3d"), // BE
-];
-
-mongoose.connect("mongodb://localhost:27017/collegeinsight", {
+mongoose.connect("mongodb+srv://collegeseekers:517wQnSFKZQsYOdW@collegeseek.5d0wejd.mongodb.net/collegeseeker", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-const baseCourses = [
-  {
-    name: "Computer Science Engineering",
-    slug: "computer-science-engineering",
-    description: "Focuses on computing, programming, and software design. Ideal for students passionate about technology.",
-  },
-  {
-    name: "Mechanical Engineering",
-    slug: "mechanical-engineering",
-    description: "Involves the design and production of mechanical systems. Great for those who enjoy machines and dynamics.",
-  },
-  {
-    name: "Civil Engineering",
-    slug: "civil-engineering",
-    description: "Deals with infrastructure development like roads and buildings. Perfect for those interested in construction and planning.",
-  },
-];
-
 async function getUniqueSlug(baseSlug) {
   let counter = 1;
-  let uniqueSlug = `${baseSlug}${counter}`;
-  // Check if the slug already exists
+  let uniqueSlug = `${baseSlug}-${counter}`;
   while (await Course.findOne({ slug: uniqueSlug })) {
     counter++;
-    uniqueSlug = `${baseSlug}${counter}`;
+    uniqueSlug = `${baseSlug}-${counter}`;
   }
   return uniqueSlug;
 }
 
-async function seedCoursesForColleges() {
+function getRandomItems(array, count) {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+async function seedCoursesForAllColleges() {
   try {
     const colleges = await College.find();
-    console.log(`Found ${colleges.length} colleges`);
+    const coursesList = await CoursesList.find();
+    const allSpecializations = await Specialization.find();
+    const programModes = await ProgramMode.find();
+    const modes = ["Full-Time", "Part-Time", "Online"];
+
+    if (
+      !colleges.length ||
+      !coursesList.length ||
+      !allSpecializations.length ||
+      !programModes.length
+    ) {
+      throw new Error("❌ Required data missing in DB");
+    }
+
+    let programModeIndex = 0;
 
     for (const college of colleges) {
-      for (let i = 0; i < baseCourses.length; i++) {
-        const course = baseCourses[i];
+      const selectedCategories = getRandomItems(coursesList, 3); // 3 categories
+      const selectedSpecializations = getRandomItems(allSpecializations, 3); // 3 unique specializations
 
-        // Get a unique slug for each course
-        const uniqueSlug = await getUniqueSlug(course.slug);
+      for (let i = 0; i < 3; i++) {
+        const category = selectedCategories[i];
+        const specialization = selectedSpecializations[i];
+        const uniqueSlug = await getUniqueSlug(`${college.name.toLowerCase().replace(/\s+/g, "-")}-${category.name.toLowerCase().replace(/\s+/g, "-")}`);
+        const programMode = programModes[programModeIndex % programModes.length];
+        programModeIndex++;
 
-        // Random fees between 1 lakh and 2 lakh INR
-        const randomFees = randomInt(100000, 200000);
-
-        // Select category: alternate between BTech and BE
-        const category = categories[i % categories.length];
-
-        // Creating the course
         const newCourse = new Course({
-          ...course,
-          slug: uniqueSlug, // Use the unique slug
+          slug: uniqueSlug,
+          name: category.name,
+          specialization: specialization._id,
+          description: `Study ${category.name} with specialization in ${specialization.name}`,
           college_id: college._id,
-          category,
-          duration: "4 Years", // All courses have 4 years duration
-          mode: "Full-Time", // All courses are Full-Time
+          category: category._id,
+          mode: modes[Math.floor(Math.random() * modes.length)],
+          programMode: programMode._id,
+          duration: "4 Years",
           fees: {
-            amount: randomFees,
+            amount: Math.floor(Math.random() * 100000) + 100000,
             currency: "INR",
-            year: 2024,
+            year: 2025,
           },
-          eligibility: "10+2 with PCM", // Example eligibility, can be updated as needed
-          enrollmentLink: "http://example.com/enroll", // Example enrollment link
+          eligibility: "10+2 with PCM",
+          application_dates: {
+            start_date: new Date("2025-01-01"),
+            end_date: new Date("2025-06-30"),
+          },
+          ratings: {
+            score: 0,
+            reviews_count: 0,
+          },
+          placements: {
+            median_salary: Math.floor(Math.random() * 500000) + 300000,
+            currency: "INR",
+            placement_rate: Math.floor(Math.random() * 30) + 70,
+          },
+          intake_capacity: {
+            male: 60,
+            female: 40,
+            total: 100,
+          },
+          entrance_exam: "JEE Mains",
+          enrollmentLink: "http://example.com/enroll",
+          brochure_link: "http://example.com/brochure.pdf",
+          image: "http://example.com/course-image.jpg",
         });
 
         await newCourse.save();
-        console.log(`Added course: ${course.name} for college: ${college.name}`);
+        console.log(`✅ Added course: ${newCourse.name} for ${college.name} (Specialization: ${specialization.name})`);
       }
     }
 
-    console.log("🎉 All courses seeded successfully!");
-  } catch (error) {
-    console.error("❌ Error seeding courses:", error);
+    console.log("\n🎉 Finished seeding all colleges with 3 different specializations.");
+  } catch (err) {
+    console.error("❌ Error while seeding:", err);
   } finally {
     mongoose.connection.close();
   }
 }
 
-seedCoursesForColleges();
+seedCoursesForAllColleges();

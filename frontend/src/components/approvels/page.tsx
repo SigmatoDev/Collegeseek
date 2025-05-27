@@ -84,7 +84,7 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
   useEffect(() => {
     const fetchApprovals = async () => {
       try {
-        const { data } = await axios.get(`${api_url}get/Approvals`);
+        const { data } = await axios.get(`${api_url}get2/Approvals`);
         if (Array.isArray(data)) {
           setApprovals(data);
         }

@@ -37,10 +37,22 @@ function submitContactForm(req, res) {
 
 function getContacts(req, res) {
   try {
-    Contact.find()
-      .then((contacts) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    Promise.all([
+      Contact.find().skip(skip).limit(limit),
+      Contact.countDocuments()
+    ])
+      .then(([contacts, total]) => {
         res.status(200).json({
           contacts,
+          pagination: {
+            totalItems: total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page,
+          },
         });
       })
       .catch((error) => {
@@ -56,6 +68,7 @@ function getContacts(req, res) {
     });
   }
 }
+
 
 function getContactById(req, res) {
   const { id } = req.params;

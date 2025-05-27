@@ -46,22 +46,22 @@ const collegeSchema = new mongoose.Schema(
 
     website: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
-      validate: {
-        validator: (v) =>
-          /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./]*)?$/.test(v),
-        message: (props) => `${props.value} is not a valid URL.`,
-      },
+      // validate: {
+      //   validator: (v) =>
+      //     /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./]*)?$/.test(v),
+      //   message: (props) => `${props.value} is not a valid URL.`,
+      // },
     },
     contact: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
-      validate: {
-        validator: (v) => /^(\+?\d{10,15})$/.test(v),
-        message: "Invalid contact number. Use 10-15 digits only.",
-      },
+      // validate: {
+      //   validator: (v) => /^(\+?\d{10,15})$/.test(v),
+      //   message: "Invalid contact number. Use 10-15 digits only.",
+      // },
     },
     
     contactEmail: {

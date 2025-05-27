@@ -1,7 +1,7 @@
 import { api_url } from "@/utils/apiCall";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";  // Import useRouter
+import { useRouter, useParams } from "next/navigation";
 
 interface College {
   _id: string;
@@ -12,23 +12,27 @@ interface UploadFile {
   _id: string;
   filePath: string;
   fileName: string;
-  college_id: string;
+  college_id: string | { $oid: string };
 }
 
-export default function UploadForm({ fileId }: { fileId?: string }) {
+export default function UploadForm() {
+  const params = useParams();
+  const fileId = params?.id;
+
   const [file, setFile] = useState<File | null>(null);
   const [collegeId, setCollegeId] = useState("");
   const [colleges, setColleges] = useState<College[]>([]);
   const [existingFile, setExistingFile] = useState<UploadFile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchingFile, setFetchingFile] = useState(true);
 
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
-  // Fetching colleges
+  // Fetch colleges on mount
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await axios.get(`${api_url}f/college`);
+        const response = await axios.get(`${api_url}get/colleges`);
         setColleges(response.data.data || []);
       } catch (error) {
         console.error("Error fetching colleges:", error);
@@ -37,25 +41,40 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
     fetchColleges();
   }, []);
 
-  // Fetching file details if editing an existing file
+  // Fetch file details if fileId exists
   useEffect(() => {
-    if (fileId) {
-      const fetchFileDetails = async () => {
-        try {
-          const response = await axios.get(`${api_url}brochure/${fileId}`);
-          const fileData = response.data.data;
+    const fetchFileDetails = async () => {
+      if (!fileId) {
+        setFetchingFile(false);
+        return;
+      }
+      setFetchingFile(true);
+      try {
+        const baseUrl = api_url.endsWith("/") ? api_url : `${api_url}/`;
+        const url = `${baseUrl}id/brochure/${fileId}`;
+        const response = await axios.get(url);
+        const fileData = response.data?.data;
+        if (fileData) {
           setExistingFile(fileData);
-          setCollegeId(fileData.college_id);
-        } catch (error) {
-          console.error("Error fetching file details:", error);
+          const extractedCollegeId =
+            typeof fileData.college_id === "object"
+              ? fileData.college_id.$oid
+              : fileData.college_id;
+          setCollegeId(extractedCollegeId || "");
         }
-      };
-      fetchFileDetails();
-    }
+      } catch (error) {
+        console.error("Error fetching file details:", error);
+      } finally {
+        setFetchingFile(false);
+      }
+    };
+
+    fetchFileDetails();
   }, [fileId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFile(e.target.files?.[0] || null);
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
   };
 
   const handleCollegeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -80,25 +99,23 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
 
     try {
       let response;
-      if (existingFile) {
-        // Update existing file
+      if (existingFile && fileId) {
         response = await axios.put(`${api_url}brochure/${fileId}`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        // Upload new file
         response = await axios.post(`${api_url}brochure`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
       alert(response.data.message);
+
       setFile(null);
       setCollegeId("");
       setExistingFile(null);
 
-      // Redirect to /admin/addBrochure
-      router.push("/admin/addBrochure"); // Redirection after successful submission
+      router.push("/admin/addBrochure");
     } catch (error) {
       console.error("Upload failed:", error);
       alert("File upload/update failed. Please try again.");
@@ -107,56 +124,92 @@ export default function UploadForm({ fileId }: { fileId?: string }) {
     }
   };
 
+  const handleCancel = () => {
+    // Clear form
+    setFile(null);
+    setCollegeId("");
+    setExistingFile(null);
+
+    // Navigate back
+    router.push("/admin/addBrochure");
+  };
+
+  if (fetchingFile) {
+    return (
+      <div className="max-w-[1580px] mx-auto p-8">
+        <p className="text-gray-600">Loading file details...</p>
+      </div>
+    );
+  }
+
+
+
   return (
-        <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
-
-    <form onSubmit={handleSubmit} className="p-4 border rounded shadow">
-      {existingFile && (
-        <div className="mb-4">
-          <p>
-            Current File:{" "}
-            <a
-              href={`${api_url}${existingFile.filePath}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500"
-            >
-              {existingFile.fileName}
-            </a>
-          </p>
-        </div>
-      )}
-
-      <label className="block mb-2">
-        Select File (optional for update):
-        <input type="file" onChange={handleFileChange} className="ml-2" />
-      </label>
-
-      <label className="block mb-2">
-        Select College:
-        <select
-          name="college_id"
-          value={collegeId}
-          onChange={handleCollegeChange}
-          className="p-2 border rounded"
-        >
-          <option value="">Select College</option>
-          {colleges.map((college) => (
-            <option key={college._id} value={college._id}>
-              {college.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <button
-        type="submit"
-        className="p-2 bg-blue-500 text-white rounded disabled:opacity-50"
-        disabled={loading}
+    <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
+      <form
+        onSubmit={handleSubmit}
+        className="p-4 border rounded shadow space-y-4"
       >
-        {loading ? (existingFile ? "Updating..." : "Uploading...") : existingFile ? "Update" : "Upload"}
-      </button>
-    </form>
+        {existingFile && (
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">Current File:</p>
+          
+ 
+  {existingFile.fileName}
+
+          </div>
+        )}
+
+        <label className="block">
+          <span className="text-gray-700">Select File (optional for update):</span>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="mt-1 block w-full"
+          />
+        </label>
+
+        <label className="block">
+          <select
+            name="college_id"
+            value={collegeId}
+            onChange={handleCollegeChange}
+            className="mt-1 p-2 border rounded w-full"
+          >
+            <option value="">Select College</option>
+            {colleges.map((college) => (
+              <option key={college._id} value={college._id}>
+                {college.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex space-x-4">
+          <button
+            type="submit"
+            className="w-[150px] py-2 px-4 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading
+              ? existingFile
+                ? "Updating..."
+                : "Uploading..."
+              : existingFile
+              ? "Update"
+              : "Upload"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="w-[150px] py-2 px-4 bg-gray-400 text-white font-semibold rounded hover:bg-gray-500"
+            disabled={loading}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

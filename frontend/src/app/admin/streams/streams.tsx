@@ -5,53 +5,78 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
-import { PencilSquareIcon, PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 
 interface Stream {
   _id: string;
   name: string;
 }
 
+interface Pagination {
+  totalStreams: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}
+
 const AdminStreams = () => {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [pagination, setPagination] = useState<Pagination>({
+    totalStreams: 0,
+    totalPages: 1,
+    currentPage: 1,
+    limit: 10,
+  });
+
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchStreams = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}get/streams`);
-        if (!Array.isArray(data) || data.length === 0) {
-          setError("No stream data received.");
-          return;
-        }
-        setStreams(data);
-      } catch (err: any) {
-        console.error("API Fetch Error:", err);
-        setError(err.response?.data?.message || "Failed to load streams.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      fetchStreams();
-    }
-  }, []);
-
-  const handleDelete = async (streamId: string) => {
-    if (!window.confirm("Are you sure you want to delete this stream?")) return;
-
+  const fetchStreams = async (page = 1) => {
+    setLoading(true);
     try {
-      await axios.delete(`${api_url}d/streams/${streamId}`);
-      setStreams((prev) => prev.filter((stream) => stream._id !== streamId));
-      toast.success("Stream deleted successfully!");
-    } catch (err) {
-      console.error("Error deleting stream:", err);
-      toast.error("Error deleting stream. Please try again.");
+      const { data } = await axios.get(`${api_url}get/streams`, {
+        params: { page, limit: pagination.limit },
+      });
+
+      if (!data || !data.data || !Array.isArray(data.data)) {
+        setError("No stream data received.");
+        setStreams([]);
+        return;
+      }
+
+      setStreams(data.data);
+      setPagination({
+        totalStreams: data.pagination.totalStreams,
+        totalPages: data.pagination.totalPages,
+        currentPage: data.pagination.currentPage,
+        limit: data.pagination.limit,
+      });
+      setError(null);
+    } catch (err: any) {
+      console.error("API Fetch Error:", err);
+      setError(err.response?.data?.message || "Failed to load streams.");
+      setStreams([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      fetchStreams(pagination.currentPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    fetchStreams(newPage);
+  };
+
+  // Destructure currentPage and totalPages for easier use in JSX
+  const { currentPage, totalPages } = pagination;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -70,50 +95,72 @@ const AdminStreams = () => {
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="overflow-x-auto shadow-md rounded bg-white">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-600">
-              <tr>
-                {["Name", "Actions"].map((header) => (
-                  <th key={header} className="px-6 py-3 text-sm font-semibold">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(streams) && streams.length > 0 ? (
-                streams.map((stream) => (
-                  <tr key={stream._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{stream.name}</td>
-                    <td className="px-6 py-3 flex space-x-2">
-                      <button
-                        onClick={() => router.push(`/admin/streams/${stream._id}`)}
-                        className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
-                      >
-                        <PencilSquareIcon className="h-5 w-5" />
-                        <span>Edit</span>
-                      </button>
-                      {/* <button
-                        onClick={() => handleDelete(stream._id)}
-                        className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>Delete</span>
-                      </button> */}
+        <>
+          <div className="overflow-x-auto shadow-md rounded bg-white">
+            <table className="table-auto w-full text-left border-collapse">
+              <thead className="bg-gray-200 text-gray-600">
+                <tr>
+                  {["Name", "Actions"].map((header) => (
+                    <th key={header} className="px-6 py-3 text-sm font-semibold">
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {streams.length > 0 ? (
+                  streams.map((stream) => (
+                    <tr key={stream._id} className="border-b hover:bg-gray-50">
+                      <td className="px-6 py-3 text-sm text-gray-700">{stream.name}</td>
+                      <td className="px-6 py-3 flex space-x-2">
+                        <button
+                          onClick={() => router.push(`/admin/streams/${stream._id}`)}
+                          className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
+                        >
+                          <PencilSquareIcon className="h-5 w-5" />
+                          <span>Edit</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} className="text-center py-4 text-gray-500">
+                      No streams found.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={2} className="text-center py-4 text-gray-500">
-                    No streams found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Previous
+              </button>
+
+              <span className="text-gray-700 text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+                  currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

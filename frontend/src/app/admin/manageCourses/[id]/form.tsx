@@ -62,7 +62,7 @@ const ActualCourseForm = () => {
   useEffect(() => {
     const fetchCourseList = async () => {
       try {
-        const response = await axios.get(`${api_url}course-list`);
+        const response = await axios.get(`${api_url}course-list2`);
         setCourseList(response.data?.data || []);
       } catch (error) {
         console.error("Error fetching course categories:", error);

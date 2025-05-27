@@ -28,16 +28,41 @@ const submitCounsellingRequest = async (req, res) => {
   }
 };
 
-// Get all counselling requests
 const getAllCounsellingRequests = async (req, res) => {
   try {
-    const counsellingRequests = await Counselling.find();
-    return res.status(200).json({ data: counsellingRequests });
+    // Parse page and limit from query params, provide default values
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate the number of documents to skip
+    const skip = (page - 1) * limit;
+
+    // Fetch total count for pagination info
+    const total = await Counselling.countDocuments();
+
+    // Fetch paginated counselling requests
+    const counsellingRequests = await Counselling.find()
+      .skip(skip)
+      .limit(limit);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(total / limit);
+
+    return res.status(200).json({ 
+      data: counsellingRequests,
+      pagination: {
+        total,
+        page,
+        totalPages,
+        limit,
+      }
+    });
   } catch (error) {
     console.error("Error fetching counselling requests:", error);
     return res.status(500).json({ message: "Failed to fetch counselling requests." });
   }
 };
+
 
 // Get counselling request by ID
 const getCounsellingRequestById = async (req, res) => {
