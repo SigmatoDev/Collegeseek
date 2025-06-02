@@ -4,11 +4,11 @@ import Image from 'next/image';
 import React from 'react';
 
 // Assuming adveImg is the image file you want to display
-import adveImg from '../../../public/image/4.avif'; // Adjust the path accordingly
+import adveImg from '../../../public/image/005 (1).png'; // Adjust the path accordingly
 
 const AdveSection: React.FC = () => {
   return (
-    <section className="w-full bg-gradient-to-r from-indigo-50 via-blue-100 to-indigo-200 md:px-16 py-24  ">
+    <section className="w-full bg-gradient-to-r from-orange-50 via-orange-100 to-orange-50 md:px-16 py-24  ">
       {/* Title and Image Section */}
       <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-16 mb-16">
         {/* Image Section */}
@@ -19,8 +19,8 @@ const AdveSection: React.FC = () => {
               alt="Students working on laptop"
               className="object-cover w-full h-full"
               placeholder="blur"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              style={{ height: 'auto' }}
+              sizes="(max-width: 768px) 80vw, 50vw"
+              style={{ height: '600px' }}
             />
           </div>
           {/* Hover Overlay */}
@@ -29,7 +29,7 @@ const AdveSection: React.FC = () => {
 
         {/* Text Content */}
         <div className="md:w-1/2 text-center md:text-left space-y-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-blue-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#39317E] mb-4">
             About Us
           </h1>
           <p className="text-lg text-gray-700 mt-4 mb-6 leading-relaxed">
@@ -45,7 +45,7 @@ const AdveSection: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-16 mb-8  pt-10 ">
         {/* First Box Content: Who We Are */}
         <div className="p-8 bg-white border border-blue-100 rounded-xl shadow-lg space-y-6 mb-8 md:mb-0 hover:shadow-xl transition-shadow duration-300 ease-in-out">
-          <h2 className="text-3xl font-extrabold text-blue-800 mb-4">
+          <h2 className="text-3xl font-extrabold text-[#39317E] mb-4">
             Who We Are
           </h2>
           <p className="text-lg text-gray-700 leading-relaxed">
@@ -58,7 +58,7 @@ const AdveSection: React.FC = () => {
 
         {/* Second Box Content: What We Do */}
         <div className="p-8 bg-white border border-indigo-100 rounded-xl shadow-lg space-y-6 hover:shadow-xl transition-shadow duration-300 ease-in-out">
-          <h2 className="text-3xl font-extrabold text-indigo-800 mb-4">
+          <h2 className="text-3xl font-extrabold text-[#39317E] mb-4">
             What We Do
           </h2>
           <p className="text-lg text-gray-700 leading-relaxed">

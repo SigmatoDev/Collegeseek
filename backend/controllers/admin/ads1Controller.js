@@ -16,11 +16,11 @@ const upload = multer({ storage }).single('image');
 
 // Image upload endpoint
 const uploadImagee = (req, res) => {
-  console.log("Upload API hit");
+  // console.log("Upload API hit");
 
   upload(req, res, async (err) => {
     if (err) {
-      console.error("Error uploading image:", err);
+      // console.error("Error uploading image:", err);
       return res.status(500).json({ error: 'Error uploading image.' });
     }
 
@@ -46,7 +46,7 @@ const uploadImagee = (req, res) => {
         imageUrl: `${req.protocol}://${req.get('host')}/${imagePath}` // Optional full URL
       });
     } catch (error) {
-      console.error("Error saving ad data:", error);
+      // console.error("Error saving ad data:", error);
       res.status(500).json({ error: 'Error saving ad data' });
     }
   });
@@ -78,7 +78,7 @@ const getAds = async (req, res) => {
 };
 
 const updateImage = (req, res) => {
-  console.log("Update Image API hit");
+  // console.log("Update Image API hit");
 
   const { adId } = req.params; // Get the ad ID from the URL parameter
 

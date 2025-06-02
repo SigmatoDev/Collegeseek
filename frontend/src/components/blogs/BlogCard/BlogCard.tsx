@@ -14,12 +14,20 @@ interface BlogCardProps {
   content: string;
 }
 
-export default function BlogCard({ _id: propId, title, slug, image, content }: BlogCardProps) {
+export default function BlogCard({
+  _id: propId,
+  title,
+  slug,
+  image,
+  content,
+}: BlogCardProps) {
   const router = useRouter();
   const [id, setId] = useState<string | undefined>(propId);
   const [loading, setLoading] = useState(!propId);
   const [imageSrc, setImageSrc] = useState(
-    image ? `${img_url}${image.replace(/^\/uploads\//, "uploads/")}` : "/default-placeholder.png"
+    image
+      ? `${img_url}${image.replace(/^\/uploads\//, "uploads/")}`
+      : "/default-placeholder.png"
   );
 
   // Fetch blog ID if not passed in as prop
@@ -63,16 +71,19 @@ export default function BlogCard({ _id: propId, title, slug, image, content }: B
 
   const plainTextContent = getPlainText(sanitizedContent);
   const previewText =
-    plainTextContent.length > 100 ? plainTextContent.slice(0, 100) + "..." : plainTextContent;
+    plainTextContent.length > 100
+      ? plainTextContent.slice(0, 100) + "..."
+      : plainTextContent;
 
   return (
-    <div className="bg-white shadow-xl rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-2xl h-[430px] flex flex-col">
+    <div className="bg-white shadow-xl rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-2xl h-[430px] flex flex-col border border-[#fdcaca]">
       <div className="relative w-full h-56">
         <Image
           src={imageSrc}
           alt={title}
-          layout="fill"
-          objectFit="cover"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          style={{ objectFit: "cover" }}
           className="rounded-t-xl"
           unoptimized={imageSrc.includes("unsplash.com")}
           onError={() => {

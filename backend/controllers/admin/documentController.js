@@ -79,13 +79,18 @@ const getUploadFiles = async (req, res) => {
 const getUploadFileById = async (req, res) => {
   try {
     const { id } = req.params;
-    const file = await Upload.findById(id).lean();  // lean() gives plain JS object
+
+    // Check for valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid file ID" });
+    }
+
+    const file = await Upload.findById(id).lean();
 
     if (!file) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    // Send the file data JSON (you can also populate college_id if needed)
     return res.status(200).json({ success: true, data: file });
 
   } catch (error) {

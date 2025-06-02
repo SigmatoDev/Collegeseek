@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const Footer = () => {
-  const [siteLogo, setSiteLogo] = useState<string>("/default-logo.png");
+  const [siteLogo, setSiteLogo] = useState<string>("/logo/logo.jpg");
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -22,8 +22,8 @@ const Footer = () => {
             : "/default-logo.png"
         );
       } catch (error) {
-        console.error("Error fetching site logo:", error);
-        setSiteLogo("/default-logo.png");
+        // console.error("Error fetching site logo:", error);
+        setSiteLogo("/logo/logo.jpg");
       }
     };
 
@@ -39,13 +39,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Logo & Description */}
           <div>
-           <Link href="/">
-  <img
-    src={siteLogo ?? "/default-logo.png"}
-    alt="Site Logo"
-    className="h-10 w-auto cursor-pointer"
-  />
-</Link>
+            <Link href="/">
+              <img
+                src={siteLogo ?? "/logo/logo.jpg"}
+                alt="Site Logo"
+                className="h-10 w-auto cursor-pointer"
+              />
+            </Link>
 
             <p className="text-gray-400 text-sm leading-relaxed mt-4">
               CollegeSeek is your trusted platform for discovering top colleges
@@ -58,7 +58,10 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">More to Explore</h3>
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
-                <Link href="/latestUpdate" className="hover:text-white transition">
+                <Link
+                  href="/latestUpdate"
+                  className="hover:text-white transition"
+                >
                   Latest Update
                 </Link>
               </li>
@@ -113,11 +116,31 @@ const Footer = () => {
             {/* Social Icons */}
             <div className="flex space-x-4 mt-4">
               {[
-                { href: "#", src: "/svg/facebook-svgrepo-com (5).svg", alt: "Facebook" },
-                { href: "#", src: "/svg/instagram-svgrepo-com (1).svg", alt: "Instagram" },
-                { href: "#", src: "/svg/linkedin-svgrepo-com.svg", alt: "LinkedIn" },
-                { href: "#", src: "/svg/twitter-154-svgrepo-com.svg", alt: "Twitter" },
-                { href: "#", src: "/svg/youtube-168-svgrepo-com.svg", alt: "YouTube" },
+                {
+                  href: "#",
+                  src: "/svg/facebook-svgrepo-com (5).svg",
+                  alt: "Facebook",
+                },
+                {
+                  href: "#",
+                  src: "/svg/instagram-svgrepo-com (1).svg",
+                  alt: "Instagram",
+                },
+                {
+                  href: "#",
+                  src: "/svg/linkedin-svgrepo-com.svg",
+                  alt: "LinkedIn",
+                },
+                {
+                  href: "#",
+                  src: "/svg/twitter-154-svgrepo-com.svg",
+                  alt: "Twitter",
+                },
+                {
+                  href: "#",
+                  src: "/svg/youtube-168-svgrepo-com.svg",
+                  alt: "YouTube",
+                },
               ].map((icon, index) => (
                 <a
                   key={index}
@@ -138,14 +161,20 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-500">
           <div className="flex space-x-6 mb-4 sm:mb-0">
-            <Link href="/terms&Conditions" className="hover:text-white transition">
+            <Link
+              href="/terms&Conditions"
+              className="hover:text-white transition"
+            >
               Terms & Conditions
             </Link>
             <Link href="/privacyPolicy" className="hover:text-white transition">
               Privacy Policy
             </Link>
           </div>
-          <p>© {new Date().getFullYear()} collegeseek Pvt. Ltd. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} collegeseek Pvt. Ltd. All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>

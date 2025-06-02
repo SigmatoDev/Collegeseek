@@ -11,6 +11,36 @@ exports.getAlltrendingNow = async (req, res) => {
   }
 };
 
+exports.getAlltrendingNows = async (req, res) => {
+  try {
+    // Get page and limit from query, or set defaults
+    const page = parseInt(req.query.page) || 1; // Default: page 1
+    const limit = parseInt(req.query.limit) || 10; // Default: 10 items per page
+
+    const skip = (page - 1) * limit;
+
+    // Get total count of documents for pagination metadata
+    const totalExams = await Exam.countDocuments();
+
+    // Fetch paginated exams sorted alphabetically
+    const exams = await Exam.find()
+      .sort({ name: 1 }) // Alphabetical sort
+      .skip(skip)
+      .limit(limit);
+
+    // Response with data and pagination info
+    res.status(200).json({
+      page,
+      limit,
+      totalExams,
+      totalPages: Math.ceil(totalExams / limit),
+      exams,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching exams', error });
+  }
+};
+
 // Add a new exam
 exports.createtrendingNow = async (req, res) => {
   try {

@@ -17,25 +17,25 @@ export default function MegaMenu() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        console.log("Fetching all menus from:", `${api_url}menus`);
+        // console.log("Fetching all menus from:", `${api_url}menus`);
         const res = await fetch(`${api_url}menus`);
   
         if (!res.ok) throw new Error("Failed to load menus");
   
         const menus = await res.json();
-        console.log("All menus fetched:", menus);
+        // console.log("All menus fetched:", menus);
   
         const courseMenu = menus.data?.[0]; // Get the first menu object
-        console.log("Using first menu:", courseMenu);
+        // console.log("Using first menu:", courseMenu);
   
         if (courseMenu?.columns && Array.isArray(courseMenu.columns)) {
-          console.log("Setting menu columns:", courseMenu.columns);
+          // console.log("Setting menu columns:", courseMenu.columns);
           setMenuData(courseMenu.columns);
         } else {
-          console.warn("No valid columns found in the menu");
+          // console.warn("No valid columns found in the menu");
         }
       } catch (error) {
-        console.error("Error fetching menu:", error);
+        // console.error("Error fetching menu:", error);
       }
     };
   

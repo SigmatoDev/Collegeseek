@@ -8,11 +8,10 @@ import { useState } from "react";
 import AdBox3 from "@/components/adBox/adBox3";
 import AdBox4 from "@/components/adBox/adBox4";
 import AdBanner from "@/components/adBox/adBox5";
-
+import CallbackForm from "@/components/newsletters/page";
 
 const CollegesPage = () => {
   const [appliedFilters, setAppliedFilters] = useState<string[]>([]);
-
 
   return (
     <>
@@ -36,18 +35,18 @@ const CollegesPage = () => {
 
         {/* College List */}
         <div className="flex-1">
-                    {/* <AdBanner/> */}
+          {/* <AdBanner/> */}
 
           <CoursesList />
         </div>
 
         {/* Ad Section (Right) */}
         <div className="w-full lg:w-72 flex flex-col gap-4">
-          <AdBox3/>
-          <AdBox4/>
-
+          <AdBox3 />
+          <AdBox4 />
         </div>
       </div>
+      <CallbackForm />
 
       <Footer />
     </>

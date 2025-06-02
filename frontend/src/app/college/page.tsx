@@ -4,6 +4,7 @@ import Footer from "@/components/footer/page";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import { Suspense } from "react";
 import CollegesClientWrapper from "./collegeClientWrapper";
+import CallbackForm from "@/components/newsletters/page";
 
 export default function CollegesPage() {
   return (
@@ -19,6 +20,8 @@ export default function CollegesPage() {
           <CollegesClientWrapper />
         </Suspense>
       </div>
+      <CallbackForm />
+
       <Footer />
     </>
   );

@@ -16,7 +16,15 @@ export default function CallbackForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "name") {
+      // Allow letters and spaces only
+      if (/^[a-zA-Z\s]*$/.test(value)) {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // Fix hydration issue by checking if mounted
@@ -58,14 +66,15 @@ export default function CallbackForm() {
 
   return (
     <div className="flex flex-col items-center bg-orange-50 py-12 px-4 text-center">
-<h2 className="text-xl sm:text-2xl font-semibold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">
-  Enhance Your College Experience
-</h2>      <h3 className="text-3xl sm:text-4xl font-bold text-[#0a0536] mt-2">Expert Career & Academic Guidance</h3>
-  
+      <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">
+        Enhance Your College Experience
+      </h2>
+      <h3 className="text-3xl sm:text-4xl font-bold text-[#0a0536] mt-2">Expert Career & Academic Guidance</h3>
+
       <p className="text-gray-600 mt-3 mb-8 max-w-lg text-sm sm:text-base">
         Connect with our mentors to navigate your academic journey, internships, and career opportunities.
       </p>
-  
+
       <form onSubmit={handleSubmit} className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-2">
         <div className="w-full">
           <input
@@ -79,26 +88,25 @@ export default function CallbackForm() {
           />
         </div>
         <div className="w-full">
-       <input
-  type="tel"
-  name="mobile"
-  placeholder="Mobile Number"
-  value={formData.mobile}
-  onChange={handleChange}
-  inputMode="numeric"
-  pattern="[0-9]*"
-  onKeyDown={(e) => {
-    if (
-      !/[0-9]/.test(e.key) &&
-      !["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)
-    ) {
-      e.preventDefault();
-    }
-  }}
-  className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
-  required
-/>
-
+          <input
+            type="tel"
+            name="mobile"
+            placeholder="Mobile Number"
+            value={formData.mobile}
+            onChange={handleChange}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            onKeyDown={(e) => {
+              if (
+                !/[0-9]/.test(e.key) &&
+                !["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)
+              ) {
+                e.preventDefault();
+              }
+            }}
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+            required
+          />
         </div>
         <div className="w-full">
           <input
@@ -116,10 +124,12 @@ export default function CallbackForm() {
             name="stream"
             value={formData.stream}
             onChange={handleChange}
-            className="p-3 border border-gray-00 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+            className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
             required
           >
-            <option value="" disabled>Select Your Course</option>
+            <option value="" disabled>
+              Select Your Course
+            </option>
             <option value="Engineering">Engineering</option>
             <option value="Business">Business</option>
             <option value="Medical">Medical</option>
@@ -137,17 +147,21 @@ export default function CallbackForm() {
           </button>
         </div>
       </form>
-  
+
       {message && <p className="text-sm text-gray-600 mt-4">{message}</p>}
-  
+
       <p className="text-sm text-gray-500 mt-6 max-w-md px-2">
         By proceeding, you agree to our
         <span> </span>
-        <a href="/terms&Conditions" className="text-blue-500 underline">Terms of Use</a>
+        <a href="/terms&Conditions" className="text-blue-500 underline">
+          Terms of Use
+        </a>
         <span> and </span>
-        <a href="/privacyPolicy" className="text-blue-500 underline">Privacy Policy</a>.
+        <a href="/privacyPolicy" className="text-blue-500 underline">
+          Privacy Policy
+        </a>
+        .
       </p>
     </div>
   );
-  
 }

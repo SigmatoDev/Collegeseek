@@ -10,6 +10,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { Search } from "lucide-react";
 
 interface Specialization {
   _id: string;
@@ -51,7 +52,8 @@ const AdminCourses = () => {
       setCourses(
         fetchedCourses.map((course: any) => ({
           ...course,
-          fees: typeof course.fees === "object" ? course.fees.amount : course.fees,
+          fees:
+            typeof course.fees === "object" ? course.fees.amount : course.fees,
           specialization: course.specialization || { _id: "", name: "N/A" },
         }))
       );
@@ -101,18 +103,24 @@ const AdminCourses = () => {
       </header>
 
       {/* Search Bar */}
-      <div className="mb-4">
+      <div className="mb-4 relative w-full md:w-1/2">
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={18}
+        />
         <input
           suppressHydrationWarning
           type="text"
           placeholder="Search courses..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-[500px] pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
-      {loading && <p className="text-center text-gray-500">Loading courses...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">Loading courses...</p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -120,13 +128,17 @@ const AdminCourses = () => {
           <table className="table-auto w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-600">
               <tr>
-                {["Specialization", "Description", "Duration", "Fees", "Actions"].map(
-                  (header) => (
-                    <th key={header} className="px-6 py-3 text-sm font-semibold">
-                      {header}
-                    </th>
-                  )
-                )}
+                {[
+                  "Specialization",
+                  "Description",
+                  "Duration",
+                  "Fees",
+                  "Actions",
+                ].map((header) => (
+                  <th key={header} className="px-6 py-3 text-sm font-semibold">
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -144,12 +156,20 @@ const AdminCourses = () => {
                     <td className="px-6 py-3 text-sm text-gray-700">
                       {course.specialization?.name || "N/A"}
                     </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{course.description}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{course.duration}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">₹{course.fees}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      {course.description}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      {course.duration}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      ₹{course.fees}
+                    </td>
                     <td className="px-6 py-3 flex space-x-2">
                       <button
-                        onClick={() => router.push(`/admin/manageCourses/${course._id}`)}
+                        onClick={() =>
+                          router.push(`/admin/manageCourses/${course._id}`)
+                        }
                         className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                       >
                         <PencilSquareIcon className="h-5 w-5" />
@@ -198,10 +218,14 @@ const AdminCourses = () => {
               Page {currentPage} of {totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               Next

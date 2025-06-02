@@ -129,7 +129,7 @@ const PopUp = () => {
         {/* Left side - Image */}
         <div className="w-1/2">
           <Image
-            src="/image/4.avif"
+            src="/image/005 (1).png"
             alt="Student"
             className="w-full h-full object-cover"
             style={{ objectPosition: "-450px", transform: "scaleX(-1)" }} // Mirrors the image and moves it

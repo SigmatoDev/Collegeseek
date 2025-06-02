@@ -44,14 +44,17 @@ export default function UploadForm() {
   // Fetch file details if fileId exists
   useEffect(() => {
     const fetchFileDetails = async () => {
-      if (!fileId) {
+      if (!fileId || fileId === "new") {
         setFetchingFile(false);
         return;
       }
+
       setFetchingFile(true);
       try {
         const baseUrl = api_url.endsWith("/") ? api_url : `${api_url}/`;
         const url = `${baseUrl}id/brochure/${fileId}`;
+        console.log("fileId:", fileId);
+
         const response = await axios.get(url);
         const fileData = response.data?.data;
         if (fileData) {
@@ -142,8 +145,6 @@ export default function UploadForm() {
     );
   }
 
-
-
   return (
     <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
       <form
@@ -153,15 +154,15 @@ export default function UploadForm() {
         {existingFile && (
           <div className="mb-4">
             <p className="text-sm text-gray-600">Current File:</p>
-          
- 
-  {existingFile.fileName}
 
+            {existingFile.fileName}
           </div>
         )}
 
         <label className="block">
-          <span className="text-gray-700">Select File (optional for update):</span>
+          <span className="text-gray-700">
+            Select File (optional for Only PDF, DOC, DOCX, and TXT are allowed.) 
+          </span>
           <input
             type="file"
             onChange={handleFileChange}

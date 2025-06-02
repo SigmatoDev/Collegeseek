@@ -15,7 +15,7 @@ interface FormDataType {
 
 interface Course {
   id: string;
-  specialization: string; // specialization is string ID here
+  specialization: string;
 }
 
 const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
@@ -28,28 +28,26 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{
-    [key in keyof FormDataType]?: string;
-  }>({});
+  const [errors, setErrors] = useState<{ [key in keyof FormDataType]?: string }>(
+    {}
+  );
   const [course, setCourse] = useState<Course | null>(null);
   const [specializationName, setSpecializationName] = useState("");
+  const [submitted, setSubmitted] = useState(false); // Track if form was submitted successfully
 
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         const response = await fetch(`${api_url}/courses/${courseId}`);
         const data = await response.json();
-        console.log("Fetched course data:", data);
-        // Adjust if your API response is wrapped inside 'data'
         setCourse(data.data ?? data);
       } catch (error) {
-        console.error("Failed to fetch course data", error);
+        // Handle error if needed
       }
     };
     fetchCourse();
   }, [courseId]);
 
-  // Fetch specialization name separately by specialization ID
   useEffect(() => {
     if (course?.specialization) {
       const fetchSpecialization = async () => {
@@ -58,11 +56,10 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
             `${api_url}/id/Specialization/${course.specialization}`
           );
           const data = await response.json();
-          console.log("Fetched specialization:", data);
           setSpecializationName(data.name ?? "");
           setFormData((prev) => ({ ...prev, course: data.name ?? "" }));
         } catch (error) {
-          console.error("Failed to fetch specialization data", error);
+          // Handle error if needed
         }
       };
       fetchSpecialization();
@@ -81,14 +78,32 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
 
   const validateForm = () => {
     const newErrors: { [key in keyof FormDataType]?: string } = {};
+
     Object.keys(formData).forEach((field) => {
       const value = formData[field as keyof FormDataType];
+
       if (!value && field !== "message") {
         newErrors[field as keyof FormDataType] = `${
           field.charAt(0).toUpperCase() + field.slice(1)
         } is required`;
       }
+
+      if (field === "name" && value && !/^[A-Za-z\s]+$/.test(value)) {
+        newErrors.name = "Name can contain letters and spaces only";
+      }
+
+      if (field === "email" && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          newErrors.email = "Please enter a valid email address";
+        }
+      }
+
+      if (field === "phone" && value && !/^\d+$/.test(value)) {
+        newErrors.phone = "Phone number can contain digits only";
+      }
     });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -96,8 +111,8 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setLoading(true);
 
+    setLoading(true);
     try {
       const response = await fetch(`${api_url}/enroll`, {
         method: "POST",
@@ -107,14 +122,18 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
 
       const data = await response.json();
       if (response.ok) {
-        console.log("Enrollment successful:", data);
+        // Show confirmation message
+        setSubmitted(true);
+
+        // Reset form but keep course field
         setFormData({
           name: "",
           email: "",
           phone: "",
-          course: specializationName, // keep course filled with specialization name
+          course: specializationName,
           message: "",
         });
+        setErrors({});
       } else {
         console.error("Error:", data.message);
       }
@@ -129,6 +148,19 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
     return (
       <div className="text-center text-xl text-gray-700">
         Loading course details...
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 sm:p-8 bg-white rounded-lg shadow-xl border border-gray-200 text-center">
+        <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+          Thank you!
+        </h3>
+        <p className="text-lg text-gray-700">
+          We will contact you shortly.
+        </p>
       </div>
     );
   }
@@ -157,7 +189,16 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
                 id={field}
                 name={field}
                 value={formData[field]}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  if (field === "name") {
+                    value = value.replace(/[^A-Za-z\s]/g, "");
+                    setFormData((prev) => ({ ...prev, [field]: value }));
+                    setErrors((prev) => ({ ...prev, [field]: "" }));
+                  } else {
+                    handleInputChange(e);
+                  }
+                }}
                 className={`w-full p-3 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300 ${
                   errors[field] ? "border-red-500" : "border-gray-300"
                 }`}
@@ -204,7 +245,7 @@ const EnrollmentForm = ({ courseId }: EnrollmentFormProps) => {
                 }`}
                 placeholder={`Enter your ${field}`}
                 required={field !== "course"}
-                readOnly={field === "course"} // Make course read-only
+                readOnly={field === "course"}
               />
               {errors[field] && (
                 <p className="text-xs text-red-500 mt-1">{errors[field]}</p>

@@ -106,13 +106,15 @@ const FeaturedColleges = () => {
                   className="block bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 h-[341px] flex-col justify-between"
                 >
                   <div className="w-full h-[200px] relative">
-                    <Image
-                      src={getImageUrl(college.image)}
-                      alt={college.name}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      className="absolute inset-0"
-                    />
+                <Image
+  src={getImageUrl(college.image)}
+  alt={college.name}
+  fill
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  style={{ objectFit: "cover" }}
+  className="absolute inset-0"
+/>
+
                   </div>
 
                   <div className="p-4 flex flex-col justify-between">

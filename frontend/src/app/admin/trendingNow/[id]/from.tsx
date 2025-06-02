@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import axios from "axios";  
 import { useParams, useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { api_url } from "@/utils/apiCall";

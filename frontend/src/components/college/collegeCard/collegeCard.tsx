@@ -61,10 +61,10 @@ export default function CollegeCard({ collegeId }: Props) {
 
       try {
         const response = await axios.get(`${api_url}/colleges/${collegeId}`);
-        console.log("college" , response)
+        // console.log("college" , response)
         if (response.data?.success) {
           setCollegeData(response.data.data);
-          console.log("co", collegeData)
+          // console.log("co", collegeData)
         } else {
           setError("College data not found.");
         }

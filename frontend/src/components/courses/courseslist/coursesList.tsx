@@ -37,8 +37,8 @@ const CoursesList: React.FC = () => {
     setError(null);
 
     const requestBody = { filters: [] };
-    console.log("🔄 Starting course fetch...");
-    console.log("📦 Request Body:", requestBody);
+    // console.log("🔄 Starting course fetch...");
+    // console.log("📦 Request Body:", requestBody);
 
     try {
       const response = await fetch(`${api_url}courses/filter/by/specialization`, {
@@ -49,21 +49,21 @@ const CoursesList: React.FC = () => {
         body: JSON.stringify(requestBody),
       });
 
-      console.log("📨 Raw response:", response);
+      // console.log("📨 Raw response:", response);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch courses - Status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("✅ Parsed response data:", data);
+      // console.log("✅ Parsed response data:", data);
 
       setCourses(data);
     } catch (err) {
       console.error("❌ Error fetching courses:", err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      console.log("✅ Finished course fetch.");
+      // console.log("✅ Finished course fetch.");
       setLoading(false);
     }
   };

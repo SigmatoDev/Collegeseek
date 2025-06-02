@@ -28,7 +28,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   const specialization = title; // You can replace this with a dedicated prop if available
 
-  console.log("Specialization for URL:", specialization);
+  // console.log("Specialization for URL:", specialization);
 
   return (
     <div className="border rounded-lg shadow-md p-4 bg-white">

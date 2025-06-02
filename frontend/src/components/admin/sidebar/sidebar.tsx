@@ -182,7 +182,7 @@ const Sidebar = () => {
 
       {/* Sidebar Footer */}
       <div className="p-4 text-center text-gray-400 text-xs border-t border-gray-700 flex-shrink-0">
-        © 2025 Company Name
+        © 2025 Collegeseek.in
       </div>
     </div>
   );

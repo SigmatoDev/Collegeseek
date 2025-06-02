@@ -48,7 +48,7 @@ const TeamSection = () => {
               className="relative bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-200 group"
             >
               {/* Badge */}
-              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-gradient-to-tr from-indigo-500 to-blue-600 p-3 rounded-full shadow-lg">
+              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-gradient-to-tr from-orange-500 to-orange-600 p-3 rounded-full shadow-lg">
                 <AcademicCapIcon className="w-6 h-6 text-white" />
               </div>
 

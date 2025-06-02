@@ -196,6 +196,7 @@ export default function CollegeDetailsPage() {
               src={imageUrlFinal}
               width={500}
               height={500}
+              priority
               className="rounded-xl shadow-lg w-full object-cover"
               alt={collegeData.name}
             />

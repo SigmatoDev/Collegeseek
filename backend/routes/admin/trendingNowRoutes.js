@@ -1,11 +1,12 @@
 const express = require('express');
-const { getAlltrendingNow, createtrendingNow, updateTrendingNow, deleteTrendingNow, gettrendingNowById } = require('../../controllers/admin/trendingNowController');
+const { getAlltrendingNow, createtrendingNow, updateTrendingNow, deleteTrendingNow, gettrendingNowById, getAlltrendingNows } = require('../../controllers/admin/trendingNowController');
 
 
 const router = express.Router();
 
 // GET all exams
 router.get('/get/trendingNow', getAlltrendingNow);
+router.get('/get/trendingNows', getAlltrendingNows);
 
 // POST create exam
 router.post('/create/trendingNow', createtrendingNow);

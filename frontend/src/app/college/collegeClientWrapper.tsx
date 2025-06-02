@@ -120,7 +120,7 @@ export default function CollegesClientWrapper() {
   </div>
   {/* Ad Section */}
   <div className="w-[250px] space-y-4 shrink-0">
-    <AdBox1 />
+      <AdBox1 />
     <AdBox2 />
   </div>
   {/* Loading Overlay */}

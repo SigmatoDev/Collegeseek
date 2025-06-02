@@ -12,6 +12,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import ImportColleges from "./importCollege";
+import ExportCollegesButton from "./exportColleges";
 
 interface College {
   _id: string;
@@ -56,7 +57,9 @@ const AdminColleges = () => {
     setError(null);
     try {
       const { data } = await axios.get(
-        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(query)}`
+        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(
+          query
+        )}`
       );
 
       if (!data.success || !Array.isArray(data.data)) {
@@ -83,7 +86,8 @@ const AdminColleges = () => {
   }, [search, pagination.page, pagination.limit]);
 
   const handleDelete = async (collegeId: string) => {
-    if (!window.confirm("Are you sure you want to delete this college?")) return;
+    if (!window.confirm("Are you sure you want to delete this college?"))
+      return;
 
     try {
       await axios.delete(`${api_url}college/${collegeId}`);
@@ -119,15 +123,19 @@ const AdminColleges = () => {
           <ImportColleges />
         </div>
 
-        <div className="relative w-full max-w-sm ml-auto">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-          />
+        <div className="flex items-center space-x-4">
+          <div className="relative flex-1">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 pr-4 py-2 w-[440px] border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+
+          <ExportCollegesButton />
         </div>
       </div>
 
@@ -143,27 +151,36 @@ const AdminColleges = () => {
             <table className="table-auto w-full text-left border-collapse">
               <thead className="bg-gray-200 text-gray-600">
                 <tr>
-                  {["Name", "Location", "Rank", "Courses", "Website", "Actions"].map((header) => (
-                    <th key={header} className="px-6 py-3 text-sm font-semibold">
-                      {header}
-                    </th>
-                  ))}
+                  {["Name", "Location", "Rank", "Website", "Actions"].map(
+                    (header) => (
+                      <th
+                        key={header}
+                        className="px-6 py-3 text-sm font-semibold"
+                      >
+                        {header}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {colleges.length > 0 ? (
                   colleges.map((college) => (
                     <tr key={college._id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-3 text-sm text-gray-700">{college.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{college.location}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {college.name}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {college.location}
+                      </td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {college.rank ? `#${college.rank}` : "N/A"}
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">
+                      {/* <td className="px-6 py-3 text-sm text-gray-700">
                         {college.courses?.length > 0
                           ? college.courses.join(", ")
                           : "No Courses"}
-                      </td>
+                      </td> */}
                       <td className="px-6 py-3 text-sm text-blue-500 hover:underline">
                         <a
                           href={college.website}
@@ -175,7 +192,9 @@ const AdminColleges = () => {
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
-                          onClick={() => router.push(`/admin/manageColleges/${college._id}`)}
+                          onClick={() =>
+                            router.push(`/admin/manageColleges/${college._id}`)
+                          }
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                           aria-label={`Edit ${college.name}`}
                         >

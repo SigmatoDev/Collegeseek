@@ -9,7 +9,7 @@ const FromPage = () => {
   return (
     <AdminLayout>
       <div>
-      <h1 className="text-2xl font-bold mb-4">Manage Admins</h1>
+      <h1 className="text-2xl ml-9 font-bold mb-4">Manage Admins</h1>
       <Form  />
       </div>
     </AdminLayout>
