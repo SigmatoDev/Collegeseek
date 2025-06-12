@@ -9,9 +9,11 @@ import AdBox3 from "@/components/adBox/adBox3";
 import AdBox4 from "@/components/adBox/adBox4";
 import AdBanner from "@/components/adBox/adBox5";
 import CallbackForm from "@/components/newsletters/page";
+import StreamCourseFilter from "@/components/courses/courseFilter/StreamCourseFilter";
 
 const CollegesPage = () => {
   const [appliedFilters, setAppliedFilters] = useState<string[]>([]);
+    const [selectedStream, setSelectedStream] = useState<string>("");
 
   return (
     <>
@@ -25,19 +27,16 @@ const CollegesPage = () => {
             { label: "Courses", href: "/courses" },
           ]}
         />
+      {/* <StreamCourseFilter onSelectStream={setSelectedStream} /> */}
       </div>
 
       <div className="flex flex-col lg:flex-row mx-auto px-4 sm:px-6 lg:px-10 py-5 justify-center gap-6">
         {/* Filter Sidebar */}
-        <div className="w-full lg:w-auto">
-          {/* <CoursesFilterSidebar onFilterChange={handleFilterChange} /> */}
-        </div>
 
         {/* College List */}
         <div className="flex-1">
           {/* <AdBanner/> */}
-
-          <CoursesList />
+          <CoursesList streamName={selectedStream} />
         </div>
 
         {/* Ad Section (Right) */}

@@ -47,7 +47,10 @@ const ApprovalForm = () => {
           name: data.name || "",
           code: data.code || "",
         });
-        console.log("✅ Approval data set:", { name: data.name, code: data.code });
+        console.log("✅ Approval data set:", {
+          name: data.name,
+          code: data.code,
+        });
       } catch (err) {
         console.error("❌ Error fetching approval data:", err); // Log error details
         setError("Failed to fetch approval data. Please try again.");
@@ -60,51 +63,64 @@ const ApprovalForm = () => {
   }, [approvalId]);
 
   // Updated handleChange to handle <input> and <textarea> elements
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setApprovalData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  }, []);
+const handleChange = useCallback(
+  (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+
+    if (name === "name" || name === "code") {
+      // Remove digits from the value
+      const filteredValue = value.replace(/[0-9]/g, "");
+      setApprovalData((prev) => ({ ...prev, [name]: filteredValue }));
+    } else {
+      setApprovalData((prev) => ({ ...prev, [name]: value }));
+    }
+  },
+  []
+);
+
 
   const handleCancel = () => {
     router.push("/admin/approvels");
   };
 
-const handleFormSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  if (!approvalData.name || !approvalData.code) {
-    setError("Approval name and code are required.");
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const url = approvalId && approvalId !== "new"
-      ? `${api_url}update/approvals/${approvalId}`
-      : `${api_url}create/approvals`;
-    const method = approvalId && approvalId !== "new" ? axios.put : axios.post;
-
-    const response = await method(url, approvalData);  // Send approvalData as JSON
-
-    if ([200, 201].includes(response.status)) {
-      toast.success("Approval saved successfully!");
-      router.push("/admin/approvels");
-    } else {
-      setError("Failed to save approval. Please try again.");
+    if (!approvalData.name || !approvalData.code) {
+      setError("Approval name and code are required.");
+      setLoading(false);
+      return;
     }
-  } catch (err: any) {
-    console.error("❌ Error saving approval:", err);
-    if (err.response && err.response.data && err.response.data.message) {
-      setError(err.response.data.message);  // Show backend message like "Specialization with this name already exists"
-    } else {
-      setError("Failed to save approval. Please try again.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
 
+    try {
+      const url =
+        approvalId && approvalId !== "new"
+          ? `${api_url}update/approvals/${approvalId}`
+          : `${api_url}create/approvals`;
+      const method =
+        approvalId && approvalId !== "new" ? axios.put : axios.post;
+
+      const response = await method(url, approvalData); // Send approvalData as JSON
+
+      if ([200, 201].includes(response.status)) {
+        toast.success("Approval saved successfully!");
+        router.push("/admin/approvels");
+      } else {
+        setError("Failed to save approval. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("❌ Error saving approval:", err);
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message); // Show backend message like "Specialization with this name already exists"
+      } else {
+        setError("Failed to save approval. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Avoid rendering the form until we have fetched the data
   if (isFetching) {
@@ -118,7 +134,9 @@ const handleFormSubmit = async (e: React.FormEvent) => {
   return (
     <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
       <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
-        {approvalId && approvalId !== "new" ? "Edit Approval" : "Create New Approval"}
+        {approvalId && approvalId !== "new"
+          ? "Edit Approval"
+          : "Create New Approval"}
       </h1>
 
       {error && <p className="text-red-600 text-center mb-4">{error}</p>}
@@ -132,8 +150,11 @@ const handleFormSubmit = async (e: React.FormEvent) => {
             value={approvalData.name}
             onChange={handleChange}
             required
+            pattern="[A-Za-z\s]+"
+            title="Name must contain letters only."
             className="w-full p-3 border rounded-lg"
           />
+
           <input
             type="text"
             name="code"
@@ -151,10 +172,20 @@ const handleFormSubmit = async (e: React.FormEvent) => {
             disabled={loading}
             className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
           >
-            {loading ? <Loader className="animate-spin h-5 w-5" /> : approvalId && approvalId !== "new" ? "Update Approval" : "Publish Approval"}
+            {loading ? (
+              <Loader className="animate-spin h-5 w-5" />
+            ) : approvalId && approvalId !== "new" ? (
+              "Update Approval"
+            ) : (
+              "Publish Approval"
+            )}
           </button>
           {approvalId && approvalId !== "new" && (
-            <button type="button" onClick={handleCancel} className="bg-gray-500 text-white p-3 rounded-lg">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="bg-gray-500 text-white p-3 rounded-lg"
+            >
               Cancel
             </button>
           )}

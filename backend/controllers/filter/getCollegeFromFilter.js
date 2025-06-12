@@ -110,41 +110,39 @@ exports.getCollegesFromFilter = async (req, res) => {
         });
         courseQuery.$or = feeConditions;
       }
-      const matchedCourses = await Course.find(courseQuery).select("college_id");
-      courseCollegeIds = [...new Set(matchedCourses.map((c) => c.college_id.toString()))];
+      const matchedCourses = await Course.find(courseQuery).select(
+        "college_id"
+      );
+      courseCollegeIds = [
+        ...new Set(matchedCourses.map((c) => c.college_id.toString())),
+      ];
       if (courseCollegeIds.length) {
         collegeQuery._id = { $in: courseCollegeIds };
       } else {
         return res.json({ colleges: [], currentPage: page, totalPages: 0 });
       }
     }
-// :large_green_circle: Pagination values
-const skip = (parseInt(page) - 1) * parseInt(limit);
-// :white_check_mark: Fetch all matching college IDs (used for accurate filters)
-const allCollegeDocs = await College.find(collegeQuery).select("_id");
-const allCollegeIds = allCollegeDocs.map((doc) => doc._id);
-// :large_green_circle: Get paginated colleges
-const totalCount = allCollegeIds.length;
-const totalPages = Math.ceil(totalCount / parseInt(limit));
-const colleges = await College.find(collegeQuery)
-  .populate("stream ownership approvel affiliatedby examExpected")
-  .skip(skip)
-  .limit(parseInt(limit));
-// :white_check_mark: Return paginated data + all matched IDs
-res.json({
-  colleges,
-  currentPage: parseInt(page),
-  totalPages,
-  allCollegeIds, // :point_left: added here
-});
+    // :large_green_circle: Pagination values
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    // :white_check_mark: Fetch all matching college IDs (used for accurate filters)
+    const allCollegeDocs = await College.find(collegeQuery).select("_id");
+    const allCollegeIds = allCollegeDocs.map((doc) => doc._id);
+    // :large_green_circle: Get paginated colleges
+    const totalCount = allCollegeIds.length;
+    const totalPages = Math.ceil(totalCount / parseInt(limit));
+    const colleges = await College.find(collegeQuery)
+      .populate("stream ownership approvel affiliatedby examExpected")
+      .skip(skip)
+      .limit(parseInt(limit));
+    // :white_check_mark: Return paginated data + all matched IDs
+    res.json({
+      colleges,
+      currentPage: parseInt(page),
+      totalPages,
+      allCollegeIds, // :point_left: added here
+    });
   } catch (err) {
     console.error("Error filtering colleges:", err);
     res.status(500).json({ error: "Failed to filter colleges" });
   }
 };
-
-
-
-
-
-

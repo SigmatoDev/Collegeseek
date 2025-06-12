@@ -11,17 +11,16 @@ const CourseForm = () => {
   const router = useRouter();
   const { id: courseId } = useParams();
 
-  const [courseData, setCourseData] = useState({
-    name: "",
-    code: "",
-  });
-
+  const [isClient, setIsClient] = useState(false); // fix for hydration
+  const [courseData, setCourseData] = useState({ name: "", code: "" });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setIsClient(true); // set true after mount
+
     const fetchCourseData = async () => {
       if (!courseId || courseId === "new") return;
       try {
@@ -46,24 +45,28 @@ const CourseForm = () => {
         toast.error(backendMessage);
       }
     };
+
     fetchCourseData();
   }, [courseId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCourseData({
-      ...courseData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    if ((name === "name" || name === "code") && !/^[A-Za-z\s]*$/.test(value)) {
+      return;
+    }
+
+    setCourseData({ ...courseData, [name]: value });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
-      // Use FileReader to avoid hydration mismatch
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageUrl(reader.result as string);
+        if (isClient) setImageUrl(reader.result as string); // safe for client
       };
       reader.readAsDataURL(file);
     }
@@ -79,8 +82,9 @@ const CourseForm = () => {
     setError("");
 
     if (!courseData.name || !courseData.code) {
-      setError("Course name and code are required.");
-      toast.error("Course name and code are required.");
+      const msg = "Course name and code are required.";
+      setError(msg);
+      toast.error(msg);
       setLoading(false);
       return;
     }
@@ -89,9 +93,7 @@ const CourseForm = () => {
       const formData = new FormData();
       formData.append("name", courseData.name);
       formData.append("code", courseData.code);
-      if (imageFile) {
-        formData.append("image", imageFile);
-      }
+      if (imageFile) formData.append("image", imageFile);
 
       const url =
         courseId && courseId !== "new"
@@ -111,8 +113,9 @@ const CourseForm = () => {
         toast.success("Course saved successfully!");
         router.push("/admin/courseList");
       } else {
-        setError("Failed to save course. Please try again.");
-        toast.error("Failed to save course. Please try again.");
+        const msg = "Failed to save course. Please try again.";
+        setError(msg);
+        toast.error(msg);
       }
     } catch (err: any) {
       const backendMessage =
@@ -130,7 +133,6 @@ const CourseForm = () => {
   return (
     <>
       <Toaster position="top-right" reverseOrder={false} />
-
       <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
         <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
           {courseId && courseId !== "new" ? "Edit Course" : "Create New Course"}
@@ -172,7 +174,7 @@ const CourseForm = () => {
             />
           </div>
 
-          {imageUrl && (
+          {isClient && imageUrl && (
             <div className="mb-4">
               <p className="text-gray-600 mb-2">Course Image Preview:</p>
               <img

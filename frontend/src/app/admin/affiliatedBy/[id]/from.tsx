@@ -52,12 +52,16 @@ const AffiliatedByForm = () => {
     fetchAffiliatedData();
   }, [affiliatedById]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setAffiliatedData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  }, []);
+const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  const filteredValue = value.replace(/[0-9]/g, ''); // Remove digits
+
+  setAffiliatedData((prev) => ({
+    ...prev,
+    [name]: filteredValue,
+  }));
+}, []);
+
 
   const handleCancel = () => {
     router.push("/admin/affiliatedBy");

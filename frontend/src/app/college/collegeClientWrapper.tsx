@@ -6,6 +6,7 @@ import AdBox1 from "@/components/adBox/adBox1";
 import AdBox2 from "@/components/adBox/adBox2";
 import { api_url } from "@/utils/apiCall";
 import FilterSidebarNew from "./filterSidebarNew";
+import AdBanner from "@/components/adBox/adBox5";
 export default function CollegesClientWrapper() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -84,6 +85,8 @@ export default function CollegesClientWrapper() {
     />
   {/* Main Content */}
   <div className="flex-1 space-y-6">
+          <AdBanner/>
+
     {colleges.length === 0 ? (
       <p>No colleges found.</p>
     ) : (

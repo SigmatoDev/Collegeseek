@@ -38,10 +38,14 @@ const StreamForm = () => {
           const normalizedImagePath = data.image.replace(/\\/g, "/");
 
           // Remove trailing slash from api_url if exists
-          const baseUrl = api_url.endsWith("/") ? api_url.slice(0, -1) : api_url;
+          const baseUrl = api_url.endsWith("/")
+            ? api_url.slice(0, -1)
+            : api_url;
 
           // Remove '/api' if it exists at the end of baseUrl
-          const imageBaseUrl = baseUrl.endsWith("/api") ? baseUrl.slice(0, -4) : baseUrl;
+          const imageBaseUrl = baseUrl.endsWith("/api")
+            ? baseUrl.slice(0, -4)
+            : baseUrl;
 
           // Combine to create the full image URL
           const fullImageUrl = `${imageBaseUrl}/${normalizedImagePath}`;
@@ -59,7 +63,14 @@ const StreamForm = () => {
   }, [streamId]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setStreamData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    const updatedValue = name === "name" ? value.replace(/[0-9]/g, "") : value;
+
+    setStreamData((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

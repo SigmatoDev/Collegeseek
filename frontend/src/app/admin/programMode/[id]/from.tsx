@@ -43,13 +43,18 @@ const ProgramModeForm = () => {
 
     fetchProgramModeData();
   }, [programModeId]);
+const handleChange = useCallback(
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setProgramModeData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    },
-    []
-  );
+    // Prevent input if it contains any digits
+    if (/\d/.test(value)) return;
+
+    setProgramModeData((prev) => ({ ...prev, [name]: value }));
+  },
+  []
+);
+
 
   const handleCancel = () => {
     router.push("/admin/programMode");

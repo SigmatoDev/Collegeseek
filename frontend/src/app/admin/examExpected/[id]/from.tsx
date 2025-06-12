@@ -50,12 +50,18 @@ useEffect(() => {
 }, [examExpectedId]);
 
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setExamExpectedData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    },
-    []
-  );
+ const handleChange = useCallback(
+  (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+
+    // Prevent input if it contains numbers
+    if (!/\d/.test(value)) {
+      setExamExpectedData((prev) => ({ ...prev, [name]: value }));
+    }
+  },
+  []
+);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

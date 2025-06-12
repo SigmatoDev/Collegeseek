@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { api_url } from "@/utils/apiCall";
+import EditableLinkItem from "./EditableLinkItem";
 
 type Link = {
   _id?: string;
   label: string;
   url: string;
+  tempId?: string;
 };
 
 type Column = {
@@ -16,24 +18,100 @@ type Column = {
   links?: Link[];
 };
 
+type Menu = {
+  _id: string;
+  columns: Column[];
+};
+
+function NativeDraggableItem({
+  link,
+  index,
+  onDragStart,
+  onDrop,
+  onDragOver,
+  editing,
+  editValue,
+  setEditValue,
+  onEditClick,
+  onSaveClick,
+  onDeleteClick, // ✅ Added delete click prop
+}: any) {
+  const dragId = link._id || link.tempId;
+
+  return (
+    <li
+      draggable
+      onDragStart={() => onDragStart(index)}
+      onDragOver={(e) => onDragOver(e, index)}
+      onDrop={() => onDrop(index)}
+      className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-white rounded px-3 py-2 shadow"
+    >
+      <span className="cursor-move text-gray-500 select-none">≡</span>
+      <EditableLinkItem
+        id={dragId}
+        link={link}
+        editing={editing}
+        editValue={editValue}
+        setEditValue={setEditValue}
+        onEditClick={onEditClick}
+        onSaveClick={onSaveClick}
+        
+      />
+      <button
+        onClick={onDeleteClick}
+        className="text-red-600  hover:text-red-800 text-sm"
+      >
+        Delete
+      </button>
+    </li>
+  );
+}
+
 export default function AdminMenuProper() {
-  const [menu, setMenu] = useState<{ _id: string; columns: Column[] }[]>([]); // Initialize as an array
-  const [loading, setLoading] = useState<boolean>(false);
-  const [editing, setEditing] = useState<{ columnId?: string; linkId?: string } | null>(null);
-  const [editValue, setEditValue] = useState<{ title?: string; label?: string; url?: string }>({});
+  const [menu, setMenu] = useState<Menu[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState<{
+    columnId?: string;
+    linkId?: string;
+  } | null>(null);
+  const [editValue, setEditValue] = useState<{
+    title?: string;
+    label: string;
+    url: string;
+  }>({ label: "", url: "" });
+  const [newLinkInputs, setNewLinkInputs] = useState<
+    Record<string, { label: string; url: string }>
+  >({});
+  const tempIdCounter = useRef(0);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchMenu();
   }, []);
+
+  const assignTempIdsToLinks = (menus: Menu[]): Menu[] => {
+    return menus.map((menuItem) => ({
+      ...menuItem,
+      columns: menuItem.columns.map((column) => {
+        const linksWithIds = (column.links || []).map((link) => {
+          if (!link._id && !link.tempId) {
+            tempIdCounter.current++;
+            return { ...link, tempId: `temp-link-${tempIdCounter.current}` };
+          }
+          return link;
+        });
+        return { ...column, links: linksWithIds };
+      }),
+    }));
+  };
 
   const fetchMenu = async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${api_url}menus`);
       if (response.data.success && Array.isArray(response.data.data)) {
-        setMenu(response.data.data); // Set menu as an array
-      } else {
-        console.error("Unexpected response format:", response.data);
+        const menusWithTempIds = assignTempIdsToLinks(response.data.data);
+        setMenu(menusWithTempIds);
       }
     } catch (error) {
       console.error("Error fetching menu:", error);
@@ -43,142 +121,271 @@ export default function AdminMenuProper() {
   };
 
   const handleEditColumn = (columnId: string, title: string) => {
-    if (columnId) {
-      setEditing({ columnId });
-      setEditValue({ title });
-    }
+    setEditing({ columnId });
+    setEditValue({ title, label: "", url: "" });
   };
 
   const handleEditLink = (linkId: string, label: string, url: string) => {
-    if (linkId) {
-      setEditing({ linkId });
-      setEditValue({ label, url });
-    }
+    setEditing({ linkId });
+    setEditValue({ label, url });
   };
 
   const handleSaveColumnEdit = async (menuItemId: string, columnId: string) => {
-    if (!columnId || !editValue.title) {
-      console.error("Column ID or Title is missing, cannot update the column.");
-      return; // Exit if column ID or title is missing
-    }
-
-    const updateColumnUrl = `${api_url}menus/${menuItemId}/column/${columnId}`;
-    const requestBody = { title: editValue.title };
-
+    if (!columnId || !editValue.title) return;
     try {
-      const response = await axios.put(updateColumnUrl, requestBody);
-      fetchMenu(); // Refresh the menu after update
-      setEditing(null); // Clear the editing state
+      await axios.put(`${api_url}menus/${menuItemId}/column/${columnId}`, {
+        title: editValue.title,
+      });
+      fetchMenu();
+      setEditing(null);
+      setEditValue({ label: "", url: "" });
     } catch (error) {
       console.error("Error saving column edit:", error);
     }
   };
 
-  const handleSaveLinkEdit = async (menuItemId: string, columnId: string, linkId: string) => {
-    if (!linkId || !editValue.label || !editValue.url) {
-      console.error("Link ID, Label, or URL is missing, cannot update the link.");
-      return; // Exit if link ID, label, or URL is missing
-    }
-
-    const updateLinkUrl = `${api_url}menus/${menuItemId}/column/${columnId}/link/${linkId}`;
-    const requestBody = { label: editValue.label, url: editValue.url };
-
+  const handleSaveLinkEdit = async (
+    menuItemId: string,
+    columnId: string,
+    linkId: string
+  ) => {
+    if (!linkId || !editValue.label || !editValue.url) return;
     try {
-      const response = await axios.put(updateLinkUrl, requestBody);
-      fetchMenu(); // Refresh the menu after update
-      setEditing(null); // Clear the editing state
+      await axios.put(
+        `${api_url}menus/${menuItemId}/column/${columnId}/link/${linkId}`,
+        {
+          label: editValue.label,
+          url: editValue.url,
+        }
+      );
+      fetchMenu();
+      setEditing(null);
+      setEditValue({ label: "", url: "" });
     } catch (error) {
       console.error("Error saving link edit:", error);
     }
   };
 
+  const handleNewLinkChange = (
+    columnId: string,
+    field: "label" | "url",
+    value: string
+  ) => {
+    setNewLinkInputs((prev) => ({
+      ...prev,
+      [columnId]: { ...prev[columnId], [field]: value },
+    }));
+  };
+
+  const handleAddLink = async (menuId: string, columnId: string) => {
+    const inputs = newLinkInputs[columnId];
+    if (!inputs?.label || !inputs?.url) {
+      alert("Please fill both Label and URL to add a link.");
+      return;
+    }
+    try {
+      await axios.post(
+        `${api_url}menus/${menuId}/columns/${columnId}/links`,
+        inputs
+      );
+      setNewLinkInputs((prev) => ({
+        ...prev,
+        [columnId]: { label: "", url: "" },
+      }));
+      fetchMenu();
+    } catch (error) {
+      console.error("Error adding link:", error);
+    }
+  };
+
+  const handleDeleteLink = async (
+    menuId: string,
+    columnId: string,
+    linkId: string
+  ) => {
+    const confirmDelete = confirm("Are you sure you want to delete this link?");
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(
+        `${api_url}menu/${menuId}/column/${columnId}/link/${linkId}`
+      );
+
+      fetchMenu(); // Refresh the data after deletion
+    } catch (error) {
+      console.error("Error deleting link:", error);
+    }
+  };
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-[1500px] mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">🛠️ Admin Menu</h1>
-  
       {loading ? (
         <div className="text-center text-lg text-gray-500">Loading...</div>
       ) : (
         <div className="space-y-8">
           {menu.map((menuItem) => (
-            <div key={menuItem._id} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
-              {/* Columns Grid */}
+            <div
+              key={menuItem._id}
+              className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"
+            >
               <div className="grid gap-6 md:grid-cols-2">
-                {menuItem.columns.map((column) => (
-                  <div key={column._id} className="bg-gray-50 rounded-lg p-5 border">
-                    {/* Title Edit */}
-                    {editing?.columnId === column._id ? (
-                      <div className="space-y-3">
+                {menuItem.columns.map((column, columnIndex) => {
+                  const safeColumnId = column._id || `column-${columnIndex}`;
+                  return (
+                    <div
+                      key={safeColumnId}
+                      className="bg-gray-50 rounded-lg p-5 border"
+                    >
+                      {editing?.columnId === column._id ? (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={editValue.title ?? column.title}
+                            onChange={(e) =>
+                              setEditValue({
+                                ...editValue,
+                                title: e.target.value,
+                              })
+                            }
+                            placeholder="Column title"
+                            className="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            onClick={() =>
+                              handleSaveColumnEdit(menuItem._id, column._id!)
+                            }
+                            className="bg-green-600 text-white px-4 py-2 rounded"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      ) : (
+                        <h2
+                          className="text-xl font-semibold text-blue-700 hover:underline cursor-pointer mb-4"
+                          onClick={() =>
+                            handleEditColumn(column._id || "", column.title)
+                          }
+                        >
+                          {column.title}
+                        </h2>
+                      )}
+
+                      <ul className="space-y-4">
+                        {column.links?.map((link, index) => {
+                          const dragId = link._id || link.tempId;
+                          if (!dragId) return null;
+                          return (
+                            <NativeDraggableItem
+                              key={dragId}
+                              link={link}
+                              index={index}
+                              onDragStart={(i: number) => setDraggingIndex(i)}
+                              onDragOver={(
+                                e: React.DragEvent,
+                                overIndex: number
+                              ) => e.preventDefault()}
+                              onDrop={(dropIndex: number) => {
+                                if (
+                                  draggingIndex === null ||
+                                  draggingIndex === dropIndex
+                                )
+                                  return;
+
+                                const updatedMenu = [...menu];
+                                const colLinks =
+                                  updatedMenu
+                                    .find((m) => m._id === menuItem._id)!
+                                    .columns.find((c) => c._id === column._id)!
+                                    .links || [];
+
+                                const movedLink = colLinks[draggingIndex];
+                                colLinks.splice(draggingIndex, 1);
+                                colLinks.splice(dropIndex, 0, movedLink);
+
+                                setMenu(updatedMenu);
+                                setDraggingIndex(null);
+
+                                axios
+                                  .put(
+                                    `${api_url}menus/${menuItem._id}/reorder`,
+                                    {
+                                      updatedColumns: updatedMenu.find(
+                                        (m) => m._id === menuItem._id
+                                      )!.columns,
+                                    }
+                                  )
+                                  .catch((err) => {
+                                    console.error("Failed to reorder", err);
+                                    alert("Failed to reorder.");
+                                    fetchMenu();
+                                  });
+                              }}
+                              editing={editing}
+                              editValue={editValue}
+                              setEditValue={setEditValue}
+                              onEditClick={() =>
+                                handleEditLink(dragId, link.label, link.url)
+                              }
+                              onSaveClick={() =>
+                                handleSaveLinkEdit(
+                                  menuItem._id,
+                                  column._id!,
+                                  dragId
+                                )
+                              }
+                              onDeleteClick={() =>
+                                handleDeleteLink(
+                                  menuItem._id,
+                                  column._id!,
+                                  dragId
+                                )
+                              }
+                            />
+                          );
+                        })}
+                      </ul>
+
+                      <div className="mt-4 border-t pt-4">
+                        <h3 className="font-semibold mb-2">Add New Link</h3>
                         <input
                           type="text"
-                          value={editValue.title || column.title}
-                          onChange={(e) => setEditValue({ ...editValue, title: e.target.value })}
-                          placeholder="Column title"
-                          className="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                          placeholder="Label"
+                          value={newLinkInputs[column._id!]?.label || ""}
+                          onChange={(e) =>
+                            handleNewLinkChange(
+                              column._id!,
+                              "label",
+                              e.target.value
+                            )
+                          }
+                          className="border px-3 py-1 rounded mr-2 mb-2 md:mb-0"
+                        />
+                        <input
+                          type="text"
+                          placeholder="URL"
+                          value={newLinkInputs[column._id!]?.url || ""}
+                          onChange={(e) =>
+                            handleNewLinkChange(
+                              column._id!,
+                              "url",
+                              e.target.value
+                            )
+                          }
+                          className="border px-3 py-1 rounded mr-2 mb-2 md:mb-0"
                         />
                         <button
-                          onClick={() => handleSaveColumnEdit(menuItem._id, column._id!)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                          onClick={() =>
+                            handleAddLink(menuItem._id, column._id!)
+                          }
+                          className="bg-blue-600 text-white px-4 py-1 mt-3 rounded"
                         >
-                          Save
+                          Add Link
                         </button>
                       </div>
-                    ) : (
-                      <h2
-                        className="text-xl font-semibold text-blue-700 hover:underline cursor-pointer mb-4"
-                        onClick={() => handleEditColumn(column._id || "", column.title)}
-                      >
-                        {column.title}
-                      </h2>
-                    )}
-  
-                    {/* Links */}
-                    {column.links && column.links.length > 0 ? (
-                      <ul className="space-y-4">
-                        {column.links.map((link) => (
-                          <li key={link._id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                            {editing?.linkId === link._id ? (
-                              <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
-                                <input
-                                  type="text"
-                                  value={editValue.label || link.label}
-                                  onChange={(e) => setEditValue({ ...editValue, label: e.target.value })}
-                                  placeholder="Label"
-                                  className="w-full md:w-1/2 border px-4 py-2 rounded focus:ring-2 focus:ring-blue-500"
-                                />
-                                <input
-                                  type="text"
-                                  value={editValue.url || link.url}
-                                  onChange={(e) => setEditValue({ ...editValue, url: e.target.value })}
-                                  placeholder="URL"
-                                  className="w-full md:w-1/2 border px-4 py-2 rounded focus:ring-2 focus:ring-blue-500"
-                                />
-                                <button
-                                  onClick={() => handleSaveLinkEdit(menuItem._id, column._id!, link._id!)}
-                                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-                                >
-                                  Save
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex justify-between items-center w-full">
-                                <span className="truncate font-medium text-gray-700 w-2/3">{link.label}</span>
-                                <button
-                                  onClick={() => handleEditLink(link._id || "", link.label, link.url)}
-                                  className="text-blue-500 hover:underline"
-                                >
-                                  Edit
-                                </button>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm italic text-gray-500">No links available</p>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -186,5 +393,4 @@ export default function AdminMenuProper() {
       )}
     </div>
   );
-  
 }

@@ -44,15 +44,21 @@ const SpecializationForm = () => {
     fetchSpecializationData();
   }, [specializationId]);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSpecializationData((prev) => ({
-        ...prev,
-        [e.target.name]: e.target.value,
-      }));
-    },
-    []
-  );
+const handleChange = useCallback(
+  (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    // Remove all numbers from the input
+    const filteredValue = value.replace(/[0-9]/g, '');
+
+    setSpecializationData((prev) => ({
+      ...prev,
+      [name]: filteredValue,
+    }));
+  },
+  []
+);
+
 
   const handleCancel = () => {
     router.push("/admin/specialization");

@@ -77,3 +77,100 @@ exports.updateColumnTitle = async (req, res) => {
     }
   };
   
+  // Add a new link to a specific column in a specific menu
+exports.createLink = async (req, res) => {
+  console.log("hit create link");
+  console.log("req.body", req.body);
+
+  try {
+    const { menuId, columnId } = req.params;
+    const { label, url } = req.body;
+
+    const result = await Menu.updateOne(
+      {
+        _id: menuId,
+        "columns._id": columnId
+      },
+      {
+        $push: {
+          "columns.$[col].links": { label, url }
+        }
+      },
+      {
+        arrayFilters: [
+          { "col._id": columnId }
+        ],
+        runValidators: true
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Menu or column not found." });
+    }
+
+    const updatedMenu = await Menu.findById(menuId);
+
+    res.status(200).json({ success: true, data: updatedMenu });
+  } catch (error) {
+    console.error("Error in createLink:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.reorderMenu = async (req, res) => {
+  const { menuId } = req.params;
+  const { updatedColumns } = req.body;
+
+  try {
+    const updatedMenu = await Menu.findByIdAndUpdate(
+      menuId,
+      { columns: updatedColumns },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedMenu) {
+      return res.status(404).json({ message: 'Menu not found' });
+    }
+
+    res.json(updatedMenu);
+  } catch (error) {
+    console.error('Error reordering menu:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.removeLink = async (req, res) => {
+  console.log("hit remove link");
+  const { menuId, columnId, linkId } = req.params;
+
+  try {
+    const result = await Menu.updateOne(
+      {
+        _id: menuId,
+        "columns._id": columnId
+      },
+      {
+        $pull: {
+          "columns.$[col].links": { _id: linkId }
+        }
+      },
+      {
+        arrayFilters: [
+          { "col._id": columnId }
+        ],
+        runValidators: true
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Menu, column, or link not found." });
+    }
+
+    const updatedMenu = await Menu.findById(menuId);
+
+    res.status(200).json({ success: true, data: updatedMenu });
+  } catch (error) {
+    console.error("Error in removeLink:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

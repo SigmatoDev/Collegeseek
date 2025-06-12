@@ -84,7 +84,7 @@ export default function FilterSidebarNew({
       ? "space-y-1 max-h-32 overflow-y-auto border-t pt-2 scrollbar-thin scrollbar-thumb-gray-300"
       : "space-y-1";
   return (
-    <aside className="w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(210vh-50px)] shadow-sm">
+    <aside className="w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(220vh-50px)] shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Filters</h2>
         {hasActiveFilters && (

@@ -9,7 +9,6 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   PlusCircleIcon,
-  TrashIcon,
 } from "@heroicons/react/24/outline";
 import ImportColleges from "./importCollege";
 import ExportCollegesButton from "./exportColleges";
@@ -21,6 +20,7 @@ interface College {
   rank?: number;
   courses: string[];
   website: string;
+  selected?: boolean;
 }
 
 interface Pagination {
@@ -57,16 +57,14 @@ const AdminColleges = () => {
     setError(null);
     try {
       const { data } = await axios.get(
-        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(
-          query
-        )}`
+        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(query)}`
       );
 
       if (!data.success || !Array.isArray(data.data)) {
         throw new Error("Unexpected API response format.");
       }
 
-      setColleges(data.data);
+      setColleges(data.data.map((c: College) => ({ ...c, selected: false })));
       setPagination(data.pagination);
     } catch (err: any) {
       console.error("Error fetching colleges:", err);
@@ -76,7 +74,6 @@ const AdminColleges = () => {
     }
   };
 
-  // Debounced fetch effect for search and pagination
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchColleges(pagination.page, pagination.limit, search);
@@ -85,24 +82,12 @@ const AdminColleges = () => {
     return () => clearTimeout(delayDebounce);
   }, [search, pagination.page, pagination.limit]);
 
-  const handleDelete = async (collegeId: string) => {
-    if (!window.confirm("Are you sure you want to delete this college?"))
-      return;
-
-    try {
-      await axios.delete(`${api_url}college/${collegeId}`);
-      toast.success("College deleted successfully!");
-      fetchColleges(pagination.page, pagination.limit, search);
-    } catch (err) {
-      console.error("Error deleting college:", err);
-      toast.error("Error deleting college. Please try again.");
-    }
-  };
-
   const goToPage = (page: number) => {
     if (page < 1 || page > pagination.pages) return;
     setPagination((prev) => ({ ...prev, page }));
   };
+
+  const selectedIds = colleges.filter((c) => c.selected).map((c) => c._id);
 
   if (!mounted) return null;
 
@@ -110,9 +95,8 @@ const AdminColleges = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Colleges List</h1>
 
-      {/* Controls */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-2 max-w-[80px]xl">
+        <div className="flex justify-between items-center mb-2">
           <button
             onClick={() => router.push("/admin/manageColleges/new")}
             className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
@@ -135,14 +119,11 @@ const AdminColleges = () => {
             />
           </div>
 
-          <ExportCollegesButton />
+          <ExportCollegesButton selectedCollegeIds={selectedIds} />
         </div>
       </div>
 
-      {/* Data Table */}
-      {loading && (
-        <p className="text-center text-gray-500">Loading colleges...</p>
-      )}
+      {loading && <p className="text-center text-gray-500">Loading colleges...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -151,42 +132,46 @@ const AdminColleges = () => {
             <table className="table-auto w-full text-left border-collapse">
               <thead className="bg-gray-200 text-gray-600">
                 <tr>
-                  {["Name", "Location", "Rank", "Website", "Actions"].map(
-                    (header) => (
-                      <th
-                        key={header}
-                        className="px-6 py-3 text-sm font-semibold"
-                      >
-                        {header}
-                      </th>
-                    )
-                  )}
+                  <th className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setColleges((prev) =>
+                          prev.map((college) => ({ ...college, selected: checked }))
+                        );
+                      }}
+                    />
+                  </th>
+                  {["Name", "Location", "Rank", "Website", "Actions"].map((header) => (
+                    <th key={header} className="px-6 py-3 text-sm font-semibold">{header}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {colleges.length > 0 ? (
                   colleges.map((college) => (
                     <tr key={college._id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-3 text-sm text-gray-700">
-                        {college.name}
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={college.selected || false}
+                          onChange={() =>
+                            setColleges((prev) =>
+                              prev.map((c) =>
+                                c._id === college._id ? { ...c, selected: !c.selected } : c
+                              )
+                            )
+                          }
+                        />
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">
-                        {college.location}
-                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{college.name}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">{college.location}</td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {college.rank ? `#${college.rank}` : "N/A"}
                       </td>
-                      {/* <td className="px-6 py-3 text-sm text-gray-700">
-                        {college.courses?.length > 0
-                          ? college.courses.join(", ")
-                          : "No Courses"}
-                      </td> */}
                       <td className="px-6 py-3 text-sm text-blue-500 hover:underline">
-                        <a
-                          href={college.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                        <a href={college.website} target="_blank" rel="noopener noreferrer">
                           Visit
                         </a>
                       </td>
@@ -196,23 +181,10 @@ const AdminColleges = () => {
                             router.push(`/admin/manageColleges/${college._id}`)
                           }
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
-                          aria-label={`Edit ${college.name}`}
                         >
                           <PencilSquareIcon className="h-5 w-5" />
                           <span>Edit</span>
                         </button>
-
-                        {/* Uncomment below to enable delete button */}
-                        {/* 
-                        <button
-                          onClick={() => handleDelete(college._id)}
-                          className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                          aria-label={`Delete ${college.name}`}
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                          <span>Delete</span>
-                        </button> 
-                        */}
                       </td>
                     </tr>
                   ))
@@ -226,7 +198,6 @@ const AdminColleges = () => {
               </tbody>
             </table>
 
-            {/* Pagination Controls */}
             <div className="flex justify-between items-center p-4 border-t bg-gray-50">
               <button
                 onClick={() => goToPage(pagination.page - 1)}
@@ -244,9 +215,7 @@ const AdminColleges = () => {
                 onClick={() => goToPage(pagination.page + 1)}
                 disabled={pagination.page === pagination.pages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                  pagination.page === pagination.pages
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                  pagination.page === pagination.pages ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 Next

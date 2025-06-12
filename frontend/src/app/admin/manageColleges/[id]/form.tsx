@@ -106,11 +106,11 @@ const ActualCollegeForm = () => {
         if (response.data?.tinymceApiKey) {
           setDynamicApiKey(response.data.tinymceApiKey);
         } else {
-          console.error("API key not found in settings response");
+          // console.error("API key not found in settings response");
           setDynamicApiKey(""); // fallback empty string or handle differently
         }
       } catch (err) {
-        console.error("Failed to fetch TinyMCE API key", err);
+        // console.error("Failed to fetch TinyMCE API key", err);
         setDynamicApiKey("");
       }
     };
@@ -201,19 +201,29 @@ const ActualCollegeForm = () => {
   };
 
   /*** ✅ Handle Input Change ***/
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
+const handleChange = useCallback(
+  (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
 
-      // console.log("📌 Changing Field:", name, "➡️ New Value:", value); // Debugging log
 
-      setCollegeData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    },
-    [] // ✅ No dependencies required, since it doesn’t rely on external variables
-  );
+    // Validation: Name should not contain numbers
+    if (name === "name" && /\d/.test(value)) {
+      return;
+    }
+
+    // Validation: Contact should contain only numbers
+    if (name === "contact" && /[^0-9]/.test(value)) {
+      return;
+    }
+
+    setCollegeData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  },
+  []
+);
+
 
   /*** ✅ Handle Image Upload ***/
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -333,7 +343,7 @@ const ActualCollegeForm = () => {
       // console.log(`🔹 ${key}: ${value}`);
     }
 
-    // Log stream data before appending
+    // // Log stream data before appending
     // console.log("Stream data before appending:", collegeData.stream);
     // console.log("Stream data before appending:", collegeData.examExpected);
     // console.log("Stream data before appending:", collegeData.approvel);
@@ -456,10 +466,10 @@ const ActualCollegeForm = () => {
         router.push("/admin/manageColleges");
       }
     } catch (err: any) {
-      // console.error(
-      //   "❌ Error saving college:",
-      //   err.response?.data || err.message
-      // );
+      console.error(
+        "❌ Error saving college:",
+        err.response?.data || err.message
+      );
       setError(
         err.response?.data?.message ||
           "Failed to save college. Please check your input."
@@ -500,7 +510,7 @@ const ActualCollegeForm = () => {
 
   const handleFeaturedToggle = (newState: boolean) => {
     setIsFeatured(newState); // Update the state to the new featured value
-    // console.log("Featured status:", newState); // You can handle the logic here (e.g., API calls)
+    console.log("Featured status:", newState); // You can handle the logic here (e.g., API calls)
   };
 
   // Show loader while TinyMCE API key is loading

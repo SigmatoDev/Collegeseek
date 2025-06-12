@@ -5,6 +5,7 @@ import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import { Suspense } from "react";
 import CollegesClientWrapper from "./collegeClientWrapper";
 import CallbackForm from "@/components/newsletters/page";
+import AdBanner from "@/components/adBox/adBox5";
 
 export default function CollegesPage() {
   return (
@@ -17,6 +18,7 @@ export default function CollegesPage() {
       </div>
       <div className="relative px-10 py-6">
         <Suspense fallback={<p>Loading colleges...</p>}>
+
           <CollegesClientWrapper />
         </Suspense>
       </div>

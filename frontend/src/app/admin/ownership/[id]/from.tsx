@@ -29,7 +29,9 @@ const OwnershipForm = () => {
       }
 
       try {
-        console.log(`📡 Fetching ownership data for ownershipId: ${ownershipId}`);
+        console.log(
+          `📡 Fetching ownership data for ownershipId: ${ownershipId}`
+        );
 
         const url = `${api_url}id/Ownership/${ownershipId}`;
         console.log(`🚀 API Request URL: ${url}`);
@@ -53,12 +55,12 @@ const OwnershipForm = () => {
     fetchOwnershipData();
   }, [ownershipId]);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setOwnershipData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    },
-    []
-  );
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Remove numbers from the input value
+    const filteredValue = value.replace(/[0-9]/g, "");
+    setOwnershipData((prev) => ({ ...prev, [name]: filteredValue }));
+  }, []);
 
   const handleCancel = () => {
     router.push("/admin/ownership");
@@ -80,7 +82,8 @@ const OwnershipForm = () => {
         ownershipId && ownershipId !== "new"
           ? `${api_url}update/Ownership/${ownershipId}`
           : `${api_url}/create/Ownership/`;
-      const method = ownershipId && ownershipId !== "new" ? axios.put : axios.post;
+      const method =
+        ownershipId && ownershipId !== "new" ? axios.put : axios.post;
 
       const response = await method(url, ownershipData);
 
@@ -114,7 +117,9 @@ const OwnershipForm = () => {
   return (
     <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
       <h1 className="text-3xl font-semibold text-center text-gray-900 mb-6">
-        {ownershipId && ownershipId !== "new" ? "Edit Ownership" : "Create New Ownership"}
+        {ownershipId && ownershipId !== "new"
+          ? "Edit Ownership"
+          : "Create New Ownership"}
       </h1>
 
       {error && <p className="text-red-600 text-center mb-4">{error}</p>}

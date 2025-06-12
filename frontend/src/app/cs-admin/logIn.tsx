@@ -7,7 +7,7 @@ import { api_url } from '@/utils/apiCall';
 import axios from 'axios';
 import { useAdminStore } from '@/Store/adminStore';
 
-const Login = () => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -104,4 +104,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

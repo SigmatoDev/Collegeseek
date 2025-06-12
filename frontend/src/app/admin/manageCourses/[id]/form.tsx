@@ -72,36 +72,41 @@ const ActualCourseForm = () => {
     fetchCourseList();
   }, []);
 
-useEffect(() => {
-  if (courseId && courseId !== "new") {
-    axios.get(`${api_url}courses/${courseId}`)
-      .then(res => {
-        const fetchedCourse = res.data || {};
-        if (fetchedCourse.category && typeof fetchedCourse.category === "object") {
-          fetchedCourse.category = fetchedCourse.category._id;
-        }
-        if (fetchedCourse.college_id && typeof fetchedCourse.college_id === "object") {
-          fetchedCourse.college_id = fetchedCourse.college_id._id;
-        }
-        setCourse(fetchedCourse);
-      })
-      .catch(err => console.error(err));
-  }
-}, [courseId]);
+  useEffect(() => {
+    if (courseId && courseId !== "new") {
+      axios
+        .get(`${api_url}courses/${courseId}`)
+        .then((res) => {
+          const fetchedCourse = res.data || {};
+          if (
+            fetchedCourse.category &&
+            typeof fetchedCourse.category === "object"
+          ) {
+            fetchedCourse.category = fetchedCourse.category._id;
+          }
+          if (
+            fetchedCourse.college_id &&
+            typeof fetchedCourse.college_id === "object"
+          ) {
+            fetchedCourse.college_id = fetchedCourse.college_id._id;
+          }
+          setCourse(fetchedCourse);
+        })
+        .catch((err) => console.error(err));
+    }
+  }, [courseId]);
 
-
-const handleChange = useCallback(
-  (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    console.log("Field changed:", e.target.name, "Value:", e.target.value); // <--- Add this line
-    setCourse((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  },
-  []
-);
-
+  const handleChange = useCallback(
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >
+    ) => {
+      console.log("Field changed:", e.target.name, "Value:", e.target.value); // <--- Add this line
+      setCourse((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    },
+    []
+  );
 
   const handleNestedChange = useCallback(
     (
@@ -248,23 +253,21 @@ const handleChange = useCallback(
           >
             Degree
           </label>
-       <select
-  id="category"
-  name="category"
-  value={course.category ?? ""}
-  onChange={handleChange}
-  className="p-2 border rounded w-full"
-  required
->
-  <option value="">Select Degree</option>
-  {courseList.map((cat) => (
-    <option key={cat._id} value={cat._id}>
-      {cat.name}
-    </option>
-  ))}
-</select>
-
-
+          <select
+            id="category"
+            name="category"
+            value={course.category ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          >
+            <option value="">Select Degree</option>
+            {courseList.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mb-4">
