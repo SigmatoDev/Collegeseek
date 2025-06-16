@@ -10,11 +10,14 @@ import PopUp from "@/components/popup/popUp";
 import { api_url } from "@/utils/apiCall";
 import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
 
-// ✅ Server-side meta generation
+// ✅ FIX: Force dynamic rendering
+export const dynamic = "force-dynamic";
+
+// ✅ Meta fetch using dynamic fetch
 export async function generateMetadata() {
   try {
     const res = await fetch(`${api_url}get/meta?page=home`, {
-      cache: "no-store", // Ensures fresh data
+      cache: "no-store", // causes dynamic fetch
     });
     const data = await res.json();
 
@@ -36,12 +39,14 @@ export async function generateMetadata() {
     };
   } catch (error) {
     console.error("❌ Meta fetch failed:", error);
-    return {}; // Return empty object if fetch fails
+    return {
+      title: "Pre School",
+      description: "Best preschool platform for kids.",
+    };
   }
 }
 
-
-// ✅ Main component — server component
+// ✅ Page component
 export default function HomePage() {
   return (
     <div className="bg-[#fffdff]">
