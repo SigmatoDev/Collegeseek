@@ -75,63 +75,67 @@ export default function CollegesClientWrapper() {
     },
     [router, searchParams]
   );
-  return (
-<div className="flex gap-6">
-  {/* Sidebar */}
+ return (
+  <div className="flex flex-col lg:flex-row gap-6">
+    {/* Sidebar */}
     <FilterSidebarNew
       filters={filters}
       selectedFilters={parseSearchParams()}
       onFilterChange={handleFilterChange}
     />
-  {/* Main Content */}
-  <div className="flex-1 space-y-6">
-          <AdBanner/>
 
-    {colleges.length === 0 ? (
-      <p>No colleges found.</p>
-    ) : (
-      <>
-        {colleges.map((college) => (
-          <FilterCollegeCard key={college._id} collegeId={college._id} />
-        ))}
-        {totalPages > 1 && (
-          <div className="flex flex-wrap justify-center gap-2 mt-6">
-            {[...Array(totalPages)].map((_, i) => {
-              const page = (i + 1).toString();
-              return (
-                <button
-                  key={page}
-                  className={`px-3 py-1 border rounded ${
-                    currentPage === i + 1
-                      ? "bg-black text-white"
-                      : "bg-white text-black"
-                  }`}
-                  onClick={() => {
-                    const updatedFilters = parseSearchParams();
-                    updatedFilters.page = [page];
-                    handleFilterChange(updatedFilters);
-                  }}
-                >
-                  {page}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </>
+    {/* Main Content */}
+    <div className="flex-1 space-y-6 order-first lg:order-none">
+      <AdBanner />
+
+      {colleges.length === 0 ? (
+        <p>No colleges found.</p>
+      ) : (
+        <>
+          {colleges.map((college) => (
+            <FilterCollegeCard key={college._id} collegeId={college._id} />
+          ))}
+          {totalPages > 1 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
+              {[...Array(totalPages)].map((_, i) => {
+                const page = (i + 1).toString();
+                return (
+                  <button
+                    key={page}
+                    className={`px-3 py-1 border rounded ${
+                      currentPage === i + 1
+                        ? "bg-black text-white"
+                        : "bg-white text-black"
+                    }`}
+                    onClick={() => {
+                      const updatedFilters = parseSearchParams();
+                      updatedFilters.page = [page];
+                      handleFilterChange(updatedFilters);
+                    }}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+
+    {/* Ad Section */}
+    <div className="w-[275px] space-y-4 shrink-0">
+      <AdBox1 />
+      <AdBox2 />
+    </div>
+
+    {/* Loading Overlay */}
+    {loading && (
+      <div className="fixed inset-0 z-50 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+        <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent rounded-full" />
+      </div>
     )}
   </div>
-  {/* Ad Section */}
-  <div className="w-[250px] space-y-4 shrink-0">
-      <AdBox1 />
-    <AdBox2 />
-  </div>
-  {/* Loading Overlay */}
-  {loading && (
-    <div className="fixed inset-0 z-50 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-      <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent rounded-full" />
-    </div>
-  )}
-</div>
-  )
+);
+
 }

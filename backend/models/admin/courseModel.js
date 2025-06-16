@@ -2,34 +2,29 @@ const mongoose = require("mongoose");
 
 const CourseSchema = new mongoose.Schema(
   {
-    
     slug: { type: String, unique: true },
     name: {
       type: String,
-      required: false
+      required: false,
     },
     specialization: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Specialization', // this should match your Specialization model name
-  },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Specialization", // this should match your Specialization model name
+    },
     description: {
       type: String,
-      required: true
+      required: true,
     },
     college_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "College",
-      required: true
+      required: true,
     },
-   
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CoursesList",
-      required: true
-    },
-    mode: {
-      type: String,
-      enum: ["Full-Time", "Part-Time", "Online"],
+      required: true,
     },
     programMode: {
       type: mongoose.Schema.Types.ObjectId,
@@ -38,97 +33,95 @@ const CourseSchema = new mongoose.Schema(
     },
     duration: {
       type: String,
-      required: true
+      required: true,
     },
 
     fees: {
       amount: {
         type: Number,
-        required: true 
+        required: true,
       },
       currency: {
         type: String,
-        default: "INR"
+        default: "INR",
       },
       year: {
         type: Number,
-        required: true
-      }
+        required: true,
+      },
     },
     eligibility: {
       type: String,
-      required: false
+      required: false,
     },
     application_dates: {
       start_date: {
-        type: Date
+        type: Date,
       },
       end_date: {
-        type: Date
-      }
+        type: Date,
+      },
     },
-   
+
     ratings: {
       score: {
         type: Number,
         min: 0,
         max: 5,
-        default: 0
+        default: 0,
       },
       reviews_count: {
         type: Number,
-        default: 0
-      }
+        default: 0,
+      },
     },
     placements: {
       median_salary: {
-        type: Number
+        type: Number,
       },
       currency: {
         type: String,
-        default: "INR"
+        default: "INR",
       },
       placement_rate: {
-        type: Number
-      }
+        type: Number,
+      },
     },
     intake_capacity: {
       male: {
-        type: Number
+        type: Number,
       },
       female: {
-        type: Number
+        type: Number,
       },
       total: {
-        type: Number
-      }
+        type: Number,
+      },
     },
     entrance_exam: {
-      type: String
+      type: String,
     },
     enrollmentLink: {
       type: String,
-      required: true
+      required: true,
     },
     brochure_link: {
-      type: String
+      type: String,
     },
     image: {
       type: String, // Image field to store the image URL or base64 string
-      default: null
+      default: null,
     },
     created_at: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     updated_at: {
       type: Date,
-      default: Date.now
-    }
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );
-
-
 
 module.exports = mongoose.model("Course", CourseSchema);

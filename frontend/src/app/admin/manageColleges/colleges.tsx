@@ -57,7 +57,9 @@ const AdminColleges = () => {
     setError(null);
     try {
       const { data } = await axios.get(
-        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(query)}`
+        `${api_url}search/colleges?page=${page}&limit=${limit}&search=${encodeURIComponent(
+          query
+        )}`
       );
 
       if (!data.success || !Array.isArray(data.data)) {
@@ -107,23 +109,54 @@ const AdminColleges = () => {
           <ImportColleges />
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 w-[440px] border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-            />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="relative w-[440px]">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+              />
+            </div>
+
+            <ExportCollegesButton selectedCollegeIds={selectedIds} />
           </div>
 
-          <ExportCollegesButton selectedCollegeIds={selectedIds} />
+          <div className="flex items-center space-x-3 py-2">
+            <label htmlFor="limit" className="text-sm text-gray-600">
+              Rows per page
+            </label>
+            <select
+              id="limit"
+              value={pagination.limit}
+              onChange={(e) =>
+                setPagination((prev) => ({
+                  ...prev,
+                  limit: parseInt(e.target.value, 10),
+                  page: 1,
+                }))
+              }
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            >
+              {[10, 20, 50].map((num) => (
+                <option key={num} value={num}>
+                  {num}
+                </option>
+              ))}
+            </select>
+            <label htmlFor="limit" className="text-sm text-gray-600">
+              Entries
+            </label>
+          </div>
         </div>
       </div>
 
-      {loading && <p className="text-center text-gray-500">Loading colleges...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">Loading colleges...</p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -138,14 +171,24 @@ const AdminColleges = () => {
                       onChange={(e) => {
                         const checked = e.target.checked;
                         setColleges((prev) =>
-                          prev.map((college) => ({ ...college, selected: checked }))
+                          prev.map((college) => ({
+                            ...college,
+                            selected: checked,
+                          }))
                         );
                       }}
                     />
                   </th>
-                  {["Name", "Location", "Rank", "Website", "Actions"].map((header) => (
-                    <th key={header} className="px-6 py-3 text-sm font-semibold">{header}</th>
-                  ))}
+                  {["Name", "Location", "Rank", "Website", "Actions"].map(
+                    (header) => (
+                      <th
+                        key={header}
+                        className="px-6 py-3 text-sm font-semibold"
+                      >
+                        {header}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -159,19 +202,29 @@ const AdminColleges = () => {
                           onChange={() =>
                             setColleges((prev) =>
                               prev.map((c) =>
-                                c._id === college._id ? { ...c, selected: !c.selected } : c
+                                c._id === college._id
+                                  ? { ...c, selected: !c.selected }
+                                  : c
                               )
                             )
                           }
                         />
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{college.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{college.location}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {college.name}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {college.location}
+                      </td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {college.rank ? `#${college.rank}` : "N/A"}
                       </td>
                       <td className="px-6 py-3 text-sm text-blue-500 hover:underline">
-                        <a href={college.website} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={college.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           Visit
                         </a>
                       </td>
@@ -215,7 +268,9 @@ const AdminColleges = () => {
                 onClick={() => goToPage(pagination.page + 1)}
                 disabled={pagination.page === pagination.pages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                  pagination.page === pagination.pages ? "opacity-50 cursor-not-allowed" : ""
+                  pagination.page === pagination.pages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 Next

@@ -33,7 +33,7 @@ const AdBox1 = () => {
   }, []);
 
   return (
-    <div className="bg-gray-100 p-4 w-72 h-96 shadow-lg rounded-lg flex flex-col items-center">
+    <div className="bg-gray-100 p-4 w-[270px] h-96 mx-[2px] mt-[1px] shadow-lg rounded-lg flex flex-col items-center">
       {loading ? (
         <p className="text-center">Loading...</p>
       ) : (

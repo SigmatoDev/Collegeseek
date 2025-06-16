@@ -1,48 +1,60 @@
-"use client";
-
-import CollegeAdmissions from "@/components/admissions/page";
-import BlogList from "@/components/blogs/blogList/blogList";
-import CategoryGrid from "@/components/categoryGrid/CategoryGrid";
-import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
-import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
+import Footer from "@/components/footer/page";
 import HeroSection from "@/components/hero/page";
+import TrendingNow from "@/components/trendingNow/trendingNow";
+import CollegeAdmissions from "@/components/admissions/page";
+import CategoryGrid from "@/components/categoryGrid/CategoryGrid";
+import BlogList from "@/components/blogs/blogList/blogList";
 import CallbackForm from "@/components/newsletters/page";
 import PopUp from "@/components/popup/popUp";
-import TrendingNow from "@/components/trendingNow/trendingNow";
-import { useEffect, useState } from "react";
+import { api_url } from "@/utils/apiCall";
+import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
+
+// ✅ Server-side meta generation
+export async function generateMetadata() {
+  try {
+    const res = await fetch(`${api_url}get/meta?page=home`, {
+      cache: "no-store", // Ensures fresh data
+    });
+    const data = await res.json();
+
+    return {
+      title: data.title,
+      description: data.description,
+      keywords: data.keywords,
+      openGraph: {
+        title: data.ogTitle,
+        description: data.ogDescription,
+        url: data.ogUrl,
+        siteName: data.ogSiteName,
+        type: data.ogType,
+      },
+      twitter: {
+        title: data.xTitle,
+        description: data.xDescription,
+      },
+    };
+  } catch (error) {
+    console.error("❌ Meta fetch failed:", error);
+    return {}; // Return empty object if fetch fails
+  }
+}
 
 
-
-const HomePage = () => {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulated delay — replace with real data fetching logic if needed
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-
+// ✅ Main component — server component
+export default function HomePage() {
   return (
     <div className="bg-[#fffdff]">
       <Header />
       <HeroSection />
-      <TrendingNow/>
-      <FeaturedColleges/>
-
+      <TrendingNow />
+      <FeaturedColleges />
       <CollegeAdmissions />
-              <CategoryGrid />
-
+      <CategoryGrid />
       <BlogList />
-      <CallbackForm/>
+      <CallbackForm />
       <PopUp />
       <Footer />
     </div>
   );
-};
-
-export default HomePage;
+}

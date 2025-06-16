@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
 import {
+  MagnifyingGlassIcon,
   PencilSquareIcon,
   PlusCircleIcon,
-  TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Search } from "lucide-react";
+import ExportCoursesButton from "./exportCourses";
 
 interface Specialization {
   _id: string;
@@ -28,12 +28,13 @@ interface Course {
 const AdminCourses = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const coursesPerPage = 100;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [coursesPerPage, setCoursesPerPage] = useState(10);
   const router = useRouter();
 
   useEffect(() => {
@@ -46,9 +47,7 @@ const AdminCourses = () => {
       const { data } = await axios.get(
         `${api_url}/courses?page=${page}&limit=${coursesPerPage}`
       );
-
       const fetchedCourses = data?.courses || [];
-
       setCourses(
         fetchedCourses.map((course: any) => ({
           ...course,
@@ -57,11 +56,9 @@ const AdminCourses = () => {
           specialization: course.specialization || { _id: "", name: "N/A" },
         }))
       );
-
       setTotalPages(data?.totalPages || 1);
       setError(null);
     } catch (err: any) {
-      console.error("Error fetching courses:", err);
       setError(err.response?.data?.message || "Failed to fetch courses.");
     } finally {
       setLoading(false);
@@ -69,29 +66,44 @@ const AdminCourses = () => {
   };
 
   useEffect(() => {
-    if (isMounted) {
-      fetchCourses(currentPage);
-    }
-  }, [currentPage, isMounted]);
+    if (isMounted) fetchCourses(currentPage);
+  }, [currentPage, isMounted, coursesPerPage]);
 
-  const handleDelete = async (courseId: string) => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
+  const toggleSelectCourse = (id: string) => {
+    setSelectedCourses((prev) =>
+      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+    );
+  };
 
-    try {
-      await axios.delete(`${api_url}/courses/${courseId}`);
-      toast.success("Course deleted successfully!");
-      fetchCourses(currentPage);
-    } catch (err) {
-      console.error("Error deleting course:", err);
-      toast.error("Failed to delete course.");
+  const toggleSelectAll = () => {
+    const filtered = courses.filter((course) =>
+      course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.duration.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.specialization?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    const allIds = filtered.map((c) => c._id);
+    const isAllSelected = allIds.every((id) => selectedCourses.includes(id));
+    if (isAllSelected) {
+      setSelectedCourses((prev) => prev.filter((id) => !allIds.includes(id)));
+    } else {
+      setSelectedCourses((prev) => Array.from(new Set([...prev, ...allIds])));
     }
   };
+
+  const filteredCourses = courses.filter((course) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      course.description.toLowerCase().includes(term) ||
+      course.duration.toLowerCase().includes(term) ||
+      course.specialization?.name.toLowerCase().includes(term)
+    );
+  });
 
   if (!isMounted) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Courses List</h1>
         <button
           onClick={() => router.push("/admin/manageCourses/new")}
@@ -100,102 +112,113 @@ const AdminCourses = () => {
           <PlusCircleIcon className="w-5 h-5 mr-2" />
           Add Course
         </button>
-      </header>
-
-      {/* Search Bar */}
-      <div className="mb-4 relative w-full md:w-1/2">
-        <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-          size={18}
-        />
-        <input
-          suppressHydrationWarning
-          type="text"
-          placeholder="Search courses..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-[500px] pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
       </div>
 
-      {loading && (
-        <p className="text-center text-gray-500">Loading courses...</p>
-      )}
+      {/* Export + Search */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <ExportCoursesButton selectedCourseIds={selectedCourses} />
+
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-[440px] border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+          />
+        </div>
+      </div>
+
+      {/* Rows Per Page + Entries */}
+      <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-black">Rows per page</span>
+          <select
+            value={coursesPerPage}
+            onChange={(e) => {
+              setCoursesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border-[1px] border-black rounded-md px-3 py-2 text-sm"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+           <span className="text-sm text-black ">
+           Entries
+        </span>
+        </div>
+      
+      </div>
+
+      {/* Course Table */}
+      {loading && <p className="text-center text-gray-500">Loading courses...</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="overflow-x-auto shadow-md rounded bg-white">
+        <div className="overflow-x-auto shadow-md rounded bg-white mt-4">
           <table className="table-auto w-full text-left border-collapse">
             <thead className="bg-gray-200 text-gray-600">
               <tr>
-                {[
-                  "Specialization",
-                  "Description",
-                  "Duration",
-                  "Fees",
-                  "Actions",
-                ].map((header) => (
-                  <th key={header} className="px-6 py-3 text-sm font-semibold">
-                    {header}
-                  </th>
-                ))}
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    onChange={toggleSelectAll}
+                    checked={
+                      filteredCourses.length > 0 &&
+                      filteredCourses.every((course) =>
+                        selectedCourses.includes(course._id)
+                      )
+                    }
+                  />
+                </th>
+                <th className="px-6 py-3 text-sm font-semibold">Specialization</th>
+                <th className="px-6 py-3 text-sm font-semibold">Description</th>
+                <th className="px-6 py-3 text-sm font-semibold">Duration</th>
+                <th className="px-6 py-3 text-sm font-semibold">Fees</th>
+                <th className="px-6 py-3 text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {courses
-                .filter((course) => {
-                  const term = searchTerm.toLowerCase();
-                  return (
-                    course.description.toLowerCase().includes(term) ||
-                    course.duration.toLowerCase().includes(term) ||
-                    course.specialization?.name.toLowerCase().includes(term)
-                  );
-                })
-                .map((course) => (
-                  <tr key={course._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {course.specialization?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {course.description}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      {course.duration}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-700">
-                      ₹{course.fees}
-                    </td>
-                    <td className="px-6 py-3 flex space-x-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/admin/manageCourses/${course._id}`)
-                        }
-                        className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
-                      >
-                        <PencilSquareIcon className="h-5 w-5" />
-                        <span>Edit</span>
-                      </button>
-                      {/* Uncomment to enable delete
-                      <button
-                        onClick={() => handleDelete(course._id)}
-                        className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                        <span>Delete</span>
-                      </button> */}
-                    </td>
-                  </tr>
-                ))}
-              {courses.filter((course) => {
-                const term = searchTerm.toLowerCase();
-                return (
-                  course.description.toLowerCase().includes(term) ||
-                  course.duration.toLowerCase().includes(term) ||
-                  course.specialization?.name.toLowerCase().includes(term)
-                );
-              }).length === 0 && (
+              {filteredCourses.map((course) => (
+                <tr key={course._id} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedCourses.includes(course._id)}
+                      onChange={() => toggleSelectCourse(course._id)}
+                    />
+                  </td>
+                  <td className="px-6 py-3 text-sm text-gray-700">
+                    {course.specialization?.name || "N/A"}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-gray-700 max-w-[400px] whitespace-pre-wrap">
+                    {course.description}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-gray-700">
+                    {course.duration}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-gray-700">
+                    ₹{course.fees}
+                  </td>
+                  <td className="px-6 py-3">
+                    <button
+                      onClick={() =>
+                        router.push(`/admin/manageCourses/${course._id}`)
+                      }
+                      className="bg-blue-500 text-white px-3 py-1.5 rounded-lg flex items-center space-x-1 hover:bg-blue-600"
+                    >
+                      <PencilSquareIcon className="h-4 w-4" />
+                      <span>Edit</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredCourses.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-500">
+                  <td colSpan={6} className="text-center py-4 text-gray-500">
                     No courses found.
                   </td>
                 </tr>
@@ -203,7 +226,7 @@ const AdminCourses = () => {
             </tbody>
           </table>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           <div className="flex justify-between items-center p-4 border-t bg-gray-50">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -223,9 +246,7 @@ const AdminCourses = () => {
               }
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
+                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               Next

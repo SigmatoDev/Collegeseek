@@ -44,7 +44,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Connect to MongoDB
 connectDB();
 
-// Routes
+// Routes 
 app.use("/api", require("./routes/admin/auth/authRoutes"));
 app.use("/api", require("./routes/Users/auth/userRoutes"));
 app.use("/api", require("./routes/admin/collegeRoutes"));
@@ -88,6 +88,7 @@ app.use("/api", require("./routes/admin/trendingNowRoutes"));
 app.use("/api", require("./routes/admin/ads5Routes"));
 app.use("/api", require("./routes/admin/excelCollegeRoutes"));
 app.use("/api", require("./routes/filter/coursesRoutes"));
+app.use("/api", require("./routes/admin/metaRoutes"));
 
 // Start the server
 app.listen(PORT, () => {

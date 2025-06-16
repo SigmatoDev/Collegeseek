@@ -49,16 +49,24 @@ const AdBanner = () => {
   if (ads.length === 0) return <p className="p-4 text-center">No ads available.</p>;
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 justify-center">
+    <div className="flex flex-wrap gap-4 justify-center">
       {ads.map((ad) => {
-        const imageUrl = ad.src.startsWith('http') ? ad.src : `${img_url.replace(/\/$/, '')}/${ad.src.replace(/^\//, '')}`;
+        const imageUrl = ad.src.startsWith('http')
+          ? ad.src
+          : `${img_url.replace(/\/$/, '')}/${ad.src.replace(/^\//, '')}`;
+
         return (
           <div
             key={ad._id}
-            className="w-[397px] h-[120px] bg-gray-100 rounded-lg shadow p-2 flex items-center justify-center"
+            className="min-w-[45%] sm:min-w-[47%] md:min-w-[30%] lg:min-w-[30%] h-[120px] bg-gray-100 rounded-lg shadow p-2 flex items-center justify-center flex-1"
           >
             {ad.link ? (
-              <a href={ad.link} target="_blank" rel="noopener noreferrer" className="w-full h-full block">
+              <a
+                href={ad.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-full block"
+              >
                 <Image
                   src={imageUrl}
                   alt={ad.alt || 'Ad Image'}

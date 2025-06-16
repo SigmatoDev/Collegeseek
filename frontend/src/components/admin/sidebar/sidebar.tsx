@@ -22,7 +22,12 @@ import {
   Plug,
   Monitor,
 } from "lucide-react";
-import { BookOpenIcon, ChatBubbleLeftIcon, DocumentIcon, UserGroupIcon } from "@heroicons/react/24/outline";
+import {
+  BookOpenIcon,
+  ChatBubbleLeftIcon,
+  DocumentIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
 
 interface SidebarLinkProps {
   href: string;
@@ -129,6 +134,7 @@ const Sidebar = () => {
         { href: "/admin/specialization", icon: <Grid size={18} />, text: "Specialization", isOpen },
         { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
         { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
+        { href: "/admin/meta", icon: <FileText size={18} />, text: "Meta", isOpen }, // ✅ New Meta submenu
       ],
     },
   ];
