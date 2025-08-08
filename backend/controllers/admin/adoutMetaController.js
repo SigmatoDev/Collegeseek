@@ -1,5 +1,5 @@
 // controllers/meta.controller.js
-const Meta = require("../../models/admin/metaModel");
+const Meta = require("../../models/admin/aboutusMetaModel");
 
 // Create or Update Meta
 exports.upsertMeta = async (req, res) => {
@@ -19,22 +19,27 @@ exports.upsertMeta = async (req, res) => {
 };
 
 // Get Meta by Page
-exports.getMeta = async (req, res) => {
+exports.getMetaByPage = async (req, res) => {
   try {
-    const meta = await Meta.findOne({ page: "home" });
-
-    if (!meta) {
-      return res.status(404).json({ message: "Meta not found" });
+    const { page } = req.query;
+    if (!page) {
+      return res.status(400).json({ message: "Query param 'page' is required." });
     }
 
-    res.json(meta);
+    const meta = await Meta.findOne({ page });
+
+    if (!meta) {
+      return res.status(404).json({ message: `Meta not found for page: ${page}` });
+    }
+
+    res.status(200).json(meta);
   } catch (err) {
-    console.error("Error fetching meta:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Error fetching meta:", err);
+    res.status(500).json({ message: "Server error while fetching metadata." });
   }
 };
 
-exports.updateMeta = async (req, res) => {
+exports.aboutUpdateMeta = async (req, res) => {
   try {
     const {
       page,

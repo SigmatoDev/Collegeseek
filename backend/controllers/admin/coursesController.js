@@ -6,8 +6,6 @@ const CoursesList = require("../../models/admin/coursesList"); // Adjust path if
 const ProgramMode = require("../../models/admin/programMode"); // Adjust path if necessary
 const Specialization = require("../../models/admin/specialization"); // <- Capitalize for consistency
 
-
-
 // Get all courses
 const getCourse = async (req, res) => {
   try {
@@ -50,7 +48,6 @@ const getCourses = async (req, res) => {
   }
 };
 
-
 // Get course by ID
 const getCourseById = async (req, res) => {
   try {
@@ -59,7 +56,10 @@ const getCourseById = async (req, res) => {
       return res.status(400).json({ message: "Invalid course ID format" });
     }
 
-    const course = await Course.findById(id).populate("college_id", "name location");
+    const course = await Course.findById(id).populate(
+      "college_id",
+      "name location"
+    );
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
@@ -67,7 +67,9 @@ const getCourseById = async (req, res) => {
     res.json(course);
   } catch (error) {
     console.error("Error fetching course:", error);
-    res.status(500).json({ message: "Failed to fetch course", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch course", error: error.message });
   }
 };
 
@@ -122,26 +124,50 @@ const getCourseById = async (req, res) => {
 //   }
 // };
 const createCourse = async (req, res) => {
-      // console.log("Request Body:", req.body);  // <-- Add this line
-
   try {
-    let { college_id, category, name, ...courseData } = req.body;
+    console.log("🔥 Incoming course data:", req.body);
 
+    let { college_id, category, name, streams, ...courseData } = req.body;
+
+    // Normalize college_id
     if (!mongoose.Types.ObjectId.isValid(college_id)) {
       const college = await College.findOne({ name: college_id });
       if (!college) {
+        console.log("❌ College not found:", college_id);
         return res.status(400).json({ message: "College not found" });
       }
       college_id = college._id;
     }
+    console.log("✅ Normalized college_id:", college_id);
 
-    const courseCategory = await CoursesList.findOne({ name: category });
-    if (!courseCategory) {
-      return res.status(400).json({ message: "Category not found" });
+   // Normalize category
+let courseCategory;
+
+if (mongoose.Types.ObjectId.isValid(category)) {
+  courseCategory = await CoursesList.findById(category);
+} else {
+  courseCategory = await CoursesList.findOne({ name: category });
+}
+
+if (!courseCategory) {
+  console.log("❌ Category not found:", category);
+  return res.status(400).json({ message: "Category not found" });
+}
+console.log("✅ Normalized category:", courseCategory._id);
+
+    // Normalize streams
+    if (!mongoose.Types.ObjectId.isValid(streams)) {
+      const streamDoc = await Streams.findOne({ name: streams });
+      if (!streamDoc) {
+        console.log("❌ Stream not found:", streams);
+        return res.status(400).json({ message: "Stream not found" });
+      }
+      streams = streamDoc._id;
     }
+    console.log("✅ Normalized streams:", streams);
 
+    // Generate unique slug
     let slug = slugify(name, { lower: true, strict: true });
-
     let existingCourse = await Course.findOne({ slug });
     let counter = 1;
     while (existingCourse) {
@@ -152,20 +178,28 @@ const createCourse = async (req, res) => {
 
     const imageUrl = req.file ? `/uploads/courses/${req.file.filename}` : null;
 
-    const newCourse = new Course({
-      ...courseData, // includes programMode if in body
+    // Final data before saving
+    const courseToCreate = {
+      ...courseData,
       name,
       slug,
       college_id,
       category: courseCategory._id,
+      streams,
       image: imageUrl,
-    });
+    };
 
+    console.log("📦 Final course object to save:", courseToCreate);
+
+    const newCourse = new Course(courseToCreate);
     await newCourse.save();
+
+    console.log("✅ Course created successfully:", newCourse._id);
     res.status(201).json(newCourse);
+
   } catch (error) {
-    console.error("Error creating course:", error);
-    res.status(500).json({ message: "Failed to create course" });
+    console.error("❌ Error creating course:", error);
+    res.status(500).json({ message: "Failed to create course", error: error.message });
   }
 };
 
@@ -221,43 +255,78 @@ const createCourse = async (req, res) => {
 //   }
 // };
 
-
-
-
 const updateCourse = async (req, res) => {
   try {
-    let { name, college_id, category, programMode, specialization, ...rest } = req.body;
-        console.log("Incoming request body:", req.body);
+    let {
+      name,
+      college_id,
+      category,
+      programMode,
+      specialization,
+      streams,
+      ...rest
+    } = req.body;
+    console.log("Incoming request body:", req.body);
 
     // Normalize college_id
-    if (college_id && typeof college_id === 'object') {
+    if (college_id && typeof college_id === "object") {
       college_id = college_id._id;
     }
     if (college_id && !mongoose.Types.ObjectId.isValid(college_id)) {
       const college = await College.findOne({ name: college_id });
-      if (!college) return res.status(400).json({ message: "College not found" });
+      if (!college)
+        return res.status(400).json({ message: "College not found" });
       college_id = college._id;
     }
 
     // Normalize category
-    if (category && typeof category !== 'object' && !mongoose.Types.ObjectId.isValid(category)) {
+    if (
+      category &&
+      typeof category !== "object" &&
+      !mongoose.Types.ObjectId.isValid(category)
+    ) {
       const courseCategory = await CoursesList.findOne({ name: category });
-      if (!courseCategory) return res.status(400).json({ message: "Category not found" });
+      if (!courseCategory)
+        return res.status(400).json({ message: "Category not found" });
       category = courseCategory._id;
     }
 
     // Normalize programMode
-    if (programMode && typeof programMode !== 'object' && !mongoose.Types.ObjectId.isValid(programMode)) {
+    if (
+      programMode &&
+      typeof programMode !== "object" &&
+      !mongoose.Types.ObjectId.isValid(programMode)
+    ) {
       const programModeDoc = await ProgramMode.findOne({ name: programMode });
-      if (!programModeDoc) return res.status(400).json({ message: "Program mode not found" });
+      if (!programModeDoc)
+        return res.status(400).json({ message: "Program mode not found" });
       programMode = programModeDoc._id;
     }
 
     // Normalize specialization
-    if (specialization && typeof specialization !== 'object' && !mongoose.Types.ObjectId.isValid(specialization)) {
-      const specializationDoc = await Specialization.findOne({ name: specialization });
-      if (!specializationDoc) return res.status(400).json({ message: "Specialization not found" });
+    if (
+      specialization &&
+      typeof specialization !== "object" &&
+      !mongoose.Types.ObjectId.isValid(specialization)
+    ) {
+      const specializationDoc = await Specialization.findOne({
+        name: specialization,
+      });
+      if (!specializationDoc)
+        return res.status(400).json({ message: "Specialization not found" });
       specialization = specializationDoc._id;
+    }
+
+    // Normalize streams
+    if (
+      streams &&
+      typeof streams !== "object" &&
+      !mongoose.Types.ObjectId.isValid(streams)
+    ) {
+      const streamDoc = await Streams.findOne({ name: streams });
+      if (!streamDoc)
+        return res.status(400).json({ message: "Stream not found" });
+      streams = streamDoc._id;
     }
 
     const updatedCourse = await Course.findByIdAndUpdate(
@@ -269,6 +338,8 @@ const updateCourse = async (req, res) => {
         ...(category && { category }),
         ...(programMode && { programMode }),
         ...(specialization && { specialization }),
+        ...(streams && { streams }),
+
         // Slug is intentionally left out
       },
       {
@@ -284,13 +355,11 @@ const updateCourse = async (req, res) => {
     res.json(updatedCourse);
   } catch (error) {
     console.error("Error updating course:", error);
-    res.status(500).json({ message: "Failed to update course", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update course", error: error.message });
   }
 };
-
-
-
-
 
 // Get course by slug
 const getCourseBySlug = async (req, res) => {
@@ -314,7 +383,12 @@ const getCourseBySlug = async (req, res) => {
     return res.status(200).json(course);
   } catch (error) {
     console.error("Error fetching course by slug:", error.message);
-    return res.status(500).json({ message: "Failed to fetch course by slug", error: error.message });
+    return res
+      .status(500)
+      .json({
+        message: "Failed to fetch course by slug",
+        error: error.message,
+      });
   }
 };
 
@@ -326,34 +400,41 @@ const getCoursesBySpecialization = async (req, res) => {
     console.log("Incoming specialization:", specialization);
 
     if (!specialization || typeof specialization !== "string") {
-      return res.status(400).json({ message: "Invalid specialization provided" });
+      return res
+        .status(400)
+        .json({ message: "Invalid specialization provided" });
     }
 
     // Optional: if specialization is stored in another model and referenced by ID
-    const matchedSpecialization = await Specialization.findOne({ name: specialization });
+    const matchedSpecialization = await Specialization.findOne({
+      name: specialization,
+    });
 
     if (!matchedSpecialization) {
       return res.status(404).json({ message: "Specialization not found" });
     }
 
-    const courses = await Course.find({ specialization: matchedSpecialization._id })
+    const courses = await Course.find({
+      specialization: matchedSpecialization._id,
+    })
       .populate("college_id", "name location")
       .populate("category", "name");
 
     return res.status(200).json(courses);
   } catch (error) {
     console.error("Error fetching courses by specialization:", error.message);
-    return res.status(500).json({ message: "Failed to fetch courses", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch courses", error: error.message });
   }
 };
-
-
 
 // Delete a course
 const deleteCourse = async (req, res) => {
   try {
     const deletedCourse = await Course.findByIdAndDelete(req.params.id);
-    if (!deletedCourse) return res.status(404).json({ message: "Course not found" });
+    if (!deletedCourse)
+      return res.status(404).json({ message: "Course not found" });
 
     res.json({ message: "Course deleted successfully" });
   } catch (error) {

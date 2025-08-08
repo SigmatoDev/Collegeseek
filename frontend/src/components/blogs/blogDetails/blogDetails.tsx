@@ -5,6 +5,7 @@ import axios from "axios";
 import { api_url, img_url } from "@/utils/apiCall";
 import Image from "next/image";
 import DOMPurify from "dompurify";
+import Head from "next/head";
 
 interface Blog {
   _id: string;
@@ -35,7 +36,7 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
     const fetchBlogBySlug = async () => {
       try {
         const response = await axios.get(`${api_url}blog/by/slug?slug=${slug}`);
-        console.log("API Response:", response.data);
+        // console.log("API Response:", response.data);
 
         if (response.data) {
           setBlog(response.data);
@@ -85,49 +86,60 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
   }
 
   const sanitizedContent = DOMPurify.sanitize(blog.content);
+  const plainTextDescription = blog.content.replace(/<[^>]+>/g, "").slice(0, 150) + "...";
+  const blogImage = blog.image
+    ? `${img_url}${blog.image.replace(/^\/uploads\//, "uploads/")}`
+    : "/uploads/default-placeholder.png";
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-6 space-y-12">
-      <h1 className="text-5xl font-extrabold text-gray-900 mb-6">
-        {blog.title}
-      </h1>
-      <p className="text-lg text-gray-600 mb-8">
-        By <span className="font-semibold text-gray-800">{blog.author}</span> |{" "}
-        {blog.createdAt
-          ? new Date(blog.createdAt).toLocaleDateString()
-          : "Date Unavailable"}
-      </p>
+    <>
+      <Head>
+        <title>{blog.title} | My Blog</title>
+        <meta name="description" content={plainTextDescription} />
+        <meta property="og:title" content={blog.title} />
+        <meta property="og:description" content={plainTextDescription} />
+        <meta property="og:image" content={blogImage} />
+        <meta property="og:type" content="article" />
+        <meta property="article:published_time" content={blog.createdAt} />
+        <meta name="author" content={blog.author} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
 
-      <div className="flex flex-col md:flex-row gap-12">
-        {/* Image Section */}
-        <div className="bg-gradient-to-r from-blue-50 via-yellow-50 to-blue-50 rounded-2xl p-6 md:w-1/3 justify-center">
-          <div className="relative w-full h-80 rounded-xl overflow-hidden">
-            <Image
-              src={
-                blog.image
-                  ? `${img_url}${blog.image.replace(
-                      /^\/uploads\//,
-                      "uploads/"
-                    )}`
-                  : "/uploads/default-placeholder.png"
-              }
-              alt={blog.title}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-xl transform transition-all duration-300 hover:scale-105"
+      <div className="max-w-7xl mx-auto py-12 px-6 space-y-12">
+        <h1 className="text-5xl font-extrabold text-gray-900 mb-6">
+          {blog.title}
+        </h1>
+        <p className="text-lg text-gray-600 mb-8">
+          By <span className="font-semibold text-gray-800">{blog.author}</span> |{" "}
+          {blog.createdAt
+            ? new Date(blog.createdAt).toLocaleDateString()
+            : "Date Unavailable"}
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-12">
+          {/* Image Section */}
+          <div className="bg-gradient-to-r from-blue-50 via-yellow-50 to-blue-50 rounded-2xl p-6 md:w-1/3 justify-center">
+            <div className="relative w-full h-80 rounded-xl overflow-hidden">
+              <Image
+                src={blogImage}
+                alt={blog.title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="rounded-xl object-cover transform transition-all duration-300 hover:scale-105"
+              />
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="w-full md:w-2/3">
+            <div
+              className="rich-content"
+              dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             />
           </div>
         </div>
-
-        {/* Content Section */}
-        <div className="w-full md:w-2/3">
-          <div
-            className="rich-content"
-            dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-          />
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -103,8 +103,14 @@ const CourseSchema = new mongoose.Schema(
     },
     enrollmentLink: {
       type: String,
+      required: false,
+    },
+    streams: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Streams",
       required: true,
     },
+
     brochure_link: {
       type: String,
     },

@@ -1,36 +1,40 @@
-"use client";
+import { api_url } from "@/utils/apiCall";
+import AboutClient from "./aboutClient";
 
-import { useState, useEffect } from "react";
-import AboutHero from "@/components/aboutUs/aboutHero";
-import MissionSection from "@/components/aboutUs/missionSection";
-import TeamSection from "@/components/aboutUs/teamSection";
-import Footer from "@/components/footer/page";
-import Header from "@/components/header/page";
-import NewsletterForm from "@/components/newsletters/page";
+// ✅ Optional: force dynamic rendering
+export const dynamic = "force-dynamic";
 
-const AboutPage = () => {
-  const [loading, setLoading] = useState(true);
+// ✅ Server-side metadata function
+export async function generateMetadata() {
+  try {
+    const res = await fetch(`${api_url}aboutget/meta?page=about`, {
+      cache: "no-store",
+    });
+    const data = await res.json();
 
-  useEffect(() => {
-    // Simulated loading delay — replace with real data fetch if needed
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000); // 1 second delay
+    return {
+      title: data.title,
+      description: data.description,
+      keywords: data.keywords,
+      openGraph: {
+        title: data.ogTitle,
+        description: data.ogDescription,
+        url: data.ogUrl,
+        siteName: data.ogSiteName,
+        type: data.ogType,
+      },
+      twitter: {
+        title: data.xTitle,
+        description: data.xDescription,
+      },
+    };
+  } catch (error) {
+    console.error("❌ Meta fetch failed:", error);
+    return {}; // Return empty object on failure
+  }
+}
 
-    return () => clearTimeout(timer);
-  }, []);
-
-
-  return (
-    <div>
-      <Header />
-      <AboutHero />
-      <TeamSection />
-      <MissionSection />
-      <NewsletterForm />
-      <Footer />
-    </div>
-  );
-};
-
-export default AboutPage;
+// ✅ Export default server component
+export default function AboutPage() {
+  return <AboutClient />;
+}

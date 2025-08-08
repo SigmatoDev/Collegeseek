@@ -9,6 +9,8 @@ import { Loader } from "lucide-react";
 import ProgramModeDropdown from "@/components/programMode/page";
 import SpecializationDropdown from "@/components/specializationDropdown/page";
 import toast from "react-hot-toast";
+import StreamsDropdown from "@/components/streamDropDown/page";
+import { Stream } from "stream";
 
 interface Category {
   _id: string;
@@ -31,26 +33,48 @@ const ActualCourseForm = () => {
   const [loading, setLoading] = useState(false);
   const [selectedProgramMode, setSelectedProgramMode] = useState("");
   const [selectedSpecialization, setSelectedSpecialization] = useState("");
+  const [selectedStreams, setSelectedStreams] = useState(" ");
 
-  const [course, setCourse] = useState<Course>({
-    name: "",
-    description: "",
-    college_id: "",
-    category: "B.Tech",
-    duration: "",
-    // mode: "Full-Time",
-    programMode: "",
-    specialization: "",
-    fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
-    eligibility: "",
-    application_dates: { start_date: "", end_date: "" },
-    ratings: { score: 0, reviews_count: 0 },
-    placements: { median_salary: 0, currency: "INR", placement_rate: 0 },
-    intake_capacity: { male: 0, female: 0, total: 0 },
-    entrance_exam: "",
-    enrollmentLink: "",
-    brochure_link: "",
-  });
+  // const [course, setCourse] = useState<Course>({
+  //   name: "",
+  //   description: "",
+  //   college_id: "",
+  //   category: "B.Tech",
+  //   duration: "",
+  //   // mode: "Full-Time",
+  //   programMode: "",
+  //   specialization: "",
+  //   streams: "",
+  //   fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
+  //   eligibility: "",
+  //   application_dates: { start_date: "", end_date: "" },
+  //   ratings: { score: 0, reviews_count: 0 },
+  //   placements: { median_salary: 0, currency: "INR", placement_rate: 0 },
+  //   intake_capacity: { male: 0, female: 0, total: 0 },
+  //   entrance_exam: "",
+  //   enrollmentLink: "",
+  //   brochure_link: "",
+  // });
+  const [course, setCourse] = useState<any>({
+  name: "",
+  description: "",
+  college_id: "",
+  category: "B.Tech",
+  duration: "",
+  programMode: "",
+  specialization: "",
+  streams: "",
+  fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
+  eligibility: "",
+  application_dates: { start_date: "", end_date: "" },
+  ratings: { score: 0, reviews_count: 0 },
+  placements: { median_salary: 0, currency: "INR", placement_rate: 0 },
+  intake_capacity: { male: 0, female: 0, total: 0 },
+  entrance_exam: "",
+  enrollmentLink: "",
+  brochure_link: "",
+});
+
 
   useEffect(() => {
     axios
@@ -103,7 +127,7 @@ const ActualCourseForm = () => {
       >
     ) => {
       console.log("Field changed:", e.target.name, "Value:", e.target.value); // <--- Add this line
-      setCourse((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+      setCourse((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
     },
     []
   );
@@ -113,7 +137,7 @@ const ActualCourseForm = () => {
       e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
       section: keyof Course
     ) => {
-      setCourse((prev) => ({
+      setCourse((prev: { [x: string]: Record<string, any>; }) => ({
         ...prev,
         [section]: {
           ...(prev[section] as Record<string, any>),
@@ -158,14 +182,23 @@ const ActualCourseForm = () => {
   };
   const handleProgramModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedProgramMode(e.target.value);
-    setCourse((prev) => ({ ...prev, programMode: e.target.value }));
+    setCourse((prev: any) => ({ ...prev, programMode: e.target.value }));
   };
   const handleSpecializationChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     setSelectedSpecialization(e.target.value);
-    setCourse((prev) => ({ ...prev, specialization: e.target.value }));
+    setCourse((prev: any) => ({ ...prev, specialization: e.target.value }));
   };
+const handleStreamsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  setSelectedStreams(e.target.value);
+  setCourse((prev: any) => ({
+    ...prev,
+    streams: e.target.value
+  }));
+};
+
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -177,12 +210,7 @@ const ActualCourseForm = () => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="mb-4 mt-2">
-          {/* <label
-            htmlFor="name"
-            className="block text-sm font-semibold text-gray-700"
-          >
-            Course Name
-          </label> */}
+         
           <div className="flex flex-col">
             <SpecializationDropdown
               name="specialization"
@@ -193,15 +221,6 @@ const ActualCourseForm = () => {
             />
           </div>
 
-          {/* <input
-            id="name"
-            name="name"
-            placeholder="Course Name"
-            value={course.name ?? ""}
-            onChange={handleChange}
-            className="p-2 border rounded w-full"
-          
-          /> */}
         </div>
 
         <div className="mb-4 mt-2">
@@ -288,18 +307,6 @@ const ActualCourseForm = () => {
           />
         </div>
 
-        {/* <select
-          name="mode"
-          value={course.mode ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        >
-          {["Full-Time", "Part-Time", "Online"].map((mode) => (
-            <option key={mode} value={mode}>
-              {mode}
-            </option>
-          ))}
-        </select> */}
         <ProgramModeDropdown
           name="programMode"
           value={course.programMode ?? ""}
@@ -327,21 +334,14 @@ const ActualCourseForm = () => {
         </div>
 
         <div className="mb-4">
-          <label
-            htmlFor="enrollmentLink"
-            className="block text-sm font-semibold text-gray-700"
-          >
-            Enrollment Link
-          </label>
-          <input
-            id="enrollmentLink"
-            name="enrollmentLink"
-            placeholder="Enrollment Link"
-            value={course.enrollmentLink ?? ""}
-            onChange={handleChange}
-            className="p-2 border rounded w-full"
-            required
-          />
+
+            <StreamsDropdown
+              name="Streams"
+              value={course.streams ?? ""}
+              onChange={handleStreamsChange}
+              label="Streams"
+            />
+        
         </div>
 
         <div className="flex flex-col">
@@ -501,14 +501,14 @@ const ActualCourseForm = () => {
         </div>
       </Section>
 
-      <label className="block font-semibold mt-4">Entrance Exam</label>
+      {/* <label className="block font-semibold mt-4">Entrance Exam</label>
       <input
         name="entrance_exam"
         value={course.entrance_exam ?? ""}
         onChange={handleChange}
         placeholder="Enter entrance exam name"
         className="p-2 border rounded w-full"
-      />
+      /> */}
       <Section title="Intake Capacity" cols={3}>
         {["male", "female", "total"].map((field) => (
           <div key={field} className="flex flex-col">

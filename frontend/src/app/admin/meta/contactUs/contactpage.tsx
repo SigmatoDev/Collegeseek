@@ -5,7 +5,7 @@ import axios from "axios";
 import { api_url } from "@/utils/apiCall";
 import toast from "react-hot-toast";
 
-export default function MetaEditor() {
+export default function ContactMetaEditor() {
   const [form, setForm] = useState({
     page: "home",
     title: "",
@@ -25,7 +25,7 @@ export default function MetaEditor() {
   useEffect(() => {
     const fetchMeta = async () => {
       try {
-        const res = await axios.get(`${api_url}get/meta?page=home`);
+        const res = await axios.get(`${api_url}Contactget/meta?page=contact`);
         setForm((prev) => ({ ...prev, ...res.data }));
       } catch (error) {
         console.error("Failed to fetch meta:", error);
@@ -43,7 +43,7 @@ export default function MetaEditor() {
 
   const handleSave = async () => {
     try {
-      await axios.post(`${api_url}update/meta`, form);
+      await axios.post(`${api_url}Contactupdate/meta`, form);
       toast.success("Meta updated successfully"); // ✅ toast instead of alert
     } catch (err) {
       console.error("Failed to save", err);
@@ -54,8 +54,8 @@ export default function MetaEditor() {
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
   return (
-    <div className="max-w-[1600px] mx-auto mt-10 mb-10 bg-white border border-gray-200 shadow-lg rounded-xl p-8 space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Meta Editor - Home Page</h2>
+    <div className="max-w-[1600px] mx-auto mt-10 bg-white border border-gray-200 shadow-lg rounded-xl p-8 space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800">Meta Editor - ContactUs Page</h2>
 
       {/* General Meta */}
       <InputField name="title" label="Meta Title" value={form.title} onChange={handleChange} />

@@ -121,7 +121,7 @@ const AdminPages = () => {
                     <td className="px-6 py-4 text-sm text-gray-700">{page.title}</td>
                     <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
                       <a
-                        href={`/pages/${page.slug}`}
+                        href={`/${page.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition duration-200"
