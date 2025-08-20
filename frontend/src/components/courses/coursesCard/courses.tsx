@@ -139,9 +139,9 @@ export default function CollegeCourses({ college_id }: Props) {
               <p>
                 <strong>🎓 Eligibility:</strong> {course.eligibility}
               </p>
-              <p>
+              {/* <p>
                 <strong>📝 Entrance Exam:</strong> {course.entrance_exam}
-              </p>
+              </p> */}
 
               {course.fees && (
                 <p className="font-semibold text-indigo-700">
