@@ -54,15 +54,27 @@ const collegeSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid URL.`,
       },
     },
-    contact: {
-      type: String,
-      required: true,
-      trim: true,
-      validate: {
-        validator: (v) => /^(\+?\d{10,15})$/.test(v),
-        message: "Invalid contact number. Use 10-15 digits only.",
+        // ✅ Multiple Contact Numbers
+    contactNumbers: [
+      {
+        type: {
+          type: String,
+          enum: ["Mobile", "Landline"],
+          required: true,
+        },
+        number: {
+          type: String,
+          required: true,
+          trim: true,
+          validate: {
+            validator: (v) =>
+              /^(\+?\d{10,15})$/.test(v) || // Mobile: +911234567890 / 10–15 digits
+              /^(\d{2,5}[- ]?\d{6,8})$/.test(v), // Landline: 011-23456789
+            message: "Invalid contact number format.",
+          },
+        },
       },
-    },
+    ],
     
     contactEmail: {
       type: String,

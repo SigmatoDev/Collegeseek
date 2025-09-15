@@ -25,7 +25,9 @@ interface PaginationInfo {
 }
 
 const AdminCounselling = () => {
-  const [counsellingRequests, setCounsellingRequests] = useState<CounsellingRequest[]>([]);
+  const [counsellingRequests, setCounsellingRequests] = useState<
+    CounsellingRequest[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
@@ -50,7 +52,9 @@ const AdminCounselling = () => {
       setError(null);
     } catch (err: any) {
       console.error("API Fetch Error:", err);
-      setError(err.response?.data?.message || "Failed to load counselling requests.");
+      setError(
+        err.response?.data?.message || "Failed to load counselling requests."
+      );
     } finally {
       setLoading(false);
     }
@@ -63,7 +67,12 @@ const AdminCounselling = () => {
   }, [page]);
 
   const handleDelete = async (counsellingId: string) => {
-    if (!window.confirm("Are you sure you want to delete this counselling request?")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this counselling request?"
+      )
+    )
+      return;
 
     try {
       await axios.delete(`${api_url}/counselling/${counsellingId}`);
@@ -78,10 +87,16 @@ const AdminCounselling = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Counselling Requests</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Counselling Requests
+        </h1>
       </header>
 
-      {loading && <p className="text-center text-gray-500">Loading counselling requests...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">
+          Loading counselling requests...
+        </p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -90,8 +105,19 @@ const AdminCounselling = () => {
             <table className="table-auto w-full text-left border-collapse">
               <thead className="bg-gray-200 text-gray-600">
                 <tr>
-                  {["Name", "Email", "Phone", "College", "Message", "Created At", "Actions"].map((header) => (
-                    <th key={header} className="px-6 py-3 text-sm font-semibold">
+                  {[
+                    "Name",
+                    "Email",
+                    "Phone",
+                    "College",
+                    "Message",
+                    "Created At",
+                    "Actions",
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-sm font-semibold"
+                    >
                       {header}
                     </th>
                   ))}
@@ -101,17 +127,31 @@ const AdminCounselling = () => {
                 {counsellingRequests.length > 0 ? (
                   counsellingRequests.map((request) => (
                     <tr key={request._id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-3 text-sm text-gray-700">{request.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{request.email}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{request.phone}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{request.college}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{request.message}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {request.name}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {request.email}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {request.phone}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {request.college}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {request.message}
+                      </td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {new Date(request.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
-                          onClick={() => router.push(`/admin/leads/getFreeCounselling/${request._id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/admin/leads/getFreeCounselling/${request._id}`
+                            )
+                          }
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
@@ -149,14 +189,42 @@ const AdminCounselling = () => {
                 >
                   Previous
                 </button>
-                <span className="text-gray-700 text-sm">
+
+                <span className="flex items-center space-x-2 text-sm text-gray-700">
                   Page {page} of {pagination.totalPages}
+                  <span className="p-2">/ Go to page:</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={pagination.totalPages}
+                    placeholder="Page #"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const pageNum = Number(
+                          (e.target as HTMLInputElement).value
+                        );
+                        if (
+                          !isNaN(pageNum) &&
+                          pageNum >= 1 &&
+                          pageNum <= pagination.totalPages
+                        ) {
+                          setPage(pageNum);
+                        }
+                      }
+                    }}
+                    className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+                  />
                 </span>
+
                 <button
-                  onClick={() => setPage((prev) => Math.min(prev + 1, pagination.totalPages))}
+                  onClick={() =>
+                    setPage((prev) => Math.min(prev + 1, pagination.totalPages))
+                  }
                   disabled={page === pagination.totalPages}
                   className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                    page === pagination.totalPages ? "opacity-50 cursor-not-allowed" : ""
+                    page === pagination.totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                   }`}
                 >
                   Next

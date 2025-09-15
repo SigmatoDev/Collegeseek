@@ -43,7 +43,9 @@ const AdminSpecializations = () => {
       setTotalPages(data.totalPages || 1);
     } catch (err: any) {
       console.error("Fetch error:", err);
-      setError(err.response?.data?.message || "Failed to load specializations.");
+      setError(
+        err.response?.data?.message || "Failed to load specializations."
+      );
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,8 @@ const AdminSpecializations = () => {
   }, [page]);
 
   const handleDelete = async (specializationId: string) => {
-    if (!window.confirm("Are you sure you want to delete this specialization?")) return;
+    if (!window.confirm("Are you sure you want to delete this specialization?"))
+      return;
 
     try {
       await axios.delete(`${api_url}d/Specialization/${specializationId}`);
@@ -79,7 +82,9 @@ const AdminSpecializations = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Specializations List</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Specializations List
+        </h1>
         <button
           onClick={() => router.push("/admin/specialization/new")}
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
@@ -89,7 +94,9 @@ const AdminSpecializations = () => {
         </button>
       </header>
 
-      {loading && <p className="text-center text-gray-500">Loading specializations...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">Loading specializations...</p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -105,12 +112,19 @@ const AdminSpecializations = () => {
               <tbody>
                 {specializations.length > 0 ? (
                   specializations.map((specialization) => (
-                    <tr key={specialization._id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-3 text-sm text-gray-700">{specialization.name}</td>
+                    <tr
+                      key={specialization._id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {specialization.name}
+                      </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
                           onClick={() =>
-                            router.push(`/admin/specialization/${specialization._id}`)
+                            router.push(
+                              `/admin/specialization/${specialization._id}`
+                            )
                           }
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                         >
@@ -149,8 +163,31 @@ const AdminSpecializations = () => {
                 Previous
               </button>
 
-              <span className="text-gray-700 text-sm">
+              <span className="flex items-center space-x-2 text-sm text-gray-700">
                 Page {page} of {totalPages}
+                <span className="p-2">/ Go to page:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  placeholder="Page #"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const pageNum = Number(
+                        (e.target as HTMLInputElement).value
+                      );
+                      if (
+                        !isNaN(pageNum) &&
+                        pageNum >= 1 &&
+                        pageNum <= totalPages
+                      ) {
+                        handlePageChange(pageNum);
+                        (e.target as HTMLInputElement).value = ""; // clear input after jump
+                      }
+                    }
+                  }}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+                />
               </span>
 
               <button

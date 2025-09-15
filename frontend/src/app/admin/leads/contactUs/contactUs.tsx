@@ -118,30 +118,49 @@ const AdminContactUs = () => {
                 )}
               </tbody>
             </table>
-             {/* Pagination Controls */}
-            <div className="flex justify-between items-center p-4 border-t bg-gray-50">
-              <button
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                disabled={page === 1}
-                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                  page === 1 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                Previous
-              </button>
-              <span className="text-gray-700 text-sm">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={page === totalPages}
-                className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                  page === totalPages ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                Next
-              </button>
-            </div>
+          {/* Pagination Controls */}
+<div className="flex justify-between items-center p-4 border-t bg-gray-50">
+  <button
+    onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+    disabled={page === 1}
+    className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+      page === 1 ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+  >
+    Previous
+  </button>
+
+  <span className="flex items-center space-x-2 text-sm text-gray-700">
+    Page {page} of {totalPages}
+    <span className="p-2">/ Go to page:</span>
+    <input
+      type="number"
+      min={1}
+      max={totalPages}
+      placeholder="Page #"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          const pageNum = Number((e.target as HTMLInputElement).value);
+          if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+            setPage(pageNum);
+          }
+        }
+      }}
+      className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+    />
+  </span>
+
+  <button
+    onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+    disabled={page === totalPages}
+    className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+      page === totalPages ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+  >
+    Next
+  </button>
+</div>
+
           </div>
 
           

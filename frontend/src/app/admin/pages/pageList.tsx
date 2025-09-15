@@ -118,7 +118,9 @@ const AdminPages = () => {
               {pages.length > 0 ? (
                 pages.map((page) => (
                   <tr key={page._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-700">{page.title}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {page.title}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
                       <a
                         href={`/${page.slug}`}
@@ -162,7 +164,9 @@ const AdminPages = () => {
                     <td className="px-6 py-4 text-sm text-gray-700">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => router.push(`/admin/pages/edit/${page._id}`)}
+                          onClick={() =>
+                            router.push(`/admin/pages/edit/${page._id}`)
+                          }
                           className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition duration-200"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
@@ -194,14 +198,43 @@ const AdminPages = () => {
             >
               Previous
             </button>
-            <span className="text-gray-700 text-sm">
+
+            <span className="flex items-center space-x-2 text-sm text-gray-700">
               Page {currentPage} of {totalPages}
+              <span className="p-2">/ Go to page:</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                placeholder="Page #"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const pageNum = Number(
+                      (e.target as HTMLInputElement).value
+                    );
+                    if (
+                      !isNaN(pageNum) &&
+                      pageNum >= 1 &&
+                      pageNum <= totalPages
+                    ) {
+                      setCurrentPage(pageNum);
+                      (e.target as HTMLInputElement).value = ""; // clear input after jump
+                    }
+                  }
+                }}
+                className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+              />
             </span>
+
             <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               Next

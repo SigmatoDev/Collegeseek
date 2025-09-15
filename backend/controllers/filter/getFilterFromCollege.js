@@ -76,8 +76,7 @@ exports.getFiltersFromColleges = async (req, res) => {
       const matched = examAgg.find(
         (ea) => ea._id.toString() === e._id.toString()
       );
-      // return { name: capitalize(e.name), count: matched?.count || 0 };
-      return { name: capitalize(e.code), count: matched?.count || 0 };
+      return { name: e.code?.toUpperCase(), count: matched?.count || 0 };
     });
     // APPROVALS
     const approvalAgg = await College.aggregate([
@@ -92,8 +91,7 @@ exports.getFiltersFromColleges = async (req, res) => {
       const matched = approvalAgg.find(
         (aa) => aa._id.toString() === a._id.toString()
       );
-      // return { name: capitalize(a.name), count: matched?.count || 0 };
-      return { name: capitalize(a.code), count: matched?.count || 0 };
+      return { name: a.code?.toUpperCase(), count: matched?.count || 0 };
     });
     // AFFILIATED BY
     const affAgg = await College.aggregate([
@@ -187,9 +185,3 @@ exports.getFiltersFromColleges = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-
-
-
-

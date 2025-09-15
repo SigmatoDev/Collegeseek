@@ -76,10 +76,13 @@ const AdminCourses = () => {
   };
 
   const toggleSelectAll = () => {
-    const filtered = courses.filter((course) =>
-      course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.duration.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.specialization?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = courses.filter(
+      (course) =>
+        course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.duration.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.specialization?.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
     );
     const allIds = filtered.map((c) => c._id);
     const isAllSelected = allIds.every((id) => selectedCourses.includes(id));
@@ -146,15 +149,14 @@ const AdminCourses = () => {
             <option value={20}>20</option>
             <option value={50}>50</option>
           </select>
-           <span className="text-sm text-black ">
-           Entries
-        </span>
+          <span className="text-sm text-black ">Entries</span>
         </div>
-      
       </div>
 
       {/* Course Table */}
-      {loading && <p className="text-center text-gray-500">Loading courses...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">Loading courses...</p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -174,7 +176,9 @@ const AdminCourses = () => {
                     }
                   />
                 </th>
-                <th className="px-6 py-3 text-sm font-semibold">Specialization</th>
+                <th className="px-6 py-3 text-sm font-semibold">
+                  Specialization
+                </th>
                 <th className="px-6 py-3 text-sm font-semibold">Description</th>
                 <th className="px-6 py-3 text-sm font-semibold">Duration</th>
                 <th className="px-6 py-3 text-sm font-semibold">Fees</th>
@@ -237,16 +241,42 @@ const AdminCourses = () => {
             >
               Previous
             </button>
-            <span className="text-gray-700 text-sm">
+
+            <span className="flex items-center space-x-2 text-sm text-gray-700">
               Page {currentPage} of {totalPages}
+              <span className="p-2">/ Go to page:</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                placeholder="Page #"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const pageNum = Number(
+                      (e.target as HTMLInputElement).value
+                    );
+                    if (
+                      !isNaN(pageNum) &&
+                      pageNum >= 1 &&
+                      pageNum <= totalPages
+                    ) {
+                      setCurrentPage(pageNum);
+                    }
+                  }
+                }}
+                className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+              />
             </span>
+
             <button
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               Next

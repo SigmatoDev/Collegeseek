@@ -28,7 +28,9 @@ const AdminCallbacks = () => {
     const fetchCallbacks = async () => {
       setLoading(true);
       try {
-        const { data } = await axios.get(`${api_url}/callbacks?page=${page}&limit=${limit}`);
+        const { data } = await axios.get(
+          `${api_url}/callbacks?page=${page}&limit=${limit}`
+        );
 
         if (!data.success || !Array.isArray(data.data)) {
           console.error("Unexpected API response:", data);
@@ -50,12 +52,17 @@ const AdminCallbacks = () => {
   }, [page]); // refetch when page changes
 
   const handleDelete = async (callbackId: string) => {
-    if (!window.confirm("Are you sure you want to delete this callback request?")) return;
+    if (
+      !window.confirm("Are you sure you want to delete this callback request?")
+    )
+      return;
 
     try {
       await axios.delete(`${api_url}/callbacks/${callbackId}`);
       // Remove deleted callback locally
-      setCallbacks((prev) => prev.filter((callback) => callback._id !== callbackId));
+      setCallbacks((prev) =>
+        prev.filter((callback) => callback._id !== callbackId)
+      );
       toast.success("Callback request deleted successfully!");
     } catch (err: any) {
       console.error("Error deleting callback:", err);
@@ -70,7 +77,9 @@ const AdminCallbacks = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Manage Callback Requests</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        Manage Callback Requests
+      </h1>
 
       {loading && (
         <div className="flex justify-center items-center py-6">
@@ -82,7 +91,10 @@ const AdminCallbacks = () => {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
           <strong className="font-bold">Error:</strong>{" "}
           <span className="block sm:inline">{error}</span>
-          <button onClick={() => setError(null)} className="absolute top-0 bottom-0 right-0 px-4 py-3">
+          <button
+            onClick={() => setError(null)}
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+          >
             ✖
           </button>
         </div>
@@ -94,24 +106,37 @@ const AdminCallbacks = () => {
             <table className="w-full border-collapse">
               <thead className="bg-gray-100 border-b-2 border-gray-300">
                 <tr>
-                  {["Name", "Mobile", "Email", "Stream", "Actions"].map((header) => (
-                    <th
-                      key={header}
-                      className="px-6 py-3 text-left text-gray-600 font-semibold text-sm"
-                    >
-                      {header}
-                    </th>
-                  ))}
+                  {["Name", "Mobile", "Email", "Stream", "Actions"].map(
+                    (header) => (
+                      <th
+                        key={header}
+                        className="px-6 py-3 text-left text-gray-600 font-semibold text-sm"
+                      >
+                        {header}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {callbacks.length > 0 ? (
                   callbacks.map((callback) => (
-                    <tr key={callback._id} className="border-b hover:bg-gray-50 transition">
-                      <td className="px-6 py-4 text-gray-700">{callback.name}</td>
-                      <td className="px-6 py-4 text-gray-700">{callback.mobile}</td>
-                      <td className="px-6 py-4 text-gray-700">{callback.email}</td>
-                      <td className="px-6 py-4 text-gray-700">{callback.stream}</td>
+                    <tr
+                      key={callback._id}
+                      className="border-b hover:bg-gray-50 transition"
+                    >
+                      <td className="px-6 py-4 text-gray-700">
+                        {callback.name}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {callback.mobile}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {callback.email}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {callback.stream}
+                      </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={() => handleDelete(callback._id)}
@@ -132,7 +157,7 @@ const AdminCallbacks = () => {
                 )}
               </tbody>
             </table>
-              {/* Pagination Controls */}
+            {/* Pagination Controls */}
             <div className="flex justify-between items-center p-4 border-t bg-gray-50">
               <button
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
@@ -143,11 +168,38 @@ const AdminCallbacks = () => {
               >
                 Previous
               </button>
-              <span className="text-gray-700 text-sm">
+
+              <span className="flex items-center space-x-2 text-sm text-gray-700">
                 Page {page} of {totalPages}
+                <span className="p-2">/ Go to page:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  placeholder="Page #"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const pageNum = Number(
+                        (e.target as HTMLInputElement).value
+                      );
+                      if (
+                        !isNaN(pageNum) &&
+                        pageNum >= 1 &&
+                        pageNum <= totalPages
+                      ) {
+                        setPage(pageNum);
+                        (e.target as HTMLInputElement).value = ""; // clear input after jump
+                      }
+                    }
+                  }}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+                />
               </span>
+
               <button
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={page === totalPages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
                   page === totalPages ? "opacity-50 cursor-not-allowed" : ""
@@ -157,7 +209,6 @@ const AdminCallbacks = () => {
               </button>
             </div>
           </div>
-
         </>
       )}
     </div>

@@ -261,9 +261,32 @@ const AdminColleges = () => {
               >
                 Prev
               </button>
-              <span>
+              <span className="flex items-center space-x-2 text-sm">
                 Page {pagination.page} of {pagination.pages}
+                <span className="p-2"> / Go to page:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={pagination.pages}
+                  placeholder="Page #"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const pageNum = Number(
+                        (e.target as HTMLInputElement).value
+                      );
+                      if (
+                        !isNaN(pageNum) &&
+                        pageNum >= 1 &&
+                        pageNum <= pagination.pages
+                      ) {
+                        goToPage(pageNum);
+                      }
+                    }
+                  }}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+                />
               </span>
+
               <button
                 onClick={() => goToPage(pagination.page + 1)}
                 disabled={pagination.page === pagination.pages}

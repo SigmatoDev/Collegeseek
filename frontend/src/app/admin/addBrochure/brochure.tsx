@@ -71,7 +71,9 @@ const AdminUploads = () => {
       setUploads((prev) => prev.filter((upload) => upload._id !== uploadId));
       toast.success("File deleted successfully!");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error deleting file. Please try again.");
+      toast.error(
+        err.response?.data?.message || "Error deleting file. Please try again."
+      );
     }
   };
 
@@ -99,7 +101,9 @@ const AdminUploads = () => {
                 <tr>
                   <th className="px-6 py-3 text-sm font-semibold">College</th>
                   <th className="px-6 py-3 text-sm font-semibold">File Name</th>
-                  <th className="px-6 py-3 text-sm font-semibold">Uploaded At</th>
+                  <th className="px-6 py-3 text-sm font-semibold">
+                    Uploaded At
+                  </th>
                   <th className="px-6 py-3 text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
@@ -110,13 +114,17 @@ const AdminUploads = () => {
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {getCollegeName(upload.college_id)}
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{upload.fileName}</td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {upload.fileName}
+                      </td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {new Date(upload.createdAt).toLocaleString()}
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
-                          onClick={() => router.push(`/admin/addBrochure/${upload._id}`)}
+                          onClick={() =>
+                            router.push(`/admin/addBrochure/${upload._id}`)
+                          }
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
@@ -153,11 +161,38 @@ const AdminUploads = () => {
               >
                 Previous
               </button>
-              <span className="text-gray-700 text-sm">
+
+              <span className="flex items-center space-x-2 text-sm text-gray-700">
                 Page {page} of {totalPages}
+                <span className="p-2">/ Go to page:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  placeholder="Page #"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const pageNum = Number(
+                        (e.target as HTMLInputElement).value
+                      );
+                      if (
+                        !isNaN(pageNum) &&
+                        pageNum >= 1 &&
+                        pageNum <= totalPages
+                      ) {
+                        setPage(pageNum);
+                        (e.target as HTMLInputElement).value = ""; // clear input after jump
+                      }
+                    }
+                  }}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+                />
               </span>
+
               <button
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={page === totalPages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
                   page === totalPages ? "opacity-50 cursor-not-allowed" : ""

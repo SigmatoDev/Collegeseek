@@ -5,7 +5,11 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
-import { PencilSquareIcon, PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 interface Blog {
   _id: string;
@@ -108,8 +112,12 @@ const AdminBlogs = () => {
               {blogs.length > 0 ? (
                 blogs.map((blog) => (
                   <tr key={blog._id} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-3 text-sm text-gray-700">{blog.title}</td>
-                    <td className="px-6 py-3 text-sm text-gray-700">{blog.author}</td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      {blog.title}
+                    </td>
+                    <td className="px-6 py-3 text-sm text-gray-700">
+                      {blog.author}
+                    </td>
                     {/* <td className="px-6 py-3 text-sm text-gray-700">{blog.category}</td> */}
                     <td className="px-6 py-3 text-sm text-gray-700">
                       {new Date(blog.createdAt).toLocaleDateString()}
@@ -152,16 +160,43 @@ const AdminBlogs = () => {
             >
               Previous
             </button>
-            <span className="text-gray-700 text-sm">
+
+            <span className="flex items-center space-x-2 text-sm text-gray-700">
               Page {currentPage} of {totalPages}
+              <span className="p-2">/ Go to page:</span>
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                placeholder="Page #"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const pageNum = Number(
+                      (e.target as HTMLInputElement).value
+                    );
+                    if (
+                      !isNaN(pageNum) &&
+                      pageNum >= 1 &&
+                      pageNum <= totalPages
+                    ) {
+                      setCurrentPage(pageNum);
+                      (e.target as HTMLInputElement).value = ""; // clear input after jump
+                    }
+                  }
+                }}
+                className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+              />
             </span>
+
             <button
               onClick={() =>
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               Next

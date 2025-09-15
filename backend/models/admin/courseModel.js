@@ -105,11 +105,12 @@ const CourseSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    streams: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Streams",
-      required: true,
-    },
+    streams: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Stream", // must match your Stream model name
+      },
+    ],
 
     brochure_link: {
       type: String,

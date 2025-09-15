@@ -5,10 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { toast } from "react-hot-toast";
-import {
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface Enrollment {
   _id: string;
@@ -57,7 +54,8 @@ const AdminEnrollments = () => {
   }, [page]);
 
   const handleDelete = async (enrollmentId: string) => {
-    if (!window.confirm("Are you sure you want to delete this enrollment?")) return;
+    if (!window.confirm("Are you sure you want to delete this enrollment?"))
+      return;
 
     try {
       await axios.delete(`${api_url}/enrollments/${enrollmentId}`);
@@ -75,7 +73,9 @@ const AdminEnrollments = () => {
         <h1 className="text-2xl font-bold text-gray-800">Enrollment List</h1>
       </header>
 
-      {loading && <p className="text-center text-gray-500">Loading enrollments...</p>}
+      {loading && (
+        <p className="text-center text-gray-500">Loading enrollments...</p>
+      )}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -84,8 +84,18 @@ const AdminEnrollments = () => {
             <table className="table-auto w-full text-left border-collapse">
               <thead className="bg-gray-200 text-gray-600">
                 <tr>
-                  {["Name", "Email", "Phone", "Course", "Created At", "Actions"].map((header) => (
-                    <th key={header} className="px-6 py-3 text-sm font-semibold">
+                  {[
+                    "Name",
+                    "Email",
+                    "Phone",
+                    "Course",
+                    "Created At",
+                    "Actions",
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="px-6 py-3 text-sm font-semibold"
+                    >
                       {header}
                     </th>
                   ))}
@@ -94,17 +104,32 @@ const AdminEnrollments = () => {
               <tbody>
                 {enrollments.length > 0 ? (
                   enrollments.map((enrollment) => (
-                    <tr key={enrollment._id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-3 text-sm text-gray-700">{enrollment.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{enrollment.email}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{enrollment.phone}</td>
-                      <td className="px-6 py-3 text-sm text-gray-700">{enrollment.course}</td>
+                    <tr
+                      key={enrollment._id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {enrollment.name}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {enrollment.email}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {enrollment.phone}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {enrollment.course}
+                      </td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {new Date(enrollment.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
-                          onClick={() => router.push(`/admin/leads/enrolledStudents/${enrollment._id}`)}
+                          onClick={() =>
+                            router.push(
+                              `/admin/leads/enrolledStudents/${enrollment._id}`
+                            )
+                          }
                           className="bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
@@ -141,11 +166,37 @@ const AdminEnrollments = () => {
               >
                 Previous
               </button>
-              <span className="text-gray-700 text-sm">
+
+              <span className="flex items-center space-x-2 text-sm text-gray-700">
                 Page {page} of {totalPages}
+                <span className="p-2">/ Go to page:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  placeholder="Page #"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const pageNum = Number(
+                        (e.target as HTMLInputElement).value
+                      );
+                      if (
+                        !isNaN(pageNum) &&
+                        pageNum >= 1 &&
+                        pageNum <= totalPages
+                      ) {
+                        setPage(pageNum);
+                      }
+                    }
+                  }}
+                  className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
+                />
               </span>
+
               <button
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={page === totalPages}
                 className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
                   page === totalPages ? "opacity-50 cursor-not-allowed" : ""

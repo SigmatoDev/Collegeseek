@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useRouter, useParams } from "next/navigation";
 import { api_url, img_url } from "@/utils/apiCall";
-import { Loader } from "lucide-react";
+import { Loader, TrashIcon } from "lucide-react";
 import { State, City } from "country-state-city";
 import Select from "react-select";
 import LocationAutocomplete from "@/components/location/page";
@@ -17,6 +17,7 @@ import StreamDropdown from "@/components/streamsDropdown/page";
 import { toast } from "react-hot-toast";
 
 import FeaturedComponent from "@/components/feahered/page";
+import ConfirmModal from "@/components/confirmModal/confirmModal";
 
 const CollegeForm = () => {
   const [isClient, setIsClient] = useState(false);
@@ -55,7 +56,7 @@ const ActualCollegeForm = () => {
     tabs: [] as { title: string; description: string }[],
     about: "",
     website: "",
-    contact: "",
+    contactNumbers: [{ type: "Mobile", number: "" }],
     contactEmail: "",
     featured: "", // Add the featured status
     image: null as File | null,
@@ -71,6 +72,8 @@ const ActualCollegeForm = () => {
   const [activeTab, setActiveTab] = useState<number | null>(null); // which tab is currently being edited
   const [isFeatured, setIsFeatured] = useState<boolean>(false);
   // State for dynamically fetched TinyMCE API key
+  const [modalIndex, setModalIndex] = useState<number | null>(null);
+
   const [dynamicApiKey, setDynamicApiKey] = useState<string | null>(null);
 
   interface Course {
@@ -148,7 +151,11 @@ const ActualCollegeForm = () => {
           established: data.established ? String(data.established) : "",
           about: data.about || "",
           website: data.website || "",
-          contact: data.contact || "",
+          contactNumbers: Array.isArray(data.contactNumbers)
+            ? data.contactNumbers
+            : data.contact
+            ? [{ type: "Mobile", number: data.contact }] // ✅ fallback if old API returns single `contact`
+            : [{ type: "Mobile", number: "" }], 
           contactEmail: data.contactEmail || "",
           tabs: data.tabs || [],
           featured: data.featured || "", // Add the featured status
@@ -201,29 +208,27 @@ const ActualCollegeForm = () => {
   };
 
   /*** ✅ Handle Input Change ***/
-const handleChange = useCallback(
-  (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
 
+      // Validation: Name should not contain numbers
+      if (name === "name" && /\d/.test(value)) {
+        return;
+      }
 
-    // Validation: Name should not contain numbers
-    if (name === "name" && /\d/.test(value)) {
-      return;
-    }
+      // Validation: Contact should contain only numbers
+      if (name === "contact" && /[^0-9]/.test(value)) {
+        return;
+      }
 
-    // Validation: Contact should contain only numbers
-    if (name === "contact" && /[^0-9]/.test(value)) {
-      return;
-    }
-
-    setCollegeData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  },
-  []
-);
-
+      setCollegeData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    },
+    []
+  );
 
   /*** ✅ Handle Image Upload ***/
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -333,7 +338,12 @@ const handleChange = useCallback(
       formData.append("established", String(collegeData.established));
     if (collegeData.about) formData.append("about", collegeData.about);
     if (collegeData.website) formData.append("website", collegeData.website);
-    if (collegeData.contact) formData.append("contact", collegeData.contact);
+    if (collegeData.contactNumbers && collegeData.contactNumbers.length > 0) {
+      formData.append(
+        "contactNumbers",
+        JSON.stringify(collegeData.contactNumbers)
+      );
+    }
     if (collegeData.contactEmail)
       formData.append("contactEmail", collegeData.contactEmail);
     if (typeof collegeData.featured === "boolean") {
@@ -502,7 +512,7 @@ const handleChange = useCallback(
   const fieldLabels: Record<string, string> = {
     name: "College Name (e.g., IIT Delhi)",
     website: "Official Website (e.g., https://www.iitd.ac.in)",
-    contact: "Primary Phone Number (e.g., 9876543210)",
+    contactNumbers: "Contact Numbers (Mobile / Landline)",
     contactEmail: "Contact Email (e.g., info@iitd.ac.in)",
     avgPackage: "Average Package (LPA) (e.g., 15.5)",
     location: "Location (e.g., New Delhi, Delhi)",
@@ -538,34 +548,143 @@ const handleChange = useCallback(
         {/* Form */}
         <form onSubmit={handleFormSubmit} className="space-y-6 mt-6">
           {/* Text Inputs */}
+
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(fieldLabels).map(([field, label]) => (
               <div key={field} className="flex flex-col">
                 <label className="text-gray-700 font-medium">
                   {label} <sup className="text-red-500">*</sup>
                 </label>
-                <input
-                  type={
-                    field === "website"
-                      ? "url"
-                      : field === "contactEmail"
-                      ? "email"
-                      : "text"
-                  }
-                  name={field}
-                  value={
-                    typeof collegeData[field as keyof typeof collegeData] ===
-                    "string"
-                      ? (collegeData[
-                          field as keyof typeof collegeData
-                        ] as string)
-                      : ""
-                  }
-                  onChange={handleChange}
-                  required
-                  maxLength={field === "name" ? 170 : undefined} // Restrict "name" to 170 characters
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+
+                {field === "contactNumbers" && (
+                  <>
+                    {collegeData.contactNumbers.map((contact, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        {/* Type selector */}
+                        <select
+                          value={contact.type}
+                          onChange={(e) => {
+                            const updated = [...collegeData.contactNumbers];
+                            updated[index].type = e.target.value as
+                              | "Mobile"
+                              | "Landline";
+                            setCollegeData((prev) => ({
+                              ...prev,
+                              contactNumbers: updated,
+                            }));
+                          }}
+                          className="p-2 border rounded-lg min-w-[100px]"
+                        >
+                          <option value="Mobile">Mobile</option>
+                          <option value="Landline">Landline</option>
+                        </select>
+
+                        {/* Number input */}
+                        <input
+                          type="text"
+                          value={contact.number}
+                          onChange={(e) => {
+                            const updated = [...collegeData.contactNumbers];
+                            updated[index].number = e.target.value;
+                            setCollegeData((prev) => ({
+                              ...prev,
+                              contactNumbers: updated,
+                            }));
+                          }}
+                          placeholder={
+                            contact.type === "Mobile"
+                              ? "e.g., 9876543210"
+                              : "e.g., 011-23456789"
+                          }
+                          className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                        <div className="flex flex-col gap-1">
+                          {/* Remove button */}
+                          <button
+                            type="button"
+                            onClick={() => setModalIndex(index)}
+                            className="px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+
+                          {/* Add button only on last row */}
+                          {index === collegeData.contactNumbers.length - 1 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCollegeData((prev) => ({
+                                  ...prev,
+                                  contactNumbers: [
+                                    ...prev.contactNumbers,
+                                    { type: "Mobile", number: "" },
+                                  ],
+                                }))
+                              }
+                              className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4v16m8-8H4"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Confirmation Modal */}
+                        <ConfirmModal
+                          isOpen={modalIndex === index}
+                          onClose={() => setModalIndex(null)}
+                          onConfirm={() => {
+                            setCollegeData((prev) => ({
+                              ...prev,
+                              contactNumbers: prev.contactNumbers.filter(
+                                (_, i) => i !== index
+                              ),
+                            }));
+                            setModalIndex(null);
+                          }}
+                          message="Are you sure you want to remove this number?"
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {field !== "contactNumbers" && (
+                  <input
+                    type={
+                      field === "website"
+                        ? "url"
+                        : field === "contactEmail"
+                        ? "email"
+                        : "text"
+                    }
+                    name={field}
+                    value={
+                      typeof collegeData[field as keyof typeof collegeData] ===
+                      "string"
+                        ? (collegeData[
+                            field as keyof typeof collegeData
+                          ] as string)
+                        : ""
+                    }
+                    onChange={handleChange}
+                    required
+                    maxLength={field === "name" ? 170 : undefined}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -803,12 +922,21 @@ const handleChange = useCallback(
                       </button>
                       <button
                         type="button"
-                        onClick={() => removeTab(index)}
+                        onClick={() => setModalIndex(index)}
                         className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition"
                         aria-label="Remove Tab"
                       >
                         ✕
                       </button>
+                      <ConfirmModal
+                        isOpen={modalIndex === index}
+                        onClose={() => setModalIndex(null)}
+                        onConfirm={() => {
+                          removeTab(index);
+                          setModalIndex(null);
+                        }}
+                        message="Are you sure you want to remove this tab?"
+                      />
                     </div>
                   </div>
 

@@ -34,6 +34,8 @@ const ActualCourseForm = () => {
   const [selectedProgramMode, setSelectedProgramMode] = useState("");
   const [selectedSpecialization, setSelectedSpecialization] = useState("");
   const [selectedStreams, setSelectedStreams] = useState(" ");
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchCollege, setSearchCollege] = useState("");
 
   // const [course, setCourse] = useState<Course>({
   //   name: "",
@@ -56,30 +58,41 @@ const ActualCourseForm = () => {
   //   brochure_link: "",
   // });
   const [course, setCourse] = useState<any>({
-  name: "",
-  description: "",
-  college_id: "",
-  category: "B.Tech",
-  duration: "",
-  programMode: "",
-  specialization: "",
-  streams: "",
-  fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
-  eligibility: "",
-  application_dates: { start_date: "", end_date: "" },
-  ratings: { score: 0, reviews_count: 0 },
-  placements: { median_salary: 0, currency: "INR", placement_rate: 0 },
-  intake_capacity: { male: 0, female: 0, total: 0 },
-  entrance_exam: "",
-  enrollmentLink: "",
-  brochure_link: "",
-});
+    name: "",
+    description: "",
+    college: null, // store full college object here
+    category: "B.Tech",
+    duration: "",
+    programMode: "",
+    specialization: "",
+    streams: "",
+    fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
+    eligibility: "",
+    application_dates: { start_date: "", end_date: "" },
+    ratings: { score: 0, reviews_count: 0 },
+    placements: { median_salary: 0, currency: "INR", placement_rate: 0 },
+    intake_capacity: { male: 0, female: 0, total: 0 },
+    entrance_exam: "",
+    enrollmentLink: "",
+    brochure_link: "",
+  });
 
+  interface College {
+    _id: string;
+    name: string;
+    city?: string; // now a string
+    state?: string; // now a string
+    country?: string;
+  }
 
   useEffect(() => {
     axios
-      .get(`${api_url}get/colleges`)
-      .then((res) => setColleges(res.data.data || []))
+      .get(`${api_url}State/colleges/`)
+      .then((res) => {
+        const data = res.data.data || [];
+        // console.log("Fetched Colleges:", data); // <-- log fetched colleges
+        setColleges(data);
+      })
       .catch((err) => console.error("Error fetching colleges:", err));
   }, []);
 
@@ -97,28 +110,35 @@ const ActualCourseForm = () => {
   }, []);
 
   useEffect(() => {
-    if (courseId && courseId !== "new") {
+    if (courseId && courseId !== "new" && colleges.length > 0) {
       axios
         .get(`${api_url}courses/${courseId}`)
         .then((res) => {
           const fetchedCourse = res.data || {};
+
+          // If category is an object, store its _id
           if (
             fetchedCourse.category &&
             typeof fetchedCourse.category === "object"
           ) {
             fetchedCourse.category = fetchedCourse.category._id;
           }
-          if (
-            fetchedCourse.college_id &&
-            typeof fetchedCourse.college_id === "object"
-          ) {
-            fetchedCourse.college_id = fetchedCourse.college_id._id;
+
+          // Replace college_id with the full college object
+          if (fetchedCourse.college_id) {
+            const fullCollege = colleges.find(
+              (c) =>
+                c._id === fetchedCourse.college_id._id ||
+                c._id === fetchedCourse.college_id
+            );
+            fetchedCourse.college = fullCollege || null;
           }
+
           setCourse(fetchedCourse);
         })
         .catch((err) => console.error(err));
     }
-  }, [courseId]);
+  }, [courseId, colleges]); // <--- add 'colleges' here
 
   const handleChange = useCallback(
     (
@@ -137,7 +157,7 @@ const ActualCourseForm = () => {
       e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
       section: keyof Course
     ) => {
-      setCourse((prev: { [x: string]: Record<string, any>; }) => ({
+      setCourse((prev: { [x: string]: Record<string, any> }) => ({
         ...prev,
         [section]: {
           ...(prev[section] as Record<string, any>),
@@ -155,31 +175,49 @@ const ActualCourseForm = () => {
     [router]
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const url = `${api_url}courses${
-        courseId && courseId !== "new" ? `/${courseId}` : ""
-      }`;
-      const method = courseId && courseId !== "new" ? axios.put : axios.post;
-      const res = await method(url, course);
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
 
-      if (res.status >= 200 && res.status < 300) {
-        toast.success(
-          `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
-        );
-        router.push("/admin/manageCourses");
-      } else {
-        toast.error("Failed to save course.");
-      }
-    } catch (err) {
-      console.error("Error submitting course:", err);
-      toast.error("An error occurred.");
-    } finally {
-      setLoading(false);
+  try {
+    // Transform course before sending
+    const payload = {
+      ...course,
+      college_id: course.college?._id || course.college, // normalize to id
+      category: course.category?._id || course.category,
+      programMode: course.programMode?._id || course.programMode,
+      specialization: course.specialization?._id || course.specialization,
+      streams: Array.isArray(course.streams)
+        ? course.streams.map((s: any) => (s?._id ? s._id : s))
+        : course.streams,
+    };
+
+    // remove nested objects (optional clean up)
+    delete (payload as any).college;
+
+    const url = `${api_url}courses${
+      courseId && courseId !== "new" ? `/${courseId}` : ""
+    }`;
+
+    const method = courseId && courseId !== "new" ? axios.put : axios.post;
+    const res = await method(url, payload);
+
+    if (res.status >= 200 && res.status < 300) {
+      toast.success(
+        `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
+      );
+      router.push("/admin/manageCourses");
+    } else {
+      toast.error("Failed to save course.");
     }
-  };
+  } catch (err) {
+    console.error("Error submitting course:", err);
+    toast.error("An error occurred.");
+  } finally {
+    setLoading(false);
+  }
+};
+
   const handleProgramModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedProgramMode(e.target.value);
     setCourse((prev: any) => ({ ...prev, programMode: e.target.value }));
@@ -190,14 +228,13 @@ const ActualCourseForm = () => {
     setSelectedSpecialization(e.target.value);
     setCourse((prev: any) => ({ ...prev, specialization: e.target.value }));
   };
-const handleStreamsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  setSelectedStreams(e.target.value);
-  setCourse((prev: any) => ({
-    ...prev,
-    streams: e.target.value
-  }));
-};
-
+  const handleStreamsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedStreams(e.target.value);
+    setCourse((prev: any) => ({
+      ...prev,
+      streams: e.target.value,
+    }));
+  };
 
   return (
     <form
@@ -210,7 +247,6 @@ const handleStreamsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="mb-4 mt-2">
-         
           <div className="flex flex-col">
             <SpecializationDropdown
               name="specialization"
@@ -220,33 +256,64 @@ const handleStreamsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               required
             />
           </div>
-
         </div>
+       <div className="mb-4 mt-2 relative">
+  <label
+    htmlFor="college_id"
+    className="block text-sm font-semibold text-gray-700 pb-2"
+  >
+    Select College
+  </label>
 
-        <div className="mb-4 mt-2">
-          <label
-            htmlFor="college_id"
-            className="block text-sm font-semibold text-gray-700 pb-2"
-          >
-            Select College
-          </label>
+  {/* Dropdown Button */}
+<div
+  className="p-2 border rounded w-full cursor-pointer"
+  onClick={() => setIsOpen((prev) => !prev)}
+>
+  {course.college
+    ? `${course.college.name} (${course.college.state}, ${course.college.city})`
+    : "Select College"}
+</div>
 
-          <select
-            id="college_id"
-            name="college_id"
-            value={course.college_id ?? ""}
-            onChange={handleChange}
-            className="p-2 border rounded w-full"
-            required // <-- add this
-          >
-            <option value="">Select College</option>
-            {colleges.map(({ _id, name }) => (
-              <option key={_id} value={_id}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </div>
+
+  {/* Dropdown Options */}
+  {isOpen && (
+    <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
+      {/* Search Input (fixed at top) */}
+      <input
+        type="text"
+        placeholder="Search colleges..."
+        value={searchCollege}
+        onChange={(e) => setSearchCollege(e.target.value)}
+        className="p-2 border-b border-b-gray-950 w-full outline-none sticky top-0 bg-white z-20"
+      />
+
+      {/* Scrollable College List */}
+      <ul className="max-h-60 overflow-y-auto">
+        {colleges
+          .filter((c) =>
+            c.name.toLowerCase().includes(searchCollege.toLowerCase())
+          )
+          .map((college) => (
+            <li
+              key={college._id}
+              className="p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => {
+                setCourse((prev: any) => ({ ...prev, college }));
+                setIsOpen(false);
+                setSearchCollege("");
+              }}
+            >
+              {college.name}{" "}
+              {college.state && `(State: ${college.state})`}{" "}
+              {college.city && `(City: ${college.city})`}
+            </li>
+          ))}
+      </ul>
+    </div>
+  )}
+</div>
+
 
         <label
           htmlFor="description"
@@ -334,14 +401,12 @@ const handleStreamsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         </div>
 
         <div className="mb-4">
-
-            <StreamsDropdown
-              name="Streams"
-              value={course.streams ?? ""}
-              onChange={handleStreamsChange}
-              label="Streams"
-            />
-        
+          <StreamsDropdown
+            name="Streams"
+            value={course.streams ?? ""}
+            onChange={handleStreamsChange}
+            label="Streams"
+          />
         </div>
 
         <div className="flex flex-col">

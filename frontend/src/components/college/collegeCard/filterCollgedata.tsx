@@ -111,15 +111,22 @@ export default function FilterCollegeCard({ collegeId }: Props) {
               {collegeData.city} ({collegeData.state})
             </div>
             <div className="text-orange-500 font-semibold pl-1">
-              #{collegeData.rank} NIRF
+              {collegeData.rank && collegeData.rank !== 0
+                ? `#${collegeData.rank} NIRF`
+                : "# N/A NIRF"}
             </div>
+
             <div>
               <div className="flex items-center gap-1 font-semibold text-gray-800 mb-1">
                 <CurrencyRupeeIcon className="w-[18px] h-[18px] text-green-500" />
                 Fees
               </div>
               <div className="text-gray-600 pl-[22px]">
-                Rs. {Number(collegeData.fees).toLocaleString("en-IN")}
+                {collegeData.fees && Number(collegeData.fees) !== 0
+                  ? `Rs. ${Number(collegeData.fees).toLocaleString(
+                      "en-IN"
+                    )} (Start From)`
+                  : " Rs. N/A (Start From)"}
               </div>
             </div>
             <div>
@@ -128,7 +135,9 @@ export default function FilterCollegeCard({ collegeId }: Props) {
                 Avg Package
               </div>
               <div className="text-gray-600 pl-[22px]">
-                {collegeData.avgPackage} LPA
+                {collegeData.avgPackage && Number(collegeData.avgPackage) !== 0
+                  ? `${collegeData.avgPackage} LPA`
+                  : "N/A LPA"}
               </div>
             </div>
           </div>

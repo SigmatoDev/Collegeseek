@@ -10,7 +10,10 @@ interface Course {
   _id: string;
   specialization: string;
   description: string;
-  category: string;
+  category: {
+    _id: string;
+    name: string;
+  };
   duration: string;
   programMode: {
     _id: string;
@@ -41,6 +44,11 @@ interface Course {
   brochure_link: string;
 }
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
 interface Specialization {
   _id: string;
   name: string;
@@ -53,6 +61,8 @@ interface Props {
 export default function CollegeCourses({ college_id }: Props) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
@@ -70,9 +80,12 @@ export default function CollegeCourses({ college_id }: Props) {
       try {
         const url = `${api_url}c/courses?college_id=${college_id}`;
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`Failed to fetch courses: ${response.statusText}`);
+        if (!response.ok)
+          throw new Error(`Failed to fetch courses: ${response.statusText}`);
         const data: Course[] = await response.json();
-        const filteredCourses = data.filter((course) => course.college_id === college_id);
+        const filteredCourses = data.filter(
+          (course) => course.college_id === college_id
+        );
         setCourses(filteredCourses);
       } catch (error) {
         setError((error as Error).message);
@@ -110,7 +123,12 @@ export default function CollegeCourses({ college_id }: Props) {
 
   if (loading) return <Loader />;
   if (error) return <p className="text-center text-red-500">{error}</p>;
-  if (!courses.length) return <p className="text-center text-gray-500">No courses found for this college.</p>;
+  if (!courses.length)
+    return (
+      <p className="text-center text-gray-500">
+        No courses found for this college.
+      </p>
+    );
 
   return (
     <div className="my-5 py-8 bg-gray-200 px-4 sm:px-10 md:px-16 lg:px-[70px]">
@@ -125,10 +143,15 @@ export default function CollegeCourses({ college_id }: Props) {
             className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
           >
             <h2 className="text-base sm:text-lg font-semibold text-[#403A83] truncate pb-1">
-              {getSpecializationName(course.specialization)}
+              {course.category?.name || "Category"}{" "}
+              <span className="text-gray-500 italic">
+                ({getSpecializationName(course.specialization)})
+              </span>
             </h2>
 
-            <p className="text-sm sm:text-base text-gray-600 line-clamp-3">{course.description}</p>
+            <p className="text-sm sm:text-base text-gray-600 line-clamp-3">
+              {course.description}
+            </p>
 
             <div className="mt-4 space-y-2 text-sm sm:text-base text-gray-700">
               <p>
@@ -145,7 +168,8 @@ export default function CollegeCourses({ college_id }: Props) {
 
               {course.fees && (
                 <p className="font-semibold text-indigo-700">
-                  💰 Fees: ₹{course.fees.amount.toLocaleString()} {course.fees.currency} ({course.fees.year})
+                  💰 Fees: ₹{course.fees.amount.toLocaleString()}{" "}
+                  {course.fees.currency} ({course.fees.year})
                 </p>
               )}
             </div>
@@ -159,7 +183,13 @@ export default function CollegeCourses({ college_id }: Props) {
               </button>
 
               <button
-                onClick={() => window.open(course.brochure_link, "_blank", "noopener,noreferrer")}
+                onClick={() =>
+                  window.open(
+                    course.brochure_link,
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
                 className="px-5 py-2 bg-transparent border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition duration-200 text-center w-full sm:w-auto"
               >
                 Download Brochure

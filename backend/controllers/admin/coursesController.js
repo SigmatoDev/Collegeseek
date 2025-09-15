@@ -5,6 +5,8 @@ const College = require("../../models/admin/collegemodel");
 const CoursesList = require("../../models/admin/coursesList"); // Adjust path if necessary
 const ProgramMode = require("../../models/admin/programMode"); // Adjust path if necessary
 const Specialization = require("../../models/admin/specialization"); // <- Capitalize for consistency
+const Streams = require("../../models/admin/streams");
+
 
 // Get all courses
 const getCourse = async (req, res) => {
@@ -259,6 +261,7 @@ const updateCourse = async (req, res) => {
   try {
     let {
       name,
+      college,
       college_id,
       category,
       programMode,
@@ -266,69 +269,93 @@ const updateCourse = async (req, res) => {
       streams,
       ...rest
     } = req.body;
+
     console.log("Incoming request body:", req.body);
 
-    // Normalize college_id
-    if (college_id && typeof college_id === "object") {
-      college_id = college_id._id;
-    }
-    if (college_id && !mongoose.Types.ObjectId.isValid(college_id)) {
-      const college = await College.findOne({ name: college_id });
-      if (!college)
-        return res.status(400).json({ message: "College not found" });
+    /** ------------------ COLLEGE ------------------ **/
+    // If frontend sends `college` object, extract _id
+    if (college && typeof college === "object" && college._id) {
       college_id = college._id;
     }
 
-    // Normalize category
-    if (
+    // If frontend sends just an id string
+    if (college_id && mongoose.Types.ObjectId.isValid(college_id)) {
+      // ok, use it
+    } else if (college_id && typeof college_id === "string") {
+      // Try to resolve by name if it's not a valid ObjectId
+      const collegeDoc = await College.findOne({ name: college_id });
+      if (!collegeDoc) {
+        return res.status(400).json({ message: "College not found" });
+      }
+      college_id = collegeDoc._id;
+    }
+
+    /** ------------------ CATEGORY ------------------ **/
+    if (category && typeof category === "object" && category._id) {
+      category = category._id;
+    } else if (
       category &&
-      typeof category !== "object" &&
       !mongoose.Types.ObjectId.isValid(category)
     ) {
-      const courseCategory = await CoursesList.findOne({ name: category });
-      if (!courseCategory)
+      const categoryDoc = await CoursesList.findOne({ name: category });
+      if (!categoryDoc) {
         return res.status(400).json({ message: "Category not found" });
-      category = courseCategory._id;
+      }
+      category = categoryDoc._id;
     }
 
-    // Normalize programMode
-    if (
+    /** ------------------ PROGRAM MODE ------------------ **/
+    if (programMode && typeof programMode === "object" && programMode._id) {
+      programMode = programMode._id;
+    } else if (
       programMode &&
-      typeof programMode !== "object" &&
       !mongoose.Types.ObjectId.isValid(programMode)
     ) {
-      const programModeDoc = await ProgramMode.findOne({ name: programMode });
-      if (!programModeDoc)
+      const pmDoc = await ProgramMode.findOne({ name: programMode });
+      if (!pmDoc) {
         return res.status(400).json({ message: "Program mode not found" });
-      programMode = programModeDoc._id;
+      }
+      programMode = pmDoc._id;
     }
 
-    // Normalize specialization
-    if (
+    /** ------------------ SPECIALIZATION ------------------ **/
+    if (specialization && typeof specialization === "object" && specialization._id) {
+      specialization = specialization._id;
+    } else if (
       specialization &&
-      typeof specialization !== "object" &&
       !mongoose.Types.ObjectId.isValid(specialization)
     ) {
-      const specializationDoc = await Specialization.findOne({
-        name: specialization,
-      });
-      if (!specializationDoc)
+      const spDoc = await Specialization.findOne({ name: specialization });
+      if (!spDoc) {
         return res.status(400).json({ message: "Specialization not found" });
-      specialization = specializationDoc._id;
+      }
+      specialization = spDoc._id;
     }
 
-    // Normalize streams
-    if (
-      streams &&
-      typeof streams !== "object" &&
-      !mongoose.Types.ObjectId.isValid(streams)
-    ) {
-      const streamDoc = await Streams.findOne({ name: streams });
-      if (!streamDoc)
-        return res.status(400).json({ message: "Stream not found" });
-      streams = streamDoc._id;
+    /** ------------------ STREAMS ------------------ **/
+    if (streams && Array.isArray(streams)) {
+      // Handle array of objects or ids
+      streams = await Promise.all(
+        streams.map(async (s) => {
+          if (typeof s === "object" && s._id) return s._id;
+          if (mongoose.Types.ObjectId.isValid(s)) return s;
+          const sDoc = await Streams.findOne({ name: s });
+          if (!sDoc) throw new Error(`Stream "${s}" not found`);
+          return sDoc._id;
+        })
+      );
+    } else if (streams && typeof streams === "string") {
+      // Single stream
+      if (mongoose.Types.ObjectId.isValid(streams)) {
+        streams = [streams];
+      } else {
+        const sDoc = await Streams.findOne({ name: streams });
+        if (!sDoc) return res.status(400).json({ message: "Stream not found" });
+        streams = [sDoc._id];
+      }
     }
 
+    /** ------------------ UPDATE ------------------ **/
     const updatedCourse = await Course.findByIdAndUpdate(
       req.params.id,
       {
@@ -339,14 +366,12 @@ const updateCourse = async (req, res) => {
         ...(programMode && { programMode }),
         ...(specialization && { specialization }),
         ...(streams && { streams }),
-
-        // Slug is intentionally left out
       },
       {
         new: true,
         runValidators: true,
       }
-    );
+    ).populate("college_id category programMode specialization streams");
 
     if (!updatedCourse) {
       return res.status(404).json({ message: "Course not found" });
@@ -355,9 +380,10 @@ const updateCourse = async (req, res) => {
     res.json(updatedCourse);
   } catch (error) {
     console.error("Error updating course:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to update course", error: error.message });
+    res.status(500).json({
+      message: "Failed to update course",
+      error: error.message,
+    });
   }
 };
 
