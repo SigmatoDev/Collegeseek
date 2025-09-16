@@ -11,6 +11,7 @@ import {
   PlusCircleIcon,
 } from "@heroicons/react/24/outline";
 import ExportCoursesButton from "./exportCourses";
+import ImportCourses from "./importCourses";
 
 interface Specialization {
   _id: string;
@@ -106,8 +107,10 @@ const AdminCourses = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-2 gap-4">
         <h1 className="text-2xl font-bold text-gray-800">Courses List</h1>
+      </div>
+      <div className="flex justify-between items-center mb-2">
         <button
           onClick={() => router.push("/admin/manageCourses/new")}
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
@@ -115,22 +118,25 @@ const AdminCourses = () => {
           <PlusCircleIcon className="w-5 h-5 mr-2" />
           Add Course
         </button>
+        <ImportCourses />
       </div>
 
       {/* Export + Search */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <ExportCoursesButton selectedCourseIds={selectedCourses} />
-
-        <div className="relative">
+        {/* Search Bar - Left */}
+        <div className="relative w-full md:w-[440px]">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             placeholder="Search courses..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-[440px] border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
           />
         </div>
+
+        {/* Export Button - Right */}
+        <ExportCoursesButton selectedCourseIds={selectedCourses} />
       </div>
 
       {/* Rows Per Page + Entries */}

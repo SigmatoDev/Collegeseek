@@ -175,48 +175,48 @@ const ActualCourseForm = () => {
     [router]
   );
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    // Transform course before sending
-    const payload = {
-      ...course,
-      college_id: course.college?._id || course.college, // normalize to id
-      category: course.category?._id || course.category,
-      programMode: course.programMode?._id || course.programMode,
-      specialization: course.specialization?._id || course.specialization,
-      streams: Array.isArray(course.streams)
-        ? course.streams.map((s: any) => (s?._id ? s._id : s))
-        : course.streams,
-    };
+    try {
+      // Transform course before sending
+      const payload = {
+        ...course,
+        college_id: course.college?._id || course.college, // normalize to id
+        category: course.category?._id || course.category,
+        programMode: course.programMode?._id || course.programMode,
+        specialization: course.specialization?._id || course.specialization,
+        streams: Array.isArray(course.streams)
+          ? course.streams.map((s: any) => (s?._id ? s._id : s))
+          : course.streams,
+      };
 
-    // remove nested objects (optional clean up)
-    delete (payload as any).college;
+      // remove nested objects (optional clean up)
+      delete (payload as any).college;
 
-    const url = `${api_url}courses${
-      courseId && courseId !== "new" ? `/${courseId}` : ""
-    }`;
+      const url = `${api_url}courses${
+        courseId && courseId !== "new" ? `/${courseId}` : ""
+      }`;
 
-    const method = courseId && courseId !== "new" ? axios.put : axios.post;
-    const res = await method(url, payload);
+      const method = courseId && courseId !== "new" ? axios.put : axios.post;
+      const res = await method(url, payload);
 
-    if (res.status >= 200 && res.status < 300) {
-      toast.success(
-        `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
-      );
-      router.push("/admin/manageCourses");
-    } else {
-      toast.error("Failed to save course.");
+      if (res.status >= 200 && res.status < 300) {
+        toast.success(
+          `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
+        );
+        router.push("/admin/manageCourses");
+      } else {
+        toast.error("Failed to save course.");
+      }
+    } catch (err) {
+      console.error("Error submitting course:", err);
+      toast.error("An error occurred.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error submitting course:", err);
-    toast.error("An error occurred.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleProgramModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedProgramMode(e.target.value);
@@ -235,6 +235,12 @@ const ActualCourseForm = () => {
       streams: e.target.value,
     }));
   };
+  // Capitalize first letter of each word
+  const capitalizeWords = (str: string) =>
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
 
   return (
     <form
@@ -257,63 +263,62 @@ const ActualCourseForm = () => {
             />
           </div>
         </div>
-       <div className="mb-4 mt-2 relative">
-  <label
-    htmlFor="college_id"
-    className="block text-sm font-semibold text-gray-700 pb-2"
-  >
-    Select College
-  </label>
+        <div className="mb-4 mt-2 relative">
+          <label
+            htmlFor="college_id"
+            className="block text-sm font-semibold text-gray-700 pb-2"
+          >
+            Select College
+          </label>
 
-  {/* Dropdown Button */}
-<div
-  className="p-2 border rounded w-full cursor-pointer"
-  onClick={() => setIsOpen((prev) => !prev)}
->
-  {course.college
-    ? `${course.college.name} (${course.college.state}, ${course.college.city})`
-    : "Select College"}
-</div>
+          {/* Dropdown Button */}
+          <div
+            className="p-2 border rounded w-full cursor-pointer"
+            onClick={() => setIsOpen((prev) => !prev)}
+          >
+            {course.college
+              ? `${course.college.name} (${capitalizeWords(course.college.state)}, ${course.college.city})`
+              : "Select College"}
+          </div>
 
+          {/* Dropdown Options */}
+          {isOpen && (
+            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
+              {/* Search Input (fixed at top) */}
+              <input
+                type="text"
+                placeholder="Search colleges..."
+                value={searchCollege}
+                onChange={(e) => setSearchCollege(e.target.value)}
+                className="p-2 border-b border-b-gray-950 w-full outline-none sticky top-0 bg-white z-20"
+              />
 
-  {/* Dropdown Options */}
-  {isOpen && (
-    <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
-      {/* Search Input (fixed at top) */}
-      <input
-        type="text"
-        placeholder="Search colleges..."
-        value={searchCollege}
-        onChange={(e) => setSearchCollege(e.target.value)}
-        className="p-2 border-b border-b-gray-950 w-full outline-none sticky top-0 bg-white z-20"
-      />
-
-      {/* Scrollable College List */}
-      <ul className="max-h-60 overflow-y-auto">
-        {colleges
-          .filter((c) =>
-            c.name.toLowerCase().includes(searchCollege.toLowerCase())
-          )
-          .map((college) => (
-            <li
-              key={college._id}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
-              onClick={() => {
-                setCourse((prev: any) => ({ ...prev, college }));
-                setIsOpen(false);
-                setSearchCollege("");
-              }}
-            >
-              {college.name}{" "}
-              {college.state && `(State: ${college.state})`}{" "}
-              {college.city && `(City: ${college.city})`}
-            </li>
-          ))}
-      </ul>
-    </div>
-  )}
-</div>
-
+              {/* Scrollable College List */}
+              <ul className="max-h-60 overflow-y-auto">
+                {colleges
+                  .filter((c) =>
+                    c.name.toLowerCase().includes(searchCollege.toLowerCase())
+                  )
+                  .map((college) => (
+                    <li
+                      key={college._id}
+                      className="p-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setCourse((prev: any) => ({ ...prev, college }));
+                        setIsOpen(false);
+                        setSearchCollege("");
+                      }}
+                    >
+                      {college.name}{" "}
+                      {college.state &&
+                        `(State: ${capitalizeWords(college.state)})`}{" "}
+                      {college.city && `(City: ${college.city})`}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+        </div>
 
         <label
           htmlFor="description"

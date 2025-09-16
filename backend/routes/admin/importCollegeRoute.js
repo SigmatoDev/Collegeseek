@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const { importCollegeFromExcel } = require("../../controllers/admin/importCollegeFromExcel");
+const { importCoursesFromExcel } = require("../../controllers/admin/importCoursesFromExcel");
 const router = express.Router();
 
 const uploadExcel = multer({
@@ -16,6 +17,9 @@ const uploadExcel = multer({
 });
 
 router.post("/colleges/import-excel", uploadExcel.single("file"), importCollegeFromExcel);
+
+router.post("/courses/import-excel", uploadExcel.single("file"), importCoursesFromExcel);
+
 
 
 module.exports = router;  // Make sure to export it
