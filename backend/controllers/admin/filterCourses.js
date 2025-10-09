@@ -439,6 +439,98 @@ const getCoursesWithCommonSpecializations = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+const getCoursesWithCommonSpecialization = async (req, res) => {
+  try {
+    // Get page and limit from query params, default values if not provided
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const courses = await Course.aggregate([
+      {
+        $group: {
+          _id: "$specialization", // Group by specialization
+          course: { $first: "$$ROOT" }, // One sample course for info
+          minDuration: { $min: "$duration" },
+          maxDuration: { $max: "$duration" },
+          minFees: { $min: "$fees.amount" },
+          maxFees: { $max: "$fees.amount" },
+          currency: { $first: "$fees.currency" },
+          year: { $first: "$fees.year" },
+        },
+      },
+      {
+        $addFields: {
+          course: {
+            $mergeObjects: [
+              "$course",
+              {
+                durationRange: { $concat: [{ $toString: "$minDuration" }, " - ", { $toString: "$maxDuration" }] },
+                feesRange: {
+                  $concat: [
+                    { $toString: "$minFees" },
+                    " - ",
+                    { $toString: "$maxFees" },
+                    " ",
+                    "$currency",
+                    " (",
+                    { $toString: "$year" },
+                    ")"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: "$course" }
+      },
+      // Populate category
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+      // Populate specialization
+      {
+        $lookup: {
+          from: "specializations",
+          localField: "specialization",
+          foreignField: "_id",
+          as: "specialization",
+        },
+      },
+      { $unwind: { path: "$specialization", preserveNullAndEmptyArrays: true } },
+      // Pagination
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+
+    // Get total count for frontend pagination
+    const totalCountAgg = await Course.aggregate([
+      { $group: { _id: "$specialization" } },
+      { $count: "total" }
+    ]);
+    const totalCount = totalCountAgg[0] ? totalCountAgg[0].total : 0;
+
+    res.json({
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      courses,
+    });
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res.status(500).json({ message: "Failed to fetch courses" });
+  }
+};
+
 
 const getCourseBySpecialization = async (req, res) => {
   try {
@@ -535,5 +627,5 @@ const getCourseBySpecialization = async (req, res) => {
 
 
 module.exports = {
-  getCourseFilters,getFilterdCourses,getCoursesWithCommonNames,getCourseBySpecialization,getCoursesWithCommonSpecializations,getCourseBySameName
+  getCourseFilters,getFilterdCourses,getCoursesWithCommonNames,getCourseBySpecialization,getCoursesWithCommonSpecializations,getCoursesWithCommonSpecialization ,getCourseBySameName
 };

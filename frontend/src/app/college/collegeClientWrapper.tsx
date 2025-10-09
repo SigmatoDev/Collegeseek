@@ -131,7 +131,7 @@ export default function CollegesClientWrapper() {
 
     {/* Loading Overlay */}
     {loading && (
-      <div className="fixed inset-0 z-50 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-white/10 flex items-center justify-center">
         <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent rounded-full" />
       </div>
     )}

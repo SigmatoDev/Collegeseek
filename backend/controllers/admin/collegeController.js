@@ -90,33 +90,35 @@ const createCollege = async (req, res) => {
     console.log("Original stream:", stream);
     console.log("Original approvel:", approvel);
     console.log("Original examExpected:", examExpected);
-const requiredFields = {
-  name,
-  description,
-  address,
-  location,
-  contactNumbers,
-  contactEmail,
-  state,
-  city,
-  stream,
-  approvel,
-  affiliatedby,
-  ownership,
-};
+    const requiredFields = {
+      name,
+      description,
+      address,
+      location,
+      contactNumbers,
+      contactEmail,
+      state,
+      city,
+      stream,
+      approvel,
+      affiliatedby,
+      ownership,
+    };
 
-// Find missing fields
-const missingFields = Object.entries(requiredFields)
-  .filter(([key, value]) => !value || (Array.isArray(value) && value.length === 0))
-  .map(([key]) => key);
+    // Find missing fields
+    const missingFields = Object.entries(requiredFields)
+      .filter(
+        ([key, value]) => !value || (Array.isArray(value) && value.length === 0)
+      )
+      .map(([key]) => key);
 
-if (missingFields.length > 0) {
-  console.error("Missing required fields:", missingFields);
-  return res.status(400).json({ 
-    error: "Missing required fields", 
-    missingFields 
-  });
-}
+    if (missingFields.length > 0) {
+      console.error("Missing required fields:", missingFields);
+      return res.status(400).json({
+        error: "Missing required fields",
+        missingFields,
+      });
+    }
 
     const slug = await generateUniqueSlug(name);
     console.log("Generated slug:", slug);
@@ -154,20 +156,24 @@ if (missingFields.length > 0) {
       }
     }
 
-       // Parse and validate contactNumbers
+    // Parse and validate contactNumbers
     let parsedContacts = [];
     try {
-      parsedContacts = typeof contactNumbers === "string"
-        ? JSON.parse(contactNumbers)
-        : contactNumbers;
+      parsedContacts =
+        typeof contactNumbers === "string"
+          ? JSON.parse(contactNumbers)
+          : contactNumbers;
 
-      if (!Array.isArray(parsedContacts)) throw new Error("contactNumbers must be an array.");
+      if (!Array.isArray(parsedContacts))
+        throw new Error("contactNumbers must be an array.");
 
       parsedContacts = parsedContacts.filter((c) => {
         if (!c?.type || !c?.number) return false;
 
-        if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number)) return false;
-        if (c.type === "Landline" && !/^(\d{2,5}[- ]?\d{6,8})$/.test(c.number)) return false;
+        if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number))
+          return false;
+        if (c.type === "Landline" && !/^(\d{2,5}[- ]?\d{6,8})$/.test(c.number))
+          return false;
 
         return true;
       });
@@ -243,7 +249,7 @@ if (missingFields.length > 0) {
       affiliatedby,
       examExpected: parsedExamExpected,
       ownership,
-      featured: featured === 'true' || featured === true, // ✅ Safely parsed boolean
+      featured: featured === "true" || featured === true, // ✅ Safely parsed boolean
     });
 
     console.log("Saving new college:", newCollege);
@@ -261,7 +267,6 @@ if (missingFields.length > 0) {
       .json({ error: "Failed to create college", details: error.message });
   }
 };
-
 
 // ✅ Get All Colleges
 const getallColleges = async (req, res) => {
@@ -293,7 +298,6 @@ const getStateColleges = async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to fetch colleges" });
   }
 };
-
 
 // const getCollege = async (req, res) => {
 //   try {
@@ -567,6 +571,7 @@ const updateCollege = async (req, res) => {
     }
 
     // ✅ Parse contactNumbers
+    // ✅ Parse contactNumbers with detailed logging
     let parsedContacts = [];
     try {
       parsedContacts =
@@ -578,14 +583,20 @@ const updateCollege = async (req, res) => {
         throw new Error("contactNumbers must be an array.");
       }
 
-      // Validation for each number
+      // Validation for each number with console logs
       parsedContacts = parsedContacts.filter((c) => {
-        if (!c?.type || !c?.number) return false;
+        console.log("Processing contact:", c); // 🔹 log each contact
+
+        if (!c?.type || !c?.number) {
+          console.warn("Missing type or number:", c);
+          return false;
+        }
 
         if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number)) {
           console.error("Invalid mobile:", c.number);
           return false;
         }
+
         if (
           c.type === "Landline" &&
           !/^(\d{2,5}[- ]?\d{6,8})$/.test(c.number)
@@ -593,12 +604,13 @@ const updateCollege = async (req, res) => {
           console.error("Invalid landline:", c.number);
           return false;
         }
+
+        console.log("Valid contact:", c); // 🔹 log valid contacts
         return true;
       });
     } catch (err) {
-      return res
-        .status(400)
-        .json({ error: "Invalid contactNumbers format." });
+      console.error("❌ Error parsing contactNumbers:", err);
+      return res.status(400).json({ error: "Invalid contactNumbers format." });
     }
 
     // ✅ Parse ObjectId arrays
@@ -672,7 +684,9 @@ const updateCollege = async (req, res) => {
     );
 
     if (!updatedCollege) {
-      return res.status(404).json({ success: false, error: "College not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "College not found" });
     }
 
     res.status(200).json({
@@ -689,7 +703,6 @@ const updateCollege = async (req, res) => {
     });
   }
 };
-
 
 // ✅ Delete College
 const deleteCollege = async (req, res) => {
@@ -716,20 +729,17 @@ const getFeaturedColleges = async (req, res) => {
     // Query colleges where featured is true
     const featuredColleges = await College.find({ featured: true });
 
-      // console.log(`Found ${featuredColleges.length} featured colleges.`);
+    // console.log(`Found ${featuredColleges.length} featured colleges.`);
 
     // Return the featured colleges as a response
     res.status(200).json({ success: true, colleges: featuredColleges });
   } catch (error) {
     console.error("Error fetching featured colleges:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch featured colleges" });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to fetch featured colleges" });
   }
 };
-
-
-
-
-
 
 // Export functions (CommonJS)
 module.exports = {

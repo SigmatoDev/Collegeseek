@@ -155,7 +155,7 @@ const ActualCollegeForm = () => {
             ? data.contactNumbers
             : data.contact
             ? [{ type: "Mobile", number: data.contact }] // ✅ fallback if old API returns single `contact`
-            : [{ type: "Mobile", number: "" }], 
+            : [{ type: "Mobile", number: "" }],
           contactEmail: data.contactEmail || "",
           tabs: data.tabs || [],
           featured: data.featured || "", // Add the featured status
@@ -550,144 +550,146 @@ const ActualCollegeForm = () => {
           {/* Text Inputs */}
 
           <div className="grid grid-cols-2 gap-4">
-            {Object.entries(fieldLabels).map(([field, label]) => (
-              <div key={field} className="flex flex-col">
-                <label className="text-gray-700 font-medium">
-                  {label} <sup className="text-red-500">*</sup>
-                </label>
+  {Object.entries(fieldLabels).map(([field, label]) => (
+    <div key={field} className="flex flex-col">
+      <label className="text-gray-700 font-medium">
+        {label} <sup className="text-red-500">*</sup>
+      </label>
 
-                {field === "contactNumbers" && (
-                  <>
-                    {collegeData.contactNumbers.map((contact, index) => (
-                      <div key={index} className="flex items-center gap-2 mb-2">
-                        {/* Type selector */}
-                        <select
-                          value={contact.type}
-                          onChange={(e) => {
-                            const updated = [...collegeData.contactNumbers];
-                            updated[index].type = e.target.value as
-                              | "Mobile"
-                              | "Landline";
-                            setCollegeData((prev) => ({
-                              ...prev,
-                              contactNumbers: updated,
-                            }));
-                          }}
-                          className="p-2 border rounded-lg min-w-[100px]"
-                        >
-                          <option value="Mobile">Mobile</option>
-                          <option value="Landline">Landline</option>
-                        </select>
+      {field === "contactNumbers" && (
+        <>
+          {(collegeData.contactNumbers?.length
+            ? collegeData.contactNumbers
+            : [{ type: "Mobile", number: "" }]
+          ).map((contact, index) => (
+            <div key={index} className="flex items-center gap-2 mb-2">
+              {/* Type selector */}
+              <select
+                value={contact.type}
+                onChange={(e) => {
+                  const updated = [...(collegeData.contactNumbers || [])];
+                  updated[index] = updated[index] || { type: "Mobile", number: "" };
+                  updated[index].type = e.target.value as "Mobile" | "Landline";
+                  setCollegeData((prev) => ({
+                    ...prev,
+                    contactNumbers: updated,
+                  }));
+                }}
+                className="p-2 border rounded-lg min-w-[100px]"
+              >
+                <option value="Mobile">Mobile</option>
+                <option value="Landline">Landline</option>
+              </select>
 
-                        {/* Number input */}
-                        <input
-                          type="text"
-                          value={contact.number}
-                          onChange={(e) => {
-                            const updated = [...collegeData.contactNumbers];
-                            updated[index].number = e.target.value;
-                            setCollegeData((prev) => ({
-                              ...prev,
-                              contactNumbers: updated,
-                            }));
-                          }}
-                          placeholder={
-                            contact.type === "Mobile"
-                              ? "e.g., 9876543210"
-                              : "e.g., 011-23456789"
-                          }
-                          className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                        <div className="flex flex-col gap-1">
-                          {/* Remove button */}
-                          <button
-                            type="button"
-                            onClick={() => setModalIndex(index)}
-                            className="px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
+              {/* Number input */}
+              <input
+                type="text"
+                value={contact.number || ""}
+                onChange={(e) => {
+                  const updated = [...(collegeData.contactNumbers || [])];
+                  updated[index] = updated[index] || { type: "Mobile", number: "" };
+                  updated[index].number = e.target.value;
+                  setCollegeData((prev) => ({
+                    ...prev,
+                    contactNumbers: updated,
+                  }));
+                }}
+                placeholder={
+                  contact.type === "Mobile"
+                    ? "e.g., 9876543210"
+                    : "e.g., 011-23456789"
+                }
+                className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              />
 
-                          {/* Add button only on last row */}
-                          {index === collegeData.contactNumbers.length - 1 && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setCollegeData((prev) => ({
-                                  ...prev,
-                                  contactNumbers: [
-                                    ...prev.contactNumbers,
-                                    { type: "Mobile", number: "" },
-                                  ],
-                                }))
-                              }
-                              className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 4v16m8-8H4"
-                                />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
+              <div className="flex flex-col gap-1">
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => setModalIndex(index)}
+                  className="px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
 
-                        {/* Confirmation Modal */}
-                        <ConfirmModal
-                          isOpen={modalIndex === index}
-                          onClose={() => setModalIndex(null)}
-                          onConfirm={() => {
-                            setCollegeData((prev) => ({
-                              ...prev,
-                              contactNumbers: prev.contactNumbers.filter(
-                                (_, i) => i !== index
-                              ),
-                            }));
-                            setModalIndex(null);
-                          }}
-                          message="Are you sure you want to remove this number?"
-                        />
-                      </div>
-                    ))}
-                  </>
-                )}
-
-                {field !== "contactNumbers" && (
-                  <input
-                    type={
-                      field === "website"
-                        ? "url"
-                        : field === "contactEmail"
-                        ? "email"
-                        : "text"
+                {/* Add button only on last row */}
+                {index === (collegeData.contactNumbers?.length || 0) - 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCollegeData((prev) => ({
+                        ...prev,
+                        contactNumbers: [
+                          ...(prev.contactNumbers || []),
+                          { type: "Mobile", number: "" },
+                        ],
+                      }))
                     }
-                    name={field}
-                    value={
-                      typeof collegeData[field as keyof typeof collegeData] ===
-                      "string"
-                        ? (collegeData[
-                            field as keyof typeof collegeData
-                          ] as string)
-                        : ""
-                    }
-                    onChange={handleChange}
-                    required
-                    maxLength={field === "name" ? 170 : undefined}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+                    className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                  </button>
                 )}
               </div>
-            ))}
-          </div>
+
+              {/* Confirmation Modal */}
+              <ConfirmModal
+                isOpen={modalIndex === index}
+                onClose={() => setModalIndex(null)}
+                onConfirm={() => {
+                  setCollegeData((prev) => ({
+                    ...prev,
+                    contactNumbers: (prev.contactNumbers || []).filter(
+                      (_, i) => i !== index
+                    ),
+                  }));
+                  setModalIndex(null);
+                }}
+                message="Are you sure you want to remove this number?"
+              />
+            </div>
+          ))}
+        </>
+      )}
+
+      {field !== "contactNumbers" && (
+        <input
+          type={
+            field === "website"
+              ? "url"
+              : field === "contactEmail"
+              ? "email"
+              : "text"
+          }
+          name={field}
+          value={
+            typeof collegeData[field as keyof typeof collegeData] === "string"
+              ? (collegeData[field as keyof typeof collegeData] as string)
+              : ""
+          }
+          onChange={handleChange}
+          required
+          maxLength={field === "name" ? 170 : undefined}
+          className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+      )}
+    </div>
+  ))}
+</div>
+
 
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

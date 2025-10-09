@@ -26,7 +26,8 @@ const {
 
   getCoursesWithCommonSpecializations,
   getCourseBySpecialization,
-  getCourseBySameName
+  getCourseBySameName,
+  getCoursesWithCommonSpecialization
 } = require('../../controllers/admin/filterCourses');
 
 // Define routes
@@ -44,6 +45,7 @@ router.get("/get/courses/filters", getCourseFilters);
 router.post("/apply/filter/courses", getFilterdCourses);
 router.post("/courses/filter/by/common/name", getCoursesWithCommonNames);
 router.post("/courses/filter/by/specialization",getCoursesWithCommonSpecializations)
+router.post("/courses/filter/by/specializationpage",getCoursesWithCommonSpecialization)
 router.get("/courses/all/get/with/same/name", getCourseBySameName);
 router.get("/courses/all/get/by/specialization", getCourseBySpecialization);
 
