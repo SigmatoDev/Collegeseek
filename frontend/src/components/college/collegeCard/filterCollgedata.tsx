@@ -5,6 +5,7 @@ import { CurrencyRupeeIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/counselling/model/page";
 import CounsellingForm from "@/components/counselling/counsellingForm/page";
+import DOMPurify from "dompurify";
 
 interface Props {
   collegeId: string;
@@ -69,6 +70,19 @@ export default function FilterCollegeCard({ collegeId }: Props) {
 
     fetchCollegeById();
   }, [collegeId]);
+
+  const cleanDescription = (html: string): string => {
+    if (!html) return "";
+    const cleaned = html
+      .replace(/<li>\s*<p>/g, "<li>") // Remove opening <p> inside <li>
+      .replace(/<\/p>\s*<\/li>/g, "</li>") // Remove closing </p> inside <li>
+      .replace(/<p><\/p>/g, ""); // Remove empty <p> tags
+    return DOMPurify.sanitize(cleaned);
+  };
+  if (!collegeData)
+    return <div className="text-center p-4">No data available.</div>;
+
+  const sanitizedDescription = cleanDescription(collegeData.description || "");
 
   if (loading) return <div className="text-center p-4">Loading...</div>;
   if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
@@ -143,11 +157,17 @@ export default function FilterCollegeCard({ collegeId }: Props) {
           </div>
 
           <div className="text-sm text-gray-600 mb-2">
-            <p className="break-all whitespace-pre-wrap">
-              {isExpanded
-                ? collegeData.description
-                : `${collegeData.description.slice(0, 150)}...`}
-            </p>
+            <div
+              className="break-all whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{
+                __html: isExpanded
+                  ? sanitizedDescription
+                  : cleanDescription(
+                      collegeData.description.slice(0, 150) + "..."
+                    ),
+              }}
+            />
+
             {collegeData.description.length > 150 && (
               <button
                 className="text-blue-500 text-xs font-semibold focus:outline-none mt-1"
