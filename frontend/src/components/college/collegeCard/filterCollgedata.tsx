@@ -158,7 +158,7 @@ export default function FilterCollegeCard({ collegeId }: Props) {
 
           <div className="text-sm text-gray-600 mb-2">
             <div
-              className="break-all whitespace-pre-wrap"
+              className="whitespace-pre-wrap break-words"
               dangerouslySetInnerHTML={{
                 __html: isExpanded
                   ? sanitizedDescription
