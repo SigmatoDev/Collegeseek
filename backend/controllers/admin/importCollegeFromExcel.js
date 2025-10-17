@@ -169,7 +169,7 @@
 //         const ownershipId = await resolveFieldId(Ownership, row.ownership);
 //         const streamIds = await resolveMultipleFieldIds(Stream, row.stream, true);
 //         const approvalIds = await resolveMultipleFieldIds(Approval, row.approvel, false);
-//         const examIds = await resolveMultipleFieldIds(ExamsAccepted, row.examExpected, true);
+//         const examIds = await resolveMultipleFieldIds(ExamsAccepted, row.examExpected, false);
 
 //         if (!affiliatedById || !ownershipId) {
 //           failed.push({
