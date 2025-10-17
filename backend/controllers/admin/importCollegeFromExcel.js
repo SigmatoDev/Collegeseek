@@ -347,7 +347,6 @@ const extractEmail = (val) => {
 const parseContactNumbers = (contactStr) => {
   if (!contactStr) return [];
 
-  // Split by '|' or ','
   return contactStr
     .split(/\||,/)
     .map((item) => {
@@ -357,7 +356,6 @@ const parseContactNumbers = (contactStr) => {
       const type = ["Mobile", "Landline"].includes(typeRaw) ? typeRaw : "Mobile";
       const number = numberRaw;
 
-      // Validate numbers
       const mobileRegex = /^(\+?\d{10,15})$/;
       const landlineRegex = /^(\d{2,5}[- ]?\d{6,8})$/;
 
@@ -372,11 +370,58 @@ const parseContactNumbers = (contactStr) => {
     .filter(Boolean);
 };
 
-
 // Strip HTML tags
 const stripHtml = (html) => {
   if (!html) return "";
   return html.replace(/<[^>]*>/g, "").trim();
+};
+
+// --- New Safe Helpers for Website Handling ---
+
+const extractWebsiteValue = (val) => {
+  if (val === undefined || val === null) return "";
+  if (typeof val === "string") return val.trim();
+  if (typeof val === "number") return String(val);
+  if (typeof val === "object") {
+    if (typeof val.text === "string") return val.text.trim();
+    if (typeof val.result === "string") return val.result.trim();
+    if (Array.isArray(val.richText)) {
+      try {
+        return val.richText.map((t) => (typeof t.text === "string" ? t.text : "")).join("").trim();
+      } catch {
+        return "";
+      }
+    }
+    if (typeof val.value === "string") return val.value.trim();
+    if (typeof val.toString === "function") {
+      try {
+        return String(val.toString()).trim();
+      } catch {
+        return "";
+      }
+    }
+  }
+  return "";
+};
+
+const normalizeWebsite = (rawUrl) => {
+  const url = extractWebsiteValue(rawUrl);
+  if (!url) return undefined;
+
+  const placeholderSet = new Set(["-", "na", "n/a", "none", "null", ""]);
+  if (placeholderSet.has(url.trim().toLowerCase())) return undefined;
+
+  let site = url.trim();
+
+  // Add https:// if missing
+  if (!/^https?:\/\//i.test(site) && /^www\./i.test(site)) {
+    site = `https://${site}`;
+  } else if (!/^https?:\/\//i.test(site) && /^[\w-]+(\.[\w-]+)+/.test(site)) {
+    site = `https://${site}`;
+  }
+
+  const regex = /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./?%&=-]*)?$/i;
+  return regex.test(site) ? site : undefined;
 };
 
 // Controller
@@ -462,7 +507,6 @@ const importCollegeFromExcel = async (req, res) => {
         const imagePath = imageMap.get(row.rowNumber) || safe(row["Image"], "");
         const email = extractEmail(row["Contact Email"]);
 
-        // Parse contact numbers and log
         const contactNumbers = parseContactNumbers(row["Contact Numbers"]);
         console.log(`Contact numbers for college "${row["Name"]}":`, contactNumbers);
 
@@ -479,8 +523,8 @@ const importCollegeFromExcel = async (req, res) => {
           avgPackage: Number(row["Avg Package"]) || 0,
           image: imagePath,
           imageGallery: formatImages(row["Image Gallery"]),
-          website: safe(row["Website"]),
-          contactNumbers, // ✅ include parsed & validated array
+          website: normalizeWebsite(row["Website"]), // ✅ Updated safe website normalization
+          contactNumbers,
           contactEmail: /^\S+@\S+\.\S+$/.test(email) ? email : undefined,
           affiliatedby: affiliatedById,
           ownership: ownershipId,
@@ -489,6 +533,8 @@ const importCollegeFromExcel = async (req, res) => {
           examExpected: examIds,
           featured: ["true", "1", "yes"].includes(String(row["Featured"]).toLowerCase()),
         };
+
+        console.log(`🌐 Website for "${row["Name"]}":`, collegeData.website);
 
         if (normalizedId) {
           const existing = await College.findById(normalizedId);
@@ -517,7 +563,7 @@ const importCollegeFromExcel = async (req, res) => {
     fs.unlinkSync(req.file.path);
     console.log("🧹 Temporary file deleted after import.");
 
-    console.log(`✅ Import finished! Created: ${imported.length}, Updated: ${imported.filter(c => c._id).length}, Failed: ${failed.length}`);
+    console.log(`✅ Import finished! Created: ${imported.length}, Failed: ${failed.length}`);
 
     res.status(201).json({
       message: "Import completed.",
@@ -531,6 +577,4 @@ const importCollegeFromExcel = async (req, res) => {
   }
 };
 
-// Export default for route
 module.exports = { importCollegeFromExcel };
-
