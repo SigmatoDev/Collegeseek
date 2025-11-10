@@ -6,6 +6,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { api_url } from "@/utils/apiCall";
+import { useUserStore } from "@/Store/userStore";
+import Header from "@/components/header/page";
+import Footer from "@/components/footer/page";
 
 interface RegisterData {
   name: string;
@@ -30,6 +33,10 @@ const Register = () => {
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  // ✅ Zustand store setter
+  const setUser = useUserStore((state) => state.setUser);
+  const setToken = useUserStore((state) => state.setToken);
 
   useEffect(() => {
     setMounted(true);
@@ -70,8 +77,27 @@ const Register = () => {
 
       if (res.ok) {
         setSuccess("Account created successfully!");
+
+        // ✅ Assume backend returns token and user info
+        if (data.token && data.user) {
+          // Save to Zustand store
+          setUser(data.user);
+          setToken(data.token);
+
+          // Also persist to sessionStorage
+          sessionStorage.setItem("user", JSON.stringify(data.user));
+          sessionStorage.setItem("token", data.token);
+
+          // Redirect after a short delay
+          setTimeout(() => {
+            router.push("/user/profile"); // Change route as needed
+          }, 1000);
+        } else {
+          // Fallback: redirect to login if no token returned
+          setTimeout(() => router.push("/user/auth/logIn"), 1500);
+        }
+
         setShowModal(true);
-        setTimeout(() => router.push("/user/auth/logIn"), 2000);
       } else {
         setError(data.message || "Something went wrong.");
         setShowModal(true);
@@ -85,7 +111,9 @@ const Register = () => {
 
   if (!mounted) return null;
 
-  return (
+ return (
+    <>
+      <Header />
     <div className="flex flex-col justify-center items-center min-h-screen bg-white">
       <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
         <div className="flex justify-center">
@@ -135,7 +163,7 @@ const Register = () => {
             placeholder="Enter your phone number"
             value={registerData.phone}
             onChange={(e) => {
-              const onlyNums = e.target.value.replace(/\D/g, ""); // Allow only digits
+              const onlyNums = e.target.value.replace(/\D/g, "");
               setRegisterData((prev) => ({
                 ...prev,
                 phone: onlyNums,
@@ -228,15 +256,17 @@ const Register = () => {
           </div>
         )}
       </div>
-      <div className="mt-4 text-sm text-center ml-[300px] p-2">
+      {/* <div className="mt-4 text-sm text-center ml-[300px] p-2">
         <Link
           href="/"
           className="text-[#581845] hover:text-[#441137] font-medium"
         >
           ← Go Back
         </Link>
-      </div>
+      </div> */}
     </div>
+ <Footer />
+    </>
   );
 };
 

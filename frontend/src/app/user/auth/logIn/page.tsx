@@ -7,6 +7,8 @@ import Image from "next/image";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { api_url } from "@/utils/apiCall";
 import { useUserStore } from "@/Store/userStore";
+import Footer from "@/components/footer/page";
+import Header from "@/components/header/page";
 
 const LogIn = () => {
   const [email, setEmail] = useState("");
@@ -89,6 +91,8 @@ const LogIn = () => {
   if (!mounted) return null;
 
   return (
+    <>
+      <Header />
     <div className="flex flex-col justify-center items-center min-h-screen bg-white">
       <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
         <div className="flex justify-center">
@@ -160,12 +164,14 @@ const LogIn = () => {
         </div>
       </div>
 
-      <div className="mt-4 text-sm text-center ml-[300px] p-2">
+      {/* <div className="mt-4 text-sm text-center ml-[300px] p-2">
         <Link href="/" className="text-[#581845] hover:text-[#441137] font-medium">
           ← Go Back
         </Link>
-      </div>
+      </div> */}
     </div>
+   <Footer />
+    </>
   );
 };
 

@@ -175,7 +175,7 @@ const ApprovalDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelected 
                 className="p-2 hover:bg-gray-100 cursor-pointer"
                 onClick={() => handleSelect(approval)}
               >
-                {approval.code} - {approval.description}
+                {approval.code}  {approval.description}
               </div>
             ))}
           </div>

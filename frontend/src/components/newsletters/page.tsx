@@ -14,7 +14,9 @@ export default function CallbackForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
 
     if (name === "name") {
@@ -69,13 +71,19 @@ export default function CallbackForm() {
       <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">
         Enhance Your College Experience
       </h2>
-      <h3 className="text-3xl sm:text-4xl font-bold text-[#0a0536] mt-2">Expert Career & Academic Guidance</h3>
+      <h3 className="text-3xl sm:text-4xl font-bold text-[#0a0536] mt-2">
+        Expert Career & Academic Guidance
+      </h3>
 
       <p className="text-gray-600 mt-3 mb-8 max-w-lg text-sm sm:text-base">
-        Connect with our mentors to navigate your academic journey, internships, and career opportunities.
+        Connect with our mentors to navigate your academic journey, internships,
+        and career opportunities.
       </p>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-2">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 px-2"
+      >
         <div className="w-full">
           <input
             type="text"
@@ -99,7 +107,13 @@ export default function CallbackForm() {
             onKeyDown={(e) => {
               if (
                 !/[0-9]/.test(e.key) &&
-                !["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)
+                ![
+                  "Backspace",
+                  "Tab",
+                  "ArrowLeft",
+                  "ArrowRight",
+                  "Delete",
+                ].includes(e.key)
               ) {
                 e.preventDefault();
               }
@@ -148,7 +162,7 @@ export default function CallbackForm() {
         </div>
       </form>
 
-      {message && <p className="text-sm text-gray-600 mt-4">{message}</p>}
+      {message && <p className="text-lg text-green-700 mt-4">{message}</p>}
 
       <p className="text-sm text-gray-500 mt-6 max-w-md px-2">
         By proceeding, you agree to our

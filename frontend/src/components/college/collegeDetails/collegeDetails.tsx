@@ -11,6 +11,7 @@ import Modal from "@/components/shortlist/model/page";
 import DOMPurify from "dompurify";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import Loader from "@/components/loader/loader";
+import { useUserStore } from "@/Store/userStore"; // ✅ import store
 
 interface Tab {
   title: string;
@@ -45,14 +46,33 @@ export default function CollegeDetailsPage() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isShortlistOpen, setIsShortlistOpen] = useState(false);
+  const [hasBrochure, setHasBrochure] = useState(false);
+
+  // ✅ Zustand store for shortlist
+  const { shortlist, addToShortlist, isCollegeShortlisted } = useUserStore();
+  const isShortlisted = collegeData
+    ? isCollegeShortlisted(collegeData._id || collegeData.id)
+    : false;
 
   useEffect(() => {
     const fetchCollege = async () => {
       try {
         const response = await axios.get(`${api_url}/college/${slug}`);
         if (response.data?.success) {
-          setCollegeData(response.data.data);
-          setSelectedTab(response.data.data.tabs?.[0]);
+          const data = response.data.data;
+          setCollegeData(data);
+          setSelectedTab(data.tabs?.[0]);
+
+          // ✅ Check if brochure exists
+          try {
+            const brochureUrl = `${api_url}brochure/college/${
+              data.id || data._id
+            }`;
+            const res = await fetch(brochureUrl, { method: "HEAD" });
+            setHasBrochure(res.ok);
+          } catch {
+            setHasBrochure(false);
+          }
         } else {
           setError("College not found.");
         }
@@ -90,7 +110,7 @@ export default function CollegeDetailsPage() {
     }
   };
 
-  if (loading) return <Loader />; // 🆕 called Loader component when loading
+  if (loading) return <Loader />;
   if (error)
     return <div className="text-center py-10 text-red-500">{error}</div>;
   if (!collegeData)
@@ -156,21 +176,30 @@ export default function CollegeDetailsPage() {
                 </button>
               )}
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <button
-                onClick={() =>
-                  handleDownload(collegeData.id || (collegeData as any)._id)
-                }
-                className="px-5 py-2 border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition"
-              >
-                Download Brochure
-              </button>
 
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              {hasBrochure && (
+                <button
+                  onClick={() =>
+                    handleDownload(collegeData.id || (collegeData as any)._id)
+                  }
+                  className="px-5 py-2 border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition"
+                >
+                  Download Brochure
+                </button>
+              )}
+
+              {/* Shortlist button */}
               <button
                 onClick={() => setIsShortlistOpen(true)}
-                className="px-5 py-2 bg-[#D35B42] text-white rounded-lg font-medium hover:bg-blue-800 transition"
+                className={`px-5 py-2 rounded-lg font-medium transition ${
+                  isShortlisted
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-[#D35B42] text-white hover:bg-blue-800"
+                }`}
+                disabled={isShortlisted}
               >
-                Shortlist
+                {isShortlisted ? "Shortlisted" : "Shortlist"}
               </button>
 
               {collegeData && (
@@ -183,6 +212,15 @@ export default function CollegeDetailsPage() {
                       id: collegeData._id,
                       name: collegeData.name,
                       location: collegeData.location,
+                    }}
+                    onSuccess={() => {
+                      addToShortlist({
+                        id: collegeData._id || collegeData.id || "", // ensure string
+                        name: collegeData.name,
+                        location: collegeData.location,
+                      });
+
+                      setIsShortlistOpen(false); // close modal
                     }}
                   />
                 </Modal>

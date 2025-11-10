@@ -208,7 +208,7 @@ const ExamExpectedDropdown: React.FC<Props> = ({ onSelectionChange, defaultSelec
                 className="p-2 hover:bg-gray-100 cursor-pointer"
                 onClick={() => handleSelect(exam)}
               >
-                {exam.code} - {exam.date}
+                {exam.code}  {exam.date}
               </div>
             ))}
           </div>

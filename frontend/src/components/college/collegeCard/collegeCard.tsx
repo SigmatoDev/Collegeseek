@@ -205,9 +205,16 @@ export default function CollegeCard({ collegeId }: Props) {
       </button>
 
       {/* Modal with Form */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <CounsellingForm collegeId={collegeId} />
-      </Modal>
+  <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+  <CounsellingForm
+    collegeId={collegeId}
+    onClose={() => setIsModalOpen(false)} // ✅ Pass parent close method down
+  />
+</Modal>
+
+
+
+
           
           <button
   onClick={() => router.push(`/colleges/${collegeData.slug}`)}

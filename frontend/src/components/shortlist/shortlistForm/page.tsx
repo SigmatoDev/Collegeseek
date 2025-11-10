@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ Import router
+import { useRouter } from "next/navigation";
 import { useUserStore } from "@/Store/userStore";
 import { api_url } from "@/utils/apiCall";
 
@@ -14,11 +14,12 @@ interface College {
 
 interface ShortlistFormProps {
   college: College;
+  onSuccess?: () => void; // ✅ added callback prop
 }
 
-const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
+const ShortlistForm: React.FC<ShortlistFormProps> = ({ college, onSuccess }) => {
   const { user } = useUserStore();
-  const router = useRouter(); // ✅ Initialize router
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -35,11 +36,6 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
   const userId = user?.id || (user as any)?._id;
 
   useEffect(() => {
-    console.log("ShortlistForm mounted with:", { user, college });
-    console.log("User ID:", userId);
-    console.log("User Token:", user?.token);
-
-    // ✅ Redirect if user or collegeId or userId is missing
     if (!user || !collegeId || !userId) {
       router.push("/user/auth/signUp");
     }
@@ -63,7 +59,7 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.token}`, // safe access
+          Authorization: `Bearer ${user?.token}`,
         },
         body: JSON.stringify({
           ...formData,
@@ -77,6 +73,9 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
       if (res.ok) {
         setSuccess("College successfully shortlisted!");
         setFormData((prev) => ({ ...prev, message: "", phone: "" }));
+
+        // ✅ trigger parent callback
+        if (onSuccess) onSuccess();
       } else {
         setError(data.message || "Failed to submit shortlist.");
       }
@@ -106,10 +105,9 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Name, Email, Phone, Message inputs (unchanged) */}
         <div className="flex flex-col space-y-2">
-          <label htmlFor="name" className="text-gray-600 text-sm sm:text-base">
-            Your Name
-          </label>
+          <label htmlFor="name" className="text-gray-600 text-sm sm:text-base">Your Name</label>
           <input
             type="text"
             name="name"
@@ -117,15 +115,13 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
             placeholder="Your Name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             required
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label htmlFor="email" className="text-gray-600 text-sm sm:text-base">
-            Your Email
-          </label>
+          <label htmlFor="email" className="text-gray-600 text-sm sm:text-base">Your Email</label>
           <input
             type="email"
             name="email"
@@ -133,15 +129,13 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
             placeholder="Your Email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             required
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label htmlFor="phone" className="text-gray-600 text-sm sm:text-base">
-            Your Phone Number
-          </label>
+          <label htmlFor="phone" className="text-gray-600 text-sm sm:text-base">Your Phone Number</label>
           <input
             type="text"
             name="phone"
@@ -149,31 +143,26 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college }) => {
             placeholder="Your Phone Number"
             value={formData.phone}
             onChange={(e) => {
-              const numericValue = e.target.value.replace(/\D/g, ""); // remove non-digits
+              const numericValue = e.target.value.replace(/\D/g, "");
               setFormData((prev) => ({ ...prev, phone: numericValue }));
             }}
             inputMode="numeric"
             pattern="[0-9]*"
-            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             required
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
           />
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label
-            htmlFor="message"
-            className="text-gray-600 text-sm sm:text-base"
-          >
-            Why are you interested in this college?
-          </label>
+          <label htmlFor="message" className="text-gray-600 text-sm sm:text-base">Why are you interested in this college?</label>
           <textarea
             name="message"
             id="message"
             placeholder="Your message"
             value={formData.message}
             onChange={handleChange}
-            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
             rows={4}
+            className="w-full p-3 sm:p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
           />
         </div>
 
