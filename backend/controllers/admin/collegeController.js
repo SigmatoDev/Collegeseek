@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const College = require("../../models/admin/collegemodel");
+const Course = require("../../models/admin/courseModel");
+const Upload = require("../../models/admin/documentModel");
 const AffiliatedBy = require("../../models/admin/affiliatedBy");
 
 const multer = require("multer");
@@ -704,18 +706,90 @@ const updateCollege = async (req, res) => {
   }
 };
 
-// ✅ Delete College
-const deleteCollege = async (req, res) => {
+const getCollegeDependencySummary = async (req, res) => {
   try {
-    const college = await College.findByIdAndDelete(req.params.id);
-    if (!college)
+    const { id } = req.params;
+
+    // Validate ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid college ID" });
+    }
+
+    // Check if college exists
+    const college = await College.findById(id).select("name");
+    if (!college) {
       return res
         .status(404)
         .json({ success: false, error: "College not found" });
+    }
 
+    // Count related documents
+    const [courses, documents] = await Promise.all([
+      Course.countDocuments({ college_id: id }),
+      Upload.countDocuments({ college_id: id }),
+    ]);
+
+    // Return the dependency summary
+    return res.status(200).json({
+      success: true,
+      data: {
+        college: { id: college._id, name: college.name },
+        counts: {
+          college: 1,
+          courses,
+          documents,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching college dependencies:", error);
     res
-      .status(200)
-      .json({ success: true, message: "College deleted successfully" });
+      .status(500)
+      .json({ success: false, error: "Failed to fetch dependency summary" });
+  }
+};
+
+// ✅ Delete College
+const deleteCollege = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid college ID" });
+    }
+
+    const college = await College.findById(id);
+    if (!college) {
+      return res
+        .status(404)
+        .json({ success: false, error: "College not found" });
+    }
+
+    const [courses, documents] = await Promise.all([
+      Course.countDocuments({ college_id: id }),
+      Upload.countDocuments({ college_id: id }),
+    ]);
+
+    await Promise.all([
+      Course.deleteMany({ college_id: id }),
+      Upload.deleteMany({ college_id: id }),
+    ]);
+
+    await College.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "College and associated data deleted successfully",
+      deleted: {
+        college: 1,
+        courses,
+        documents,
+      },
+    });
   } catch (error) {
     console.error("Error deleting college:", error);
     res.status(500).json({ success: false, error: "Failed to delete college" });
@@ -750,6 +824,7 @@ module.exports = {
   getCollegeById,
   getCollege,
   updateCollege,
+  getCollegeDependencySummary,
   deleteCollege,
   getCollegeBySlug,
   getFeaturedColleges,

@@ -15,6 +15,7 @@ const {
   getallColleges,
   getFeaturedColleges,
   getStateColleges,
+  getCollegeDependencySummary,
 } = require("../../controllers/admin/collegeController");
 
 const router = express.Router();
@@ -63,6 +64,8 @@ router.get("/State/colleges/", getStateColleges),
 router.get("/colleges/:id", getCollegeById);
 router.post("/colleges", uploadHandler, createCollege);
 router.put("/colleges/:id", uploadHandler, updateCollege);
+router.get("/colleges/:id/dependencies", getCollegeDependencySummary);
+
 router.delete("/colleges/:id", deleteCollege);
 router.get("/college/:slug", getCollegeBySlug);
 router.get('/featured', getFeaturedColleges);
