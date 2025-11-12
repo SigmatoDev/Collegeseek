@@ -495,7 +495,7 @@ const importCollegeFromExcel = async (req, res) => {
 
         const affiliatedById = await resolveFieldId(AffiliatedBy, row["Affiliated By"]);
         const ownershipId = await resolveFieldId(Ownership, row["Ownership"]);
-        const streamIds = await resolveMultipleFieldIds(Stream, row["Streams"], true);
+        const streamIds = await resolveMultipleFieldIds(Stream, row["Streams"], false);
         const approvalIds = await resolveMultipleFieldIds(Approval, row["Approvals"], false);
         const examIds = await resolveMultipleFieldIds(ExamsAccepted, row["Exam Expected"], false);
 

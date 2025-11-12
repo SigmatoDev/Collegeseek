@@ -71,9 +71,9 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
     <header className="bg-[#0a0536] text-white w-full relative">
       {/* Top Bar */}
       <div className="bg-[#441a6b] text-sm w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center">
+        <div className="w-full px-4 sm:px-6 lg:px-9 py-2 flex justify-between items-center">
           {/* Contact Info */}
-          <div className="flex items-center space-x-4 ml-4 sm:ml-[40px]">
+          <div className="flex items-center space-x-4 ml-4 sm:ml-[10px]">
             <div className="flex items-center">
               <PhoneIcon className="h-4 w-4 mr-1 text-blue-400" />
               <span>1800-572-9877</span>
@@ -84,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
           </div>
 
           {/* Social Icons */}
-          <div className="flex items-center space-x-4 pr-3 mr-4 sm:mr-[40px]">
+          <div className="flex items-center space-x-4 pr-3 mr-4 sm:mr-[10px]">
             <span className="hidden md:block">
               We're on your favorite socials!
             </span>
@@ -127,7 +127,7 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
 
       {/* Main Navigation */}
       <nav className="bg-gray-100 border-b border-gray-700 text-gray-800 pt-2 relative w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-11">
           <div className="flex justify-between h-16 items-center w-full">
             {/* Logo */}
             <div className="flex items-center space-x-2">

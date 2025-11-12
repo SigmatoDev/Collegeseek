@@ -6,12 +6,11 @@ import { useParams } from "next/navigation";
 import { api_url, img_url } from "@/utils/apiCall";
 import Image from "next/image";
 import Courses from "@/components/courses/coursesCard/courses";
-import ShortlistForm from "@/components/shortlist/shortlistForm/page";
-import Modal from "@/components/shortlist/model/page";
 import DOMPurify from "dompurify";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import Loader from "@/components/loader/loader";
-import { useUserStore } from "@/Store/userStore"; // ✅ import store
+import { useUserStore } from "@/Store/userStore"; // Zustand store
+import { CheckCircleIcon } from "lucide-react";
 
 interface Tab {
   title: string;
@@ -19,7 +18,7 @@ interface Tab {
 }
 
 interface CollegeData {
-  _id: string | undefined;
+  _id?: string;
   id: string;
   name: string;
   description: string;
@@ -45,11 +44,17 @@ export default function CollegeDetailsPage() {
   const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isShortlistOpen, setIsShortlistOpen] = useState(false);
   const [hasBrochure, setHasBrochure] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [alreadyShortlisted, setAlreadyShortlisted] = useState(false); // ✅ new state
 
-  // ✅ Zustand store for shortlist
-  const { shortlist, addToShortlist, isCollegeShortlisted } = useUserStore();
+  // Zustand store
+  const { user, addToShortlist, isCollegeShortlisted } = useUserStore();
+
+  useEffect(() => {
+    setMounted(true); // ensure store hydration
+  }, []);
+
   const isShortlisted = collegeData
     ? isCollegeShortlisted(collegeData._id || collegeData.id)
     : false;
@@ -63,7 +68,7 @@ export default function CollegeDetailsPage() {
           setCollegeData(data);
           setSelectedTab(data.tabs?.[0]);
 
-          // ✅ Check if brochure exists
+          // Check if brochure exists
           try {
             const brochureUrl = `${api_url}brochure/college/${
               data.id || data._id
@@ -78,7 +83,7 @@ export default function CollegeDetailsPage() {
         }
       } catch (err) {
         setError("Failed to fetch college data.");
-        console.error(err);
+        console.error("🚨 Fetch Error:", err);
       } finally {
         setLoading(false);
       }
@@ -88,6 +93,39 @@ export default function CollegeDetailsPage() {
       fetchCollege();
     }
   }, [slug]);
+
+  // ✅ New Effect: Check if already shortlisted in backend
+  useEffect(() => {
+    const checkIfAlreadyShortlisted = async () => {
+      if (!user?.token || (!collegeData?._id && !collegeData?.id)) return;
+
+      try {
+        const res = await fetch(
+          `${api_url}get/user/shortlistedClg/by/${user.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        if (res.ok && Array.isArray(data.data)) {
+          const found = data.data.some(
+            (item: any) =>
+              item.collegeId?._id === (collegeData._id || collegeData.id)
+          );
+          setAlreadyShortlisted(found);
+        }
+      } catch (err) {
+        console.error("Error checking shortlisted colleges:", err);
+      }
+    };
+
+    checkIfAlreadyShortlisted();
+  }, [user, collegeData]);
 
   const handleDownload = async (collegeId: string) => {
     try {
@@ -104,12 +142,79 @@ export default function CollegeDetailsPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+
+      console.log("📄 Brochure downloaded successfully");
     } catch (error) {
       alert("Download failed, please try again.");
-      console.error("Error:", error);
+      console.error("🚨 Brochure download error:", error);
     }
   };
 
+ const handleShortlist = async () => {
+  if (!user?.token) {
+    console.warn("❌ User not logged in — redirecting to login page.");
+
+    // ✅ Store the selected college in sessionStorage before redirecting
+    sessionStorage.setItem(
+      "pendingShortlistCollege",
+      JSON.stringify({
+        id: collegeData?._id || collegeData?.id,
+        name: collegeData?.name,
+        location: collegeData?.location,
+      })
+    );
+
+    // Redirect to login
+    window.location.href = "/user/auth/logIn";
+    return;
+  }
+
+  // ✅ Continue with your existing shortlist logic
+  const userId = user.id || user._id;
+  const collegeId = collegeData?._id || collegeData?.id;
+
+  try {
+    const res = await fetch(`${api_url}shortlist`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        collegeId,
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.message === "User not found.") {
+      alert("Your account was not found. Please sign up first.");
+      window.location.href = "/signup";
+      return;
+    }
+
+    if (res.ok) {
+      alert("College successfully shortlisted!");
+      addToShortlist({
+        id: collegeData?._id || collegeData?.id || "",
+        name: collegeData?.name || "",
+        location: collegeData?.location || "",
+      });
+      setAlreadyShortlisted(true);
+    } else {
+      alert(data.message || "Failed to shortlist this college.");
+    }
+  } catch (err) {
+    console.error("🚨 API Request Error:", err);
+    alert("Something went wrong. Please try again.");
+  }
+};
+
+
+  if (!mounted) return null;
   if (loading) return <Loader />;
   if (error)
     return <div className="text-center py-10 text-red-500">{error}</div>;
@@ -181,7 +286,7 @@ export default function CollegeDetailsPage() {
               {hasBrochure && (
                 <button
                   onClick={() =>
-                    handleDownload(collegeData.id || (collegeData as any)._id)
+                    handleDownload(collegeData.id || collegeData._id || "")
                   }
                   className="px-5 py-2 border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition"
                 >
@@ -189,42 +294,25 @@ export default function CollegeDetailsPage() {
                 </button>
               )}
 
-              {/* Shortlist button */}
+              {/* ✅ Shortlist button */}
               <button
-                onClick={() => setIsShortlistOpen(true)}
-                className={`px-5 py-2 rounded-lg font-medium transition ${
-                  isShortlisted
-                    ? "bg-gray-400 text-white cursor-not-allowed"
+                onClick={handleShortlist}
+                className={`flex items-center justify-center gap-2 px-5 py-2 rounded-lg font-medium transition ${
+                  isShortlisted || alreadyShortlisted
+                    ? "bg-green-700 text-white cursor-not-allowed"
                     : "bg-[#D35B42] text-white hover:bg-blue-800"
                 }`}
-                disabled={isShortlisted}
+                disabled={isShortlisted || alreadyShortlisted}
               >
-                {isShortlisted ? "Shortlisted" : "Shortlist"}
+                {isShortlisted || alreadyShortlisted ? (
+                  <>
+                    <CheckCircleIcon className="h-5 w-5 text-white" />
+                    Shortlisted
+                  </>
+                ) : (
+                  "Shortlist"
+                )}
               </button>
-
-              {collegeData && (
-                <Modal
-                  isOpen={isShortlistOpen}
-                  onClose={() => setIsShortlistOpen(false)}
-                >
-                  <ShortlistForm
-                    college={{
-                      id: collegeData._id,
-                      name: collegeData.name,
-                      location: collegeData.location,
-                    }}
-                    onSuccess={() => {
-                      addToShortlist({
-                        id: collegeData._id || collegeData.id || "", // ensure string
-                        name: collegeData.name,
-                        location: collegeData.location,
-                      });
-
-                      setIsShortlistOpen(false); // close modal
-                    }}
-                  />
-                </Modal>
-              )}
             </div>
           </div>
 
@@ -272,7 +360,7 @@ export default function CollegeDetailsPage() {
           </div>
         )}
 
-        <Courses college_id={collegeData.id || (collegeData as any)._id} />
+        <Courses college_id={collegeData.id || collegeData._id || ""} />
 
         {/* About */}
         <div className="mt-6 mb-6">
