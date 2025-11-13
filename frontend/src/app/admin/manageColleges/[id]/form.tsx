@@ -349,117 +349,22 @@ const ActualCollegeForm = () => {
     if (typeof collegeData.featured === "boolean") {
       formData.append("featured", collegeData.featured ? "true" : "false");
     }
-    for (const [key, value] of formData.entries()) {
-      // console.log(`🔹 ${key}: ${value}`);
-    }
 
-    // // Log stream data before appending
-    // console.log("Stream data before appending:", collegeData.stream);
-    // console.log("Stream data before appending:", collegeData.examExpected);
-    // console.log("Stream data before appending:", collegeData.approvel);
-
-    // Check if collegeData.stream is an array and has data
-    if (Array.isArray(collegeData.stream) && collegeData.stream.length > 0) {
-      // Handle both cases: array of objects with 'name' or array of strings
-      collegeData.stream.forEach((streamItem) => {
-        // Check if the item is an object with a 'name' property, else treat it as a string
-        if (
-          typeof streamItem === "object" &&
-          streamItem !== null &&
-          "name" in streamItem
-        ) {
-          formData.append("stream", (streamItem as { name: string }).name); // Append the 'name' of each stream
-          // console.log(
-          //   "Appending stream name:",
-          //   (streamItem as { name: string }).name
-          // ); // Log each appended stream item
-        } else if (typeof streamItem === "string") {
-          formData.append("stream", streamItem); // If it's already a string, append it directly
-          // console.log("Appending stream string:", streamItem); // Log the string
-        }
-      });
-    } else {
-      // console.log("Stream is empty, appending empty array or skipping");
-      formData.append("stream", JSON.stringify([])); // Or skip if not required
-    }
-
-    if (
-      Array.isArray(collegeData.examExpected) &&
-      collegeData.examExpected.length > 0
-    ) {
-      collegeData.examExpected.forEach((examItem) => {
-        if (
-          typeof examItem === "object" &&
-          examItem !== null &&
-          "name" in examItem
-        ) {
-          formData.append("examExpected", (examItem as { name: string }).name);
-          // console.log(
-          //   "Appending examExpected name:",
-          //   (examItem as { name: string }).name
-          // );
-        } else if (typeof examItem === "string") {
-          formData.append("examExpected", examItem);
-          // console.log("Appending examExpected string:", examItem);
-        }
-      });
-    } else {
-      // console.log("examExpected is empty, appending empty array or skipping");
-      formData.append("examExpected", JSON.stringify([])); // Or skip if not required
-    }
-
-    // Handle 'approvel'
-    if (
-      Array.isArray(collegeData.approvel) &&
-      collegeData.approvel.length > 0
-    ) {
-      collegeData.approvel.forEach((approvelItem) => {
-        if (
-          typeof approvelItem === "object" &&
-          approvelItem !== null &&
-          "name" in approvelItem
-        ) {
-          formData.append("approvel", (approvelItem as { name: string }).name);
-          // console.log(
-          //   "Appending approvel name:",
-          //   (approvelItem as { name: string }).name
-          // );
-        } else if (typeof approvelItem === "string") {
-          formData.append("approvel", approvelItem);
-          // console.log("Appending approvel string:", approvelItem);
-        }
-      });
-    } else {
-      // console.log("approvel is empty, appending empty array or skipping");
-      formData.append("approvel", JSON.stringify([])); // Or skip if not required
-    }
-
-    // Convert tabs to JSON string
     if (collegeData.tabs && collegeData.tabs.length > 0) {
       formData.append("tabs", JSON.stringify(collegeData.tabs));
     }
 
-    // Ensure image is a File before appending
     if (collegeData.image && collegeData.image instanceof File) {
       formData.append("image", collegeData.image);
     }
 
-    // Ensure each image in gallery is a File before appending
     if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
       collegeData.imageGallery.forEach((file) => {
-        if (file instanceof File) {
-          formData.append("imageGallery", file);
-        }
+        if (file instanceof File) formData.append("imageGallery", file);
       });
     }
 
-    // Log formData entries before submission
-    for (const pair of formData.entries()) {
-      // console.log("🔹", pair[0], pair[1]);
-    }
-
     try {
-      // Determine API URL & Method (POST for new, PUT for update)
       const url =
         collegeId && collegeId !== "new"
           ? `${api_url}colleges/${collegeId}`
@@ -480,10 +385,31 @@ const ActualCollegeForm = () => {
         "❌ Error saving college:",
         err.response?.data || err.message
       );
-      setError(
-        err.response?.data?.message ||
-          "Failed to save college. Please check your input."
-      );
+
+      const backendError = err.response?.data;
+
+      if (backendError?.missingFields?.length > 0) {
+        // 🧠 Specific missing field case
+        const missingList = backendError.missingFields.join(", ");
+        toast.error(`Missing required fields: ${missingList}`);
+        setError(`Missing required fields: ${missingList}`);
+      } else if (backendError?.details) {
+        // 🧩 Validation or detailed backend errors
+        toast.error(backendError.details);
+        setError(backendError.details);
+      } else if (backendError?.error) {
+        // 🧩 General backend error
+        toast.error(backendError.error);
+        setError(backendError.error);
+      } else if (backendError?.message) {
+        // 🧩 Message key fallback
+        toast.error(backendError.message);
+        setError(backendError.message);
+      } else {
+        // ❌ Generic fallback
+        toast.error("Failed to save college. Please check your input.");
+        setError("Failed to save college. Please check your input.");
+      }
     } finally {
       setLoading(false);
     }
@@ -550,146 +476,161 @@ const ActualCollegeForm = () => {
           {/* Text Inputs */}
 
           <div className="grid grid-cols-2 gap-4">
-  {Object.entries(fieldLabels).map(([field, label]) => (
-    <div key={field} className="flex flex-col">
-      <label className="text-gray-700 font-medium">
-        {label} <sup className="text-red-500">*</sup>
-      </label>
+            {Object.entries(fieldLabels).map(([field, label]) => (
+              <div key={field} className="flex flex-col">
+                <label className="text-gray-700 font-medium">
+                  {label} <sup className="text-red-500">*</sup>
+                </label>
 
-      {field === "contactNumbers" && (
-        <>
-          {(collegeData.contactNumbers?.length
-            ? collegeData.contactNumbers
-            : [{ type: "Mobile", number: "" }]
-          ).map((contact, index) => (
-            <div key={index} className="flex items-center gap-2 mb-2">
-              {/* Type selector */}
-              <select
-                value={contact.type}
-                onChange={(e) => {
-                  const updated = [...(collegeData.contactNumbers || [])];
-                  updated[index] = updated[index] || { type: "Mobile", number: "" };
-                  updated[index].type = e.target.value as "Mobile" | "Landline";
-                  setCollegeData((prev) => ({
-                    ...prev,
-                    contactNumbers: updated,
-                  }));
-                }}
-                className="p-2 border rounded-lg min-w-[100px]"
-              >
-                <option value="Mobile">Mobile</option>
-                <option value="Landline">Landline</option>
-              </select>
+                {field === "contactNumbers" && (
+                  <>
+                    {(collegeData.contactNumbers?.length
+                      ? collegeData.contactNumbers
+                      : [{ type: "Mobile", number: "" }]
+                    ).map((contact, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        {/* Type selector */}
+                        <select
+                          value={contact.type}
+                          onChange={(e) => {
+                            const updated = [
+                              ...(collegeData.contactNumbers || []),
+                            ];
+                            updated[index] = updated[index] || {
+                              type: "Mobile",
+                              number: "",
+                            };
+                            updated[index].type = e.target.value as
+                              | "Mobile"
+                              | "Landline";
+                            setCollegeData((prev) => ({
+                              ...prev,
+                              contactNumbers: updated,
+                            }));
+                          }}
+                          className="p-2 border rounded-lg min-w-[100px]"
+                        >
+                          <option value="Mobile">Mobile</option>
+                          <option value="Landline">Landline</option>
+                        </select>
 
-              {/* Number input */}
-              <input
-                type="text"
-                value={contact.number || ""}
-                onChange={(e) => {
-                  const updated = [...(collegeData.contactNumbers || [])];
-                  updated[index] = updated[index] || { type: "Mobile", number: "" };
-                  updated[index].number = e.target.value;
-                  setCollegeData((prev) => ({
-                    ...prev,
-                    contactNumbers: updated,
-                  }));
-                }}
-                placeholder={
-                  contact.type === "Mobile"
-                    ? "e.g., 9876543210"
-                    : "e.g., 011-23456789"
-                }
-                className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+                        {/* Number input */}
+                        <input
+                          type="text"
+                          value={contact.number || ""}
+                          onChange={(e) => {
+                            const updated = [
+                              ...(collegeData.contactNumbers || []),
+                            ];
+                            updated[index] = updated[index] || {
+                              type: "Mobile",
+                              number: "",
+                            };
+                            updated[index].number = e.target.value;
+                            setCollegeData((prev) => ({
+                              ...prev,
+                              contactNumbers: updated,
+                            }));
+                          }}
+                          placeholder={
+                            contact.type === "Mobile"
+                              ? "e.g., 9876543210"
+                              : "e.g., 011-23456789"
+                          }
+                          className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
 
-              <div className="flex flex-col gap-1">
-                {/* Remove button */}
-                <button
-                  type="button"
-                  onClick={() => setModalIndex(index)}
-                  className="px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </button>
+                        <div className="flex flex-col gap-1">
+                          {/* Remove button */}
+                          <button
+                            type="button"
+                            onClick={() => setModalIndex(index)}
+                            className="px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
 
-                {/* Add button only on last row */}
-                {index === (collegeData.contactNumbers?.length || 0) - 1 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCollegeData((prev) => ({
-                        ...prev,
-                        contactNumbers: [
-                          ...(prev.contactNumbers || []),
-                          { type: "Mobile", number: "" },
-                        ],
-                      }))
+                          {/* Add button only on last row */}
+                          {index ===
+                            (collegeData.contactNumbers?.length || 0) - 1 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCollegeData((prev) => ({
+                                  ...prev,
+                                  contactNumbers: [
+                                    ...(prev.contactNumbers || []),
+                                    { type: "Mobile", number: "" },
+                                  ],
+                                }))
+                              }
+                              className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4v16m8-8H4"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Confirmation Modal */}
+                        <ConfirmModal
+                          isOpen={modalIndex === index}
+                          onClose={() => setModalIndex(null)}
+                          onConfirm={() => {
+                            setCollegeData((prev) => ({
+                              ...prev,
+                              contactNumbers: (
+                                prev.contactNumbers || []
+                              ).filter((_, i) => i !== index),
+                            }));
+                            setModalIndex(null);
+                          }}
+                          message="Are you sure you want to remove this number?"
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {field !== "contactNumbers" && (
+                  <input
+                    type={
+                      field === "website"
+                        ? "url"
+                        : field === "contactEmail"
+                        ? "email"
+                        : "text"
                     }
-                    className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
+                    name={field}
+                    value={
+                      typeof collegeData[field as keyof typeof collegeData] ===
+                      "string"
+                        ? (collegeData[
+                            field as keyof typeof collegeData
+                          ] as string)
+                        : ""
+                    }
+                    onChange={handleChange}
+                    required
+                    maxLength={field === "name" ? 170 : undefined}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
                 )}
               </div>
-
-              {/* Confirmation Modal */}
-              <ConfirmModal
-                isOpen={modalIndex === index}
-                onClose={() => setModalIndex(null)}
-                onConfirm={() => {
-                  setCollegeData((prev) => ({
-                    ...prev,
-                    contactNumbers: (prev.contactNumbers || []).filter(
-                      (_, i) => i !== index
-                    ),
-                  }));
-                  setModalIndex(null);
-                }}
-                message="Are you sure you want to remove this number?"
-              />
-            </div>
-          ))}
-        </>
-      )}
-
-      {field !== "contactNumbers" && (
-        <input
-          type={
-            field === "website"
-              ? "url"
-              : field === "contactEmail"
-              ? "email"
-              : "text"
-          }
-          name={field}
-          value={
-            typeof collegeData[field as keyof typeof collegeData] === "string"
-              ? (collegeData[field as keyof typeof collegeData] as string)
-              : ""
-          }
-          onChange={handleChange}
-          required
-          maxLength={field === "name" ? 170 : undefined}
-          className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-        />
-      )}
-    </div>
-  ))}
-</div>
-
+            ))}
+          </div>
 
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

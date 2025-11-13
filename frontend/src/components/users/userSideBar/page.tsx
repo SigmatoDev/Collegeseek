@@ -4,22 +4,21 @@ import {
   Home,
   User,
   Heart,
-  BookOpen,
   LogOut,
-  Menu,
   X,
+  Menu,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import axios from 'axios'
 import { api_url, img_url } from '@/utils/apiCall'
-import { useUserStore } from '@/Store/userStore' // Import your user store
+import { useUserStore } from '@/Store/userStore'
 
 export default function UserSidebar() {
   const [open, setOpen] = useState(false)
   const [logo, setLogo] = useState<string | null>(null)
-  const logout = useUserStore((state) => state.logout) // Access logout method from store
+  const logout = useUserStore((state) => state.logout)
 
   useEffect(() => {
     const fetchLogo = async () => {
@@ -29,43 +28,41 @@ export default function UserSidebar() {
           setLogo(`${img_url.replace(/\/$/, '')}${data.siteLogo}`)
         }
       } catch (error) {
-        console.error('Error fetching site logo:', error)
+        console.error('Error fetching logo:', error)
       }
     }
-
     fetchLogo()
   }, [])
 
-  // Handle logout functionality
   const handleLogout = () => {
-    logout(); // Call the logout method to clear the user session
-    window.location.href = "/"; // Redirect to home page or login page after logout
+    logout()
+    window.location.href = '/'
   }
 
   return (
     <>
-      {/* Toggle button for mobile */}
+      {/* Mobile Menu Button */}
       <button
         onClick={() => setOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-40 text-gray-700 hover:text-blue-600"
+        className="md:hidden fixed top-4 left-4 z-50 text-gray-700 hover:text-blue-600"
       >
-        <Menu size={28} />
+        <Menu size={26} />
       </button>
 
-      {/* Overlay for mobile when sidebar is open */}
+      {/* Overlay */}
       {open && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-40 z-40"
           onClick={() => setOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div
-        className={`fixed md:static top-0 left-0 z-40 h-screen bg-gray-100 border-r shadow-md flex flex-col transition-all duration-300 
-        ${open ? 'w-64' : 'w-0'} md:w-64 overflow-hidden`}
+      <aside
+        className={`fixed md:static top-0 left-0 z-50 h-screen bg-white border-[0.1px] shadow-sm flex flex-col transition-all duration-300 rounded-xl
+          ${open ? 'w-64' : 'w-0'} md:w-64 overflow-hidden`}
       >
-        {/* Logo and close button */}
+        {/* Logo Section */}
         <div className="flex items-center justify-between px-4 py-5 border-b">
           <Link href="/" className="hover:opacity-90 transition">
             {logo ? (
@@ -88,26 +85,51 @@ export default function UserSidebar() {
           </button>
         </div>
 
+        {/* Quick Tips */}
+        <div className="m-3 p-4 bg-gray-50 border rounded-xl shadow-sm">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase mb-1">
+            Quick Tips
+          </h3>
+          <p className="text-sm font-medium text-gray-800">
+            Keep your profile updated
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Completing your profile helps us tailor counselling, alerts, and
+            application reminders specifically for you.
+          </p>
+        </div>
+
         {/* Nav Links */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <SidebarLink href="/" icon={<Home size={20} />} label="Home" />
-          <SidebarLink href="/user/profile" icon={<User size={20} />} label="My Profile" />
-          <SidebarLink href="/user/shortlisted" icon={<Heart size={20} />} label="Shortlisted" />
-          {/* <SidebarLink href="/user/applied-courses" icon={<BookOpen size={20} />} label="Applied Courses" /> */}
-          <SidebarLink href="/user/auth/changePassword" icon={<BookOpen size={20} />} label="Change Password" />
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+          <SidebarLink href="/" icon={<Home size={18} />} label="Home" />
+          <SidebarLink
+            href="/user/profile"
+            icon={<User size={18} />}
+            label="My Profile"
+          />
+          <SidebarLink
+            href="/user/shortlisted"
+            icon={<Heart size={18} />}
+            label="Shortlisted"
+          />
+          <SidebarLink
+            href="/user/auth/changePassword"
+            icon={<User size={18} />}
+            label="Change Password"
+          />
         </nav>
 
-        {/* Logout */}
+        {/* Logout Button */}
         <div className="border-t px-3 py-4">
           <button
-            onClick={handleLogout} // Use the handleLogout function
-            className="flex items-center gap-3 px-3 py-2 rounded-md text-red-500 hover:text-red-600 transition hover:bg-blue-50"
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-red-500 hover:text-red-600 transition hover:bg-red-50 w-full"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             <span className="text-sm font-medium">Logout</span>
           </button>
         </div>
-      </div>
+      </aside>
     </>
   )
 }
@@ -116,17 +138,15 @@ function SidebarLink({
   href,
   icon,
   label,
-  color = 'text-gray-700 hover:text-blue-600',
 }: {
   href: string
   icon: React.ReactNode
   label: string
-  color?: string
 }) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-3 py-2 rounded-md ${color} transition hover:bg-blue-50`}
+      className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition"
     >
       <div className="flex-shrink-0">{icon}</div>
       <span className="text-sm font-medium">{label}</span>

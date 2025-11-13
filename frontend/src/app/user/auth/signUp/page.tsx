@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,6 +11,7 @@ import Header from "@/components/header/page";
 import Footer from "@/components/footer/page";
 
 interface RegisterData {
+  emailError: ReactNode;
   name: string;
   email: string;
   phone: string;
@@ -25,6 +26,7 @@ const Register = () => {
     phone: "",
     password: "",
     confirmPassword: "",
+    emailError: "", // 👈 add this
   });
 
   const [error, setError] = useState("");
@@ -172,11 +174,23 @@ const Register = () => {
               <input
                 type="text"
                 name="name"
+                maxLength={200} // limit total length to 150
                 className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
                 placeholder="Enter your name"
                 value={registerData.name}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  const onlyLetters = e.target.value.replace(
+                    /[^A-Za-z\s]/g,
+                    ""
+                  ); // remove non-letters and non-spaces
+                  setRegisterData((prev) => ({ ...prev, name: onlyLetters }));
+                }}
               />
+              {registerData.name.length >= 150 && (
+                <p className="text-red-500 text-sm mt-1">
+                  Name cannot exceed 150 characters
+                </p>
+              )}
             </div>
 
             <div>
@@ -189,8 +203,27 @@ const Register = () => {
                 className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
                 placeholder="Enter your email"
                 value={registerData.email}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  const value = e.target.value.trim();
+                  setRegisterData((prev) => ({ ...prev, email: value }));
+                }}
+                onBlur={(e) => {
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                  setRegisterData((prev) => ({
+                    ...prev,
+                    emailError:
+                      e.target.value && !emailRegex.test(e.target.value)
+                        ? "Please enter a valid email address"
+                        : "",
+                  }));
+                }}
               />
+
+              {registerData.emailError && (
+                <p className="text-red-500 text-sm mt-1">
+                  {registerData.emailError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -200,14 +233,23 @@ const Register = () => {
               <input
                 type="tel"
                 name="phone"
+                maxLength={10} // prevent typing more than 10 digits
                 className="w-full p-3 border rounded-md focus:outline-none focus:ring focus:border-[#581845]"
-                placeholder="Enter your phone number"
+                placeholder="Enter your 10-digit phone number"
                 value={registerData.phone}
                 onChange={(e) => {
-                  const onlyNums = e.target.value.replace(/\D/g, "");
-                  setRegisterData((prev) => ({ ...prev, phone: onlyNums }));
+                  const onlyNums = e.target.value.replace(/\D/g, ""); // remove non-numeric chars
+                  if (onlyNums.length <= 10) {
+                    setRegisterData((prev) => ({ ...prev, phone: onlyNums }));
+                  }
                 }}
               />
+              {registerData.phone.length > 0 &&
+                registerData.phone.length < 10 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Phone number must be 10 digits
+                  </p>
+                )}
             </div>
 
             <div className="relative">

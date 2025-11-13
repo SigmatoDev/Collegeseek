@@ -495,6 +495,7 @@ const getCollegeBySlug = async (req, res) => {
 };
 
 // ✅ Update College
+
 const updateCollege = async (req, res) => {
   try {
     const {
@@ -503,7 +504,7 @@ const updateCollege = async (req, res) => {
       address,
       location,
       website,
-      contactNumbers, // ✅ updated
+      contactNumbers,
       contactEmail,
       accreditation,
       university_type,
@@ -525,24 +526,39 @@ const updateCollege = async (req, res) => {
 
     const featured = req.body.featured === "true";
 
-    // ✅ Validate required fields
-    if (
-      !name ||
-      !description ||
-      !address ||
-      !location ||
-      !contactNumbers || // ✅ now required
-      !contactEmail ||
-      !state ||
-      !city ||
-      !stream ||
-      !approvel ||
-      !affiliatedby ||
-      !ownership
-    ) {
-      return res.status(400).json({ error: "Missing required fields" });
+    // ✅ Required fields
+    const requiredFields = {
+      name,
+      description,
+      address,
+      location,
+      contactNumbers,
+      contactEmail,
+      state,
+      city,
+      stream,
+      approvel,
+      affiliatedby,
+      ownership,
+    };
+
+    const missingFields = Object.keys(requiredFields).filter(
+      (key) =>
+        requiredFields[key] === undefined ||
+        requiredFields[key] === null ||
+        requiredFields[key] === "" ||
+        (Array.isArray(requiredFields[key]) && requiredFields[key].length === 0)
+    );
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Missing required fields: ${missingFields.join(", ")}`,
+        missingFields,
+      });
     }
 
+    // ✅ Number fields
     const parsedRank = rank ? parseFloat(rank) : null;
     const parsedFees = fees ? parseFloat(fees) : null;
     const parsedAvgPackage = avgPackage ? parseFloat(avgPackage) : null;
@@ -552,10 +568,13 @@ const updateCollege = async (req, res) => {
     if (tabs) {
       try {
         parsedTabs = typeof tabs === "string" ? JSON.parse(tabs) : tabs;
-        if (!Array.isArray(parsedTabs))
-          throw new Error("Tabs must be an array.");
+        if (!Array.isArray(parsedTabs)) throw new Error("Tabs must be an array.");
       } catch (err) {
-        return res.status(400).json({ error: "Invalid tabs format." });
+        return res.status(400).json({
+          success: false,
+          error: "Invalid tabs format.",
+          details: err.message,
+        });
       }
     }
 
@@ -563,17 +582,19 @@ const updateCollege = async (req, res) => {
     let parsedCourses = [];
     if (courses) {
       try {
-        parsedCourses =
-          typeof courses === "string" ? JSON.parse(courses) : courses;
+        parsedCourses = typeof courses === "string" ? JSON.parse(courses) : courses;
         if (!Array.isArray(parsedCourses))
           throw new Error("Courses must be an array.");
       } catch (err) {
-        return res.status(400).json({ error: "Invalid courses format." });
+        return res.status(400).json({
+          success: false,
+          error: "Invalid courses format.",
+          details: err.message,
+        });
       }
     }
 
-    // ✅ Parse contactNumbers
-    // ✅ Parse contactNumbers with detailed logging
+    // ✅ Parse contactNumbers safely
     let parsedContacts = [];
     try {
       parsedContacts =
@@ -585,62 +606,101 @@ const updateCollege = async (req, res) => {
         throw new Error("contactNumbers must be an array.");
       }
 
-      // Validation for each number with console logs
       parsedContacts = parsedContacts.filter((c) => {
-        console.log("Processing contact:", c); // 🔹 log each contact
-
-        if (!c?.type || !c?.number) {
-          console.warn("Missing type or number:", c);
+        if (!c?.type || !c?.number) return false;
+        if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number)) return false;
+        if (c.type === "Landline" && !/^(\d{2,5}[- ]?\d{6,8})$/.test(c.number))
           return false;
-        }
-
-        if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number)) {
-          console.error("Invalid mobile:", c.number);
-          return false;
-        }
-
-        if (
-          c.type === "Landline" &&
-          !/^(\d{2,5}[- ]?\d{6,8})$/.test(c.number)
-        ) {
-          console.error("Invalid landline:", c.number);
-          return false;
-        }
-
-        console.log("Valid contact:", c); // 🔹 log valid contacts
         return true;
       });
     } catch (err) {
-      console.error("❌ Error parsing contactNumbers:", err);
-      return res.status(400).json({ error: "Invalid contactNumbers format." });
+      return res.status(400).json({
+        success: false,
+        error: "Invalid contactNumbers format.",
+        details: err.message,
+      });
     }
 
-    // ✅ Parse ObjectId arrays
-    const parsedStream = (stream || [])
-      .map((id) =>
-        mongoose.Types.ObjectId.isValid(id)
-          ? new mongoose.Types.ObjectId(id)
-          : null
-      )
-      .filter((id) => id);
+    // ✅ Parse stream safely
+    let parsedStream = [];
+    try {
+      const tempStream =
+        typeof stream === "string"
+          ? JSON.parse(stream)
+          : Array.isArray(stream)
+          ? stream
+          : [];
+      if (!Array.isArray(tempStream)) throw new Error("Stream must be an array.");
 
-    const parsedApprovel = (approvel || [])
-      .map((id) =>
-        mongoose.Types.ObjectId.isValid(id)
-          ? new mongoose.Types.ObjectId(id)
-          : null
-      )
-      .filter((id) => id);
+      parsedStream = tempStream
+        .map((id) =>
+          mongoose.Types.ObjectId.isValid(id)
+            ? new mongoose.Types.ObjectId(id)
+            : null
+        )
+        .filter((id) => id);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid stream format.",
+        details: err.message,
+      });
+    }
 
-    const parsedExamExpected = (examExpected || [])
-      .map((id) =>
-        mongoose.Types.ObjectId.isValid(id)
-          ? new mongoose.Types.ObjectId(id)
-          : null
-      )
-      .filter((id) => id);
+    // ✅ Parse approvel safely
+    let parsedApprovel = [];
+    try {
+      const tempApprovel =
+        typeof approvel === "string"
+          ? JSON.parse(approvel)
+          : Array.isArray(approvel)
+          ? approvel
+          : [];
+      if (!Array.isArray(tempApprovel)) throw new Error("Approvel must be an array.");
 
-    // ✅ Handle image uploads
+      parsedApprovel = tempApprovel
+        .map((id) =>
+          mongoose.Types.ObjectId.isValid(id)
+            ? new mongoose.Types.ObjectId(id)
+            : null
+        )
+        .filter((id) => id);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid approvel format.",
+        details: err.message,
+      });
+    }
+
+    // ✅ Parse examExpected safely
+    let parsedExamExpected = [];
+    try {
+      const tempExamExpected =
+        typeof examExpected === "string"
+          ? JSON.parse(examExpected)
+          : Array.isArray(examExpected)
+          ? examExpected
+          : [];
+      if (!Array.isArray(tempExamExpected))
+        throw new Error("ExamExpected must be an array.");
+
+      parsedExamExpected = tempExamExpected
+        .map((id) =>
+          mongoose.Types.ObjectId.isValid(id)
+            ? new mongoose.Types.ObjectId(id)
+            : null
+        )
+        .filter((id) => id);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid examExpected format.",
+        details: err.message,
+      });
+    }
+
+    // ✅ Handle images
     const image = req.files?.["image"]?.[0]?.filename
       ? `/uploads/${req.files["image"][0].filename}`
       : undefined;
@@ -649,14 +709,14 @@ const updateCollege = async (req, res) => {
       ? req.files["imageGallery"].map((file) => `/uploads/${file.filename}`)
       : undefined;
 
-    // ✅ Build update object
+    // ✅ Build update data
     const updateData = {
       ...(name && { name }),
       ...(description && { description }),
       ...(address && { address }),
       ...(location && { location }),
       ...(website && { website }),
-      ...(parsedContacts.length && { contactNumbers: parsedContacts }), // ✅ changed
+      ...(parsedContacts.length && { contactNumbers: parsedContacts }),
       ...(contactEmail && { contactEmail }),
       ...(accreditation && { accreditation }),
       ...(university_type && { university_type }),
@@ -679,6 +739,7 @@ const updateCollege = async (req, res) => {
       ...(featured !== undefined && { featured }),
     };
 
+    // ✅ Update college
     const updatedCollege = await College.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -705,6 +766,7 @@ const updateCollege = async (req, res) => {
     });
   }
 };
+
 
 const getCollegeDependencySummary = async (req, res) => {
   try {
