@@ -36,7 +36,8 @@ if (!fs.existsSync(uploadDir)) {
 
 //new for pages
 // Allow larger JSON payloads up to 50MB (for base64 encoded data, etc.)
-app.use(express.json({ limit: "50mb" })); 
+app.use(express.json({ limit: "100mb" }));
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 

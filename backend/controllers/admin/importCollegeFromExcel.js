@@ -489,7 +489,7 @@ const importCollegeFromExcel = async (req, res) => {
             if (parsed && parsed.$oid && isValidObjectId(parsed.$oid)) normalizedId = parsed.$oid;
             else if (isValidObjectId(inputId)) normalizedId = inputId;
           } catch {
-            if (isValidObjectId(inputId)) normalizedId = inputId;
+            if (isValidObjectId(inputId)) normalizedId = inputId; 
           }
         }
 
