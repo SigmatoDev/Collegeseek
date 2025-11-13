@@ -63,7 +63,7 @@ export default function UserSidebar() {
           ${open ? 'w-64' : 'w-0'} md:w-64 overflow-hidden`}
       >
         {/* Logo Section */}
-        <div className="flex items-center justify-between px-4 py-5 border-b">
+        {/* <div className="flex items-center justify-between px-4 py-5 border-b">
           <Link href="/" className="hover:opacity-90 transition">
             {logo ? (
               <Image
@@ -83,7 +83,7 @@ export default function UserSidebar() {
           >
             <X size={22} />
           </button>
-        </div>
+        </div> */}
 
         {/* Quick Tips */}
         <div className="m-3 p-4 bg-gray-50 border rounded-xl shadow-sm">

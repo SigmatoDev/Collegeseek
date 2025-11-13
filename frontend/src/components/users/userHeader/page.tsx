@@ -38,7 +38,7 @@ export default function UserHeader() {
       {/* Navigation Tabs */}
       <nav className="flex justify-center gap-3 pb-4">
         <Link
-          href="/user/overview"
+          href="/user/profile"
           className="px-4 py-2 bg-white/20 hover:bg-white/40 rounded-full text-sm font-medium transition"
         >
           Overview
