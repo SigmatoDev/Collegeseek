@@ -23,6 +23,11 @@ const counsellingSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    status: {
+      type: String,
+      enum: ["pending", "contacted", "in-progress", "closed"],
+      default: "pending",
+    },
   },
   {
     timestamps: true,

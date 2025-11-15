@@ -1,8 +1,13 @@
 const Counselling = require("../../models/users/CounsellingModel");
 
+const ALLOWED_STATUSES = ["pending", "contacted", "in-progress", "closed"];
+
+const normalizeStatus = (status) =>
+  ALLOWED_STATUSES.includes(status) ? status : undefined;
+
 // Handle submitting counselling request
 const submitCounsellingRequest = async (req, res) => {
-  const { name, email, phone, college, message } = req.body;
+  const { name, email, phone, college, message, status } = req.body;
 
   try {
     // Validate incoming data (basic)
@@ -16,6 +21,7 @@ const submitCounsellingRequest = async (req, res) => {
       phone,
       college,
       message,
+      status: normalizeStatus(status) || "pending",
     });
 
     // Save to database
@@ -42,6 +48,7 @@ const getAllCounsellingRequests = async (req, res) => {
 
     // Fetch paginated counselling requests
     const counsellingRequests = await Counselling.find()
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
@@ -83,12 +90,19 @@ const getCounsellingRequestById = async (req, res) => {
 // Edit counselling request by ID
 const editCounsellingRequest = async (req, res) => {
   const { id } = req.params;
-  const { name, email, phone, college, message } = req.body;
+  const { name, email, phone, college, message, status } = req.body;
 
   try {
     const updatedCounsellingRequest = await Counselling.findByIdAndUpdate(
       id,
-      { name, email, phone, college, message },
+      {
+        name,
+        email,
+        phone,
+        college,
+        message,
+        ...(normalizeStatus(status) && { status: normalizeStatus(status) }),
+      },
       { new: true } // Return the updated document
     );
 
