@@ -82,10 +82,10 @@ export default function FilterSidebarNew({
   const hasActiveFilters = Object.values(selected).some((set) => set.size > 0);
   const getListClassName = (length: number) =>
     length > 5
-      ? "space-y-1 max-h-32 overflow-y-auto border-t pt-2 scrollbar-thin scrollbar-thumb-gray-300"
-      : "space-y-1 max-h-32 overflow-y-auto border-t pt-2 scrollbar-thin scrollbar-thumb-gray-300";
+      ? "space-y-1 max-h-32 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300"
+      : "space-y-1 max-h-32 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300";
   return (
-    <aside className="w-full lg:w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(235vh-50px)] shadow-sm">
+    <aside className="w-full lg:w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(235vh-50px)] shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Filters</h2>
         {hasActiveFilters && (
@@ -103,21 +103,21 @@ export default function FilterSidebarNew({
             <div key={key}>
               <h3 className="font-medium text-gray-700 mb-2">{label}</h3>
               <ul
-                className={getListClassName(
+                className={`${getListClassName(
                   (filters[key] as FilterItem[]).length
-                )}
+                )} pl-0 space-y-2`}
               >
                 {(filters[key] as FilterItem[]).map((item) => (
                   <li
                     key={item.name}
                     className="flex items-center justify-between text-sm"
                   >
-                    <label className="flex items-center gap-2">
+                    <label className="flex items-center gap-3 text-gray-700">
                       <input
                         type="checkbox"
                         checked={selected[key]?.has(item.name) || false}
                         onChange={() => toggleSelect(key, item.name)}
-                        className="form-checkbox accent-black"
+                        className="h-5 w-5 rounded border-gray-300 text-black focus:ring-black"
                       />
                       <span>
                         {item.name}{" "}

@@ -8,6 +8,13 @@ import Link from "next/link";
 import { api_url } from "@/utils/apiCall";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
+const TYPING_SUGGESTIONS = [
+  "engineering colleges",
+  "medical institutes in Bangalore",
+  "MBA programs abroad",
+  "top AI & data science courses",
+];
+
 const SearchBar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [collegeResults, setCollegeResults] = useState<any[]>([]);
@@ -25,6 +32,39 @@ const SearchBar = () => {
   const resultsPerPage = 5;
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentPhrase = TYPING_SUGGESTIONS[phraseIndex];
+    let timeout: NodeJS.Timeout;
+
+    if (!isDeleting && placeholderText.length < currentPhrase.length) {
+      timeout = setTimeout(
+        () =>
+          setPlaceholderText(
+            currentPhrase.substring(0, placeholderText.length + 1)
+          ),
+        120
+      );
+    } else if (!isDeleting && placeholderText.length === currentPhrase.length) {
+      timeout = setTimeout(() => setIsDeleting(true), 1500);
+    } else if (isDeleting && placeholderText.length > 0) {
+      timeout = setTimeout(
+        () =>
+          setPlaceholderText(
+            currentPhrase.substring(0, placeholderText.length - 1)
+          ),
+        60
+      );
+    } else if (isDeleting && placeholderText.length === 0) {
+      setIsDeleting(false);
+      setPhraseIndex((prev) => (prev + 1) % TYPING_SUGGESTIONS.length);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [placeholderText, isDeleting, phraseIndex]);
 
   const fetchSearchResults = debounce(async (query: string) => {
     if (!query.trim()) {
@@ -97,45 +137,55 @@ const SearchBar = () => {
     <div className="relative flex items-center">
       <input
         type="text"
-        placeholder="Search for colleges, courses, exams, and specializations..."
+        placeholder={
+          placeholderText ||
+          "Search for colleges, courses, exams, and specializations..."
+        }
         value={searchQuery}
         onChange={handleSearchChange}
-        className="bg-white px-4 w-[500px] py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+        className="bg-white px-4 w-[500px] py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder:text-gray-400"
       />
       <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute right-4 cursor-pointer" />
 
       {isDropdownOpen && (
         <div
           ref={dropdownRef}
-          className="search-dropdown absolute top-full left-0 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-md z-50 max-h-[400px] overflow-y-auto"
+          className="search-dropdown absolute top-full left-0 w-full mt-2 rounded-2xl border border-gray-100 bg-white/95 shadow-2xl backdrop-blur z-50 max-h-[420px] overflow-y-auto"
         >
           {isSearching ? (
-            <p className="text-gray-600 p-2">Searching...</p>
+            <p className="text-gray-500 p-4 text-sm">Searching...</p>
           ) : hasResults ? (
-            <div className="p-2 space-y-2">
+            <div className="p-4 space-y-4">
               {/* Colleges */}
               {collegeResults.length > 0 && (
                 <div>
-                  <p className="text-md font-semibold text-gray-400 px-2">
-                    Colleges
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+                      Colleges
+                    </p>
+                    <span className="text-xs text-gray-400">
+                      {collegeResults.length} results
+                    </span>
+                  </div>
                   {paginate(collegeResults, collegePage).map(
                     (result, index) => (
                       <Link
                         key={`college-${index}`}
                         href={`/colleges/${result.slug}`}
                         onClick={handleResultClick}
-                        className="block px-2 py-1 hover:bg-gray-100 rounded-md truncate"
+                        className="group block rounded-xl border border-gray-100 px-3 py-2 transition hover:bg-gray-50"
                       >
-                        <div className="font-medium">{result.name}</div>
-                        <div className="text-sm text-gray-400">
+                        <div className="font-semibold text-gray-900 group-hover:text-[#c25541]">
+                          {result.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
                           {result.city}, {result.state}
                         </div>
                       </Link>
                     )
                   )}
                   {totalPages(collegeResults) > 1 && (
-                    <div className="flex justify-end items-center px-2 py-1 text-sm text-gray-500">
+                    <div className="flex justify-end items-center gap-2 px-2 py-1 text-xs text-gray-500">
                       {/* Left side arrow */}
                       <button
                         disabled={collegePage === 1}
@@ -174,11 +224,16 @@ const SearchBar = () => {
               {/* Courses */}
               {courseResults.length > 0 && (
                 <>
-                  <hr className="border-t-1 border-gray-400 mx-1" />
+                  <hr className="border-t border-dashed border-gray-200" />
                   <div>
-                    <p className="text-md font-semibold text-gray-400 px-2">
-                      Courses
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+                        Courses
+                      </p>
+                      <span className="text-xs text-gray-400">
+                        {courseResults.length} results
+                      </span>
+                    </div>
                     {paginate(courseResults, coursePage).map(
                       (result, index) => (
                         <Link
@@ -187,7 +242,7 @@ const SearchBar = () => {
                             result.name
                           )}`}
                           onClick={handleResultClick}
-                          className="block px-2 py-1 hover:bg-gray-100 rounded-md truncate"
+                          className="block rounded-xl border border-gray-100 px-3 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-50"
                         >
                           {result.name}
                         </Link>
@@ -232,11 +287,16 @@ const SearchBar = () => {
               {/* Exams */}
               {examResults.length > 0 && (
                 <>
-                  <hr className="border-t-1 border-gray-400 mx-1" />
+                  <hr className="border-t border-dashed border-gray-200" />
                   <div>
-                    <p className="text-md font-semibold text-gray-400 px-2">
-                      Exams
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+                        Exams
+                      </p>
+                      <span className="text-xs text-gray-400">
+                        {examResults.length} results
+                      </span>
+                    </div>
                     {paginate(examResults, examPage).map((result, index) => (
                       <Link
                         key={`exam-${index}`}
@@ -244,7 +304,7 @@ const SearchBar = () => {
                           result.code
                         )}`}
                         onClick={handleResultClick}
-                        className="block px-2 py-1 hover:bg-gray-100 rounded-md truncate"
+                        className="block rounded-xl border border-gray-100 px-3 py-2 text-sm text-gray-800 transition hover:bg-gray-50"
                       >
                         {result.code}
                       </Link>
@@ -288,11 +348,16 @@ const SearchBar = () => {
               {/* Specializations */}
               {specializationResults.length > 0 && (
                 <>
-                  <hr className="border-t-1 border-gray-400 mx-1" />
+                  <hr className="border-t border-dashed border-gray-200" />
                   <div>
-                    <p className="text-md font-semibold text-gray-400 px-2">
-                      Specializations
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-400">
+                        Specializations
+                      </p>
+                      <span className="text-xs text-gray-400">
+                        {specializationResults.length} results
+                      </span>
+                    </div>
                     {paginate(specializationResults, specializationPage).map(
                       (result, index) => (
                         <Link
@@ -301,7 +366,7 @@ const SearchBar = () => {
                             result.name
                           )}`}
                           onClick={handleResultClick}
-                          className="block px-2 py-1 hover:bg-gray-100 rounded-md truncate"
+                          className="block rounded-xl border border-gray-100 px-3 py-2 text-sm text-gray-800 transition hover:bg-gray-50"
                         >
                           {result.name}
                         </Link>
@@ -352,7 +417,9 @@ const SearchBar = () => {
               )}
             </div>
           ) : (
-            <p className="text-gray-600 p-2">No results found.</p>
+            <p className="p-6 text-center text-sm text-gray-500">
+              No results found. Try a different search phrase.
+            </p>
           )}
         </div>
       )}

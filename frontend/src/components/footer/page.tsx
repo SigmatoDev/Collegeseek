@@ -5,9 +5,25 @@ import axios from "axios";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+const DEFAULT_CONTACT = {
+  phone: "1800-572-9877",
+  email: "hello@collegeseek.in",
+  address: "123 College Road, Education City",
+};
+
+const DEFAULT_SOCIAL_LINKS = {
+  facebook: "#",
+  instagram: "#",
+  linkedin: "#",
+  x: "#",
+  youtube: "#",
+};
+
 const Footer = () => {
   const [siteLogo, setSiteLogo] = useState<string>("/logo/logo.jpg");
   const [isMounted, setIsMounted] = useState(false);
+  const [contactInfo, setContactInfo] = useState(DEFAULT_CONTACT);
+  const [socialLinks, setSocialLinks] = useState(DEFAULT_SOCIAL_LINKS);
 
   useEffect(() => {
     setIsMounted(true);
@@ -21,9 +37,20 @@ const Footer = () => {
             ? `${img_url.replace(/\/$/, "")}${data.siteLogo}`
             : "/default-logo.png"
         );
+        setContactInfo({
+          phone: data.contactPhone || DEFAULT_CONTACT.phone,
+          email: data.contactEmail || DEFAULT_CONTACT.email,
+          address: data.contactAddress || DEFAULT_CONTACT.address,
+        });
+        setSocialLinks({
+          ...DEFAULT_SOCIAL_LINKS,
+          ...(data.socialLinks || {}),
+        });
       } catch (error) {
         // console.error("Error fetching site logo:", error);
         setSiteLogo("/logo/logo.jpg");
+        setContactInfo(DEFAULT_CONTACT);
+        setSocialLinks(DEFAULT_SOCIAL_LINKS);
       }
     };
 
@@ -104,49 +131,47 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <address className="not-italic text-sm text-gray-400 leading-relaxed">
-              ABC Education Pvt. Ltd.
-              <br />
-              123 Knowledge Park, Sector 42
-              <br />
-              New Delhi - 110001, India
+              {contactInfo.address}
             </address>
-            <p className="mt-3 text-sm text-gray-400">📞 1800-545-7787</p>
-            <p className="text-sm text-gray-400">✉️ hello@collegeseek.in</p>
+            <p className="mt-3 text-sm text-gray-400">📞 {contactInfo.phone}</p>
+            <p className="text-sm text-gray-400">✉️ {contactInfo.email}</p>
 
             {/* Social Icons */}
             <div className="flex space-x-4 mt-4">
               {[
                 {
-                  href: "#",
+                  href: socialLinks.facebook,
                   src: "/svg/facebook-svgrepo-com (5).svg",
                   alt: "Facebook",
                 },
                 {
-                  href: "#",
+                  href: socialLinks.instagram,
                   src: "/svg/instagram-svgrepo-com (1).svg",
                   alt: "Instagram",
                 },
                 {
-                  href: "#",
+                  href: socialLinks.linkedin,
                   src: "/svg/linkedin-svgrepo-com.svg",
                   alt: "LinkedIn",
                 },
                 {
-                  href: "#",
+                  href: socialLinks.x,
                   src: "/svg/twitter-154-svgrepo-com.svg",
-                  alt: "Twitter",
+                  alt: "X",
                 },
                 {
-                  href: "#",
+                  href: socialLinks.youtube,
                   src: "/svg/youtube-168-svgrepo-com.svg",
                   alt: "YouTube",
                 },
               ].map((icon, index) => (
                 <a
                   key={index}
-                  href={icon.href}
+                  href={icon.href || "#"}
                   aria-label={icon.alt}
                   className="hover:opacity-75 transition"
+                  target={icon.href && icon.href !== "#" ? "_blank" : undefined}
+                  rel={icon.href && icon.href !== "#" ? "noopener noreferrer" : undefined}
                 >
                   <img src={icon.src} alt={icon.alt} className="h-5 w-5" />
                 </a>

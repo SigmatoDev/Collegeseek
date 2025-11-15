@@ -3,6 +3,7 @@ import axios from "axios";
 import { Loader } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 interface CounsellingData {
   name: string;
@@ -11,23 +12,35 @@ interface CounsellingData {
   college: string;
   message: string;
   createdAt: string;
+  status: "pending" | "contacted" | "in-progress" | "closed";
 }
+
+const STATUS_OPTIONS: CounsellingData["status"][] = [
+  "pending",
+  "contacted",
+  "in-progress",
+  "closed",
+];
 
 const EditCounsellingForm = () => {
   const router = useRouter();
   const { id: counsellingId } = useParams();
 
-  const [counsellingData, setCounsellingData] = useState<CounsellingData | null>(null); // Explicitly define the type
+  const [counsellingData, setCounsellingData] =
+    useState<CounsellingData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchCounsellingData = async () => {
       if (!counsellingId) return;
 
       try {
-        const response = await axios.get(`${api_url}/counselling/${counsellingId}`);
-        const data = response.data.data;  // Ensure you are accessing the correct part of the response
+        const response = await axios.get(
+          `${api_url}/counselling/${counsellingId}`
+        );
+        const data = response.data.data;
 
         setCounsellingData({
           name: data.name || "",
@@ -35,7 +48,10 @@ const EditCounsellingForm = () => {
           phone: data.phone || "",
           college: data.college || "",
           message: data.message || "",
-          createdAt: data.createdAt ? new Date(data.createdAt).toISOString().split("T")[0] : "",
+          createdAt: data.createdAt
+            ? new Date(data.createdAt).toISOString().split("T")[0]
+            : "",
+          status: data.status || "pending",
         });
       } catch (err: any) {
         setError("Failed to fetch counselling data. Please try again.");
@@ -49,9 +65,16 @@ const EditCounsellingForm = () => {
     return <div className="text-center">Loading...</div>;
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     if (counsellingData) {
-      setCounsellingData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
+      setCounsellingData((prev: any) => ({
+        ...prev,
+        [e.target.name]: e.target.value,
+      }));
     }
   };
 
@@ -73,13 +96,33 @@ const EditCounsellingForm = () => {
     try {
       const response = await axios.put(`${api_url}/counselling/${counsellingId}`, counsellingData);
       if ([200, 201].includes(response.status)) {
-        alert("Counselling request updated successfully!");
+        toast.success("Counselling request updated successfully!");
         router.push("/admin/leads/getFreeCounselling/");
       }
     } catch (err) {
       setError("Failed to save counselling request. Please try again.");
+      toast.error("Failed to save counselling request.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!counsellingId) return;
+    const confirmDelete = window.confirm(
+      "Are you sure you want to permanently delete this counselling request?"
+    );
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`${api_url}/counselling/${counsellingId}`);
+      toast.success("Counselling request deleted.");
+      router.push("/admin/leads/getFreeCounselling/");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete counselling request.");
+      setIsDeleting(false);
     }
   };
 
@@ -140,6 +183,22 @@ const EditCounsellingForm = () => {
           </div>
         </div>
 
+        <div>
+          <label className="block text-gray-700">Status</label>
+          <select
+            name="status"
+            value={counsellingData.status}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg"
+          >
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status.replace("-", " ")}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Message Input */}
         <div>
           <label className="block text-gray-700">Message</label>
@@ -152,7 +211,7 @@ const EditCounsellingForm = () => {
           />
         </div>
 
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap gap-4 items-center justify-between">
           <button
             type="submit"
             disabled={loading}
@@ -166,6 +225,18 @@ const EditCounsellingForm = () => {
             className="bg-gray-500 text-white p-3 rounded-lg"
           >
             Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="ml-auto text-sm font-semibold text-red-500/80 hover:text-red-600 border border-red-100 px-4 py-2 rounded-lg bg-red-50/40 disabled:opacity-50"
+          >
+            {isDeleting ? (
+              <Loader className="animate-spin h-4 w-4" />
+            ) : (
+              "Delete Request"
+            )}
           </button>
         </div>
       </form>

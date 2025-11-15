@@ -12,12 +12,12 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity animate-fadeIn"
-      onClick={onClose} // Clicking background closes modal
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
     >
       <div
-        className="relative p-6 bg-white rounded-xl w-full max-w-[770px] shadow-lg transform scale-95 transition-transform animate-scaleUp"
-        onClick={(e) => e.stopPropagation()} // Prevent close when clicking inside modal
+        className="relative w-full max-w-3xl rounded-2xl bg-white p-4 sm:p-6 border border-gray-100"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
@@ -28,7 +28,6 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
           <XCircle className="w-7 h-7 text-gray-800 hover:text-[#581845]" />
         </button>
 
-        {/* Modal Content */}
         {children}
       </div>
     </div>

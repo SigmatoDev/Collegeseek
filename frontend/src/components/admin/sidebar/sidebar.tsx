@@ -21,6 +21,7 @@ import {
   CheckCircle,
   Plug,
   Monitor,
+  LogOut,
 } from "lucide-react";
 import {
   BookOpenIcon,
@@ -28,6 +29,7 @@ import {
   DocumentIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
+import { useAdminStore } from "@/Store/adminStore";
 
 interface SidebarLinkProps {
   href: string;
@@ -141,15 +143,27 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex flex-col h-screen transition-all duration-300 ease-in-out shadow-lg bg-gradient-to-b from-[#0a0536] to-[#2b1b67] text-white ${
+      className={`flex flex-col h-screen transition-all duration-300 ease-in-out shadow-2xl bg-gradient-to-b from-[#0a0536] to-[#2b1b67] text-white ${
         isOpen ? "w-64" : "w-20"
       }`}
     >
       {/* Sidebar Header */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-700 flex-shrink-0">
-        {isOpen && logo && <img src={logo} alt="Logo" className="w-40 h-auto" />}
-        <button onClick={toggleSidebar} className="text-white text-xl hover:text-gray-400 transition-all">
-          {isOpen ? <ArrowLeftCircle size={24} /> : <ArrowRightCircle size={24} />}
+      <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-white">
+        {isOpen && (
+          <div className="flex items-center space-x-2">
+            {logo ? (
+              <img src={logo} alt="Logo" className="h-12 w-auto object-contain" />
+            ) : (
+              <span className="text-sm font-semibold text-[#0a0536]">Admin Panel</span>
+            )}
+          </div>
+        )}
+        <button
+          onClick={toggleSidebar}
+          className="text-[#0a0536] text-xl p-2 rounded-full hover:bg-gray-100 transition"
+          aria-label="Toggle sidebar"
+        >
+          {isOpen ? <ArrowLeftCircle size={22} /> : <ArrowRightCircle size={22} />}
         </button>
       </div>
 
@@ -187,8 +201,21 @@ const Sidebar = () => {
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-4 text-center text-gray-400 text-xs border-t border-gray-700 flex-shrink-0">
-        © 2025 Collegeseek.in
+      <div className="p-4 border-t border-gray-800 flex-shrink-0 space-y-3">
+        <button
+          onClick={() => {
+            useAdminStore.getState().logout();
+            sessionStorage.removeItem("admin_store");
+            window.location.href = "/admin/auth/logIn";
+          }}
+          className={`w-full flex items-center ${
+            isOpen ? "justify-start space-x-3" : "justify-center"
+          } px-3 py-2 rounded-lg bg-white text-[#0a0536] font-semibold hover:bg-gray-100 transition`}
+        >
+          <LogOut size={18} />
+          {isOpen && <span>Logout</span>}
+        </button>
+        <p className="text-center text-gray-300 text-xs">© 2025 Collegeseek.in</p>
       </div>
     </div>
   );

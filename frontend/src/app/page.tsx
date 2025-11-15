@@ -9,6 +9,7 @@ import CallbackForm from "@/components/newsletters/page";
 import PopUp from "@/components/popup/popUp";
 import { api_url } from "@/utils/apiCall";
 import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
+import TopStudyCities from "@/components/topCities/page";
 
 // ✅ FIX: Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -54,6 +55,7 @@ export default function HomePage() {
       <HeroSection />
       <TrendingNow />
       <FeaturedColleges />
+      <TopStudyCities />
       <CollegeAdmissions />
       <CategoryGrid />
       <BlogList />

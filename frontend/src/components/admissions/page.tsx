@@ -10,17 +10,23 @@ import Link from "next/link";
 
 export default function CollegeAdmissions() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-[15px] py-12 sm:py-[80px]">
-      {/* Heading */}
-      <div className="text-center mb-12">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
-          Get Ready for Your College Admissions Journey
-        </h2>
-        <p className="text-sm sm:text-base md:text-lg text-gray-600">
-          Our expert guidance and personalized support will help you navigate
-          the admissions process with confidence.
-        </p>
+    <section className="relative bg-gradient-to-b from-[#fef7f4] via-white to-[#f3f1ff] py-16 mt-5">
+      <div className="absolute inset-0 opacity-60 pointer-events-none">
+        <div className="absolute left-10 top-6 h-32 w-32 rounded-full bg-[#ffd7c5] blur-3xl" />
+        <div className="absolute right-16 top-20 h-40 w-40 rounded-full bg-[#d9d4ff] blur-[80px]" />
       </div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-8">
+        <div className="text-center mb-12 space-y-4">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/80 px-6 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#c25541]">
+            Admissions support
+          </span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900">
+            Get Ready for Your College Admissions Journey
+          </h2>
+          <p className="max-w-3xl mx-auto text-sm sm:text-base md:text-lg text-gray-600">
+            Our experts pair personalized counselling with application tracking and financial guidance so you can focus on choosing the right college.
+          </p>
+        </div>
 
       {/* Progress Bar (Optional) */}
       {/*
@@ -46,47 +52,40 @@ export default function CollegeAdmissions() {
       </div>
       */}
 
-      {/* Features Section */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {features.map((feature, index) => (
-          <div
-            key={index}
-            className="bg-white border border-gray-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-xl transition duration-300 ease-in-out flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6"
-          >
-            {/* Icon */}
-            <div className="bg-yellow-100 text-[#D25C41] p-3 sm:p-4 rounded-full shadow-inner">
-              {feature.icon}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="bg-white/90 border border-gray-100 p-6 rounded-2xl shadow-[0_20px_60px_rgba(62,44,92,0.08)] hover:shadow-[0_20px_60px_rgba(62,44,92,0.15)] transition flex gap-4 items-start"
+            >
+              <div className="rounded-full bg-[#fff3f0] text-[#d25c40] p-3">
+                 {feature.icon}
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm text-gray-900">
+                  {feature.title}
+                </h3>
+                <p className="text-xs text-gray-600">{feature.description}</p>
+              </div>
             </div>
+          ))}
+        </div>
 
-            {/* Title and Description */}
-            <div className="flex flex-col items-center sm:items-start w-full text-center sm:text-left">
-              <h3 className="font-semibold text-sm sm:text-[14px] text-gray-800 break-words">
-                {feature.title}
-              </h3>
-              <p className="text-xs sm:text-[12px] text-gray-600">
-                {feature.description}
-              </p>
-            </div>
-          </div>
-        ))}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+          <Link href="/college">
+            <Button className="bg-[#d25c41] text-white px-8 py-3 rounded-full shadow-md hover:bg-[#b74930] transition">
+              Start Your Application
+            </Button>
+          </Link>
+
+          <Link href="/contactUs">
+            <Button className="border border-[#d25c41] text-[#d25c41] px-8 py-3 rounded-full shadow hover:bg-[#fff7ed] transition">
+              Contact an Admissions Counselor
+            </Button>
+          </Link>
+        </div>
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 mt-8">
-        <Link href="/college">
-          <Button className="bg-[#D25C41] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-[#FFF7ED] hover:text-[#D25C41] hover:border hover:border-[#D25C41] border border-transparent">
-  Start Your Application
-</Button>
-
-        </Link>
-
-        <Link href="/contactUs">
-          <Button className="border border-[#D25C41] text-[#D25C41] px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ease-in-out hover:bg-[#FFF7ED]">
-            Contact an Admissions Counselor
-          </Button>
-        </Link>
-      </div>
-    </div>
+    </section>
   );
 }
 

@@ -38,7 +38,7 @@ const AdBox1 = () => {
         <p className="text-center">Loading...</p>
       ) : (
         <>
-          <p className="text-center font-semibold">Sponsored Ad</p>
+          <></>
           {ad?.image ? (
             // If link exists, wrap in anchor tag with target _blank, else just div
             ad.link ? (

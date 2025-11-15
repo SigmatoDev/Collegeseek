@@ -7,10 +7,16 @@ interface DropdownProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   label: string;
+  required?: boolean;
 }
 
-
-const StreamsDropdown: React.FC<DropdownProps> = ({ name, value, onChange, label, }) => {
+const StreamsDropdown: React.FC<DropdownProps> = ({
+  name,
+  value,
+  onChange,
+  label,
+  required = false,
+}) => {
   const [streams, setStreams] = useState<{ _id: string; name: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +51,7 @@ const StreamsDropdown: React.FC<DropdownProps> = ({ name, value, onChange, label
           value={value}
           onChange={onChange}
           className="p-2 border rounded w-full"
+          required={required}
         >
           <option value="">Select {label}</option>
           {streams.map((option) => (

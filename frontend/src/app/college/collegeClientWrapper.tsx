@@ -7,6 +7,7 @@ import AdBox2 from "@/components/adBox/adBox2";
 import { api_url } from "@/utils/apiCall";
 import FilterSidebarNew from "./filterSidebarNew";
 import AdBanner from "@/components/adBox/adBox5";
+import CollegeListSkeleton from "@/components/college/CollegeListSkeleton";
 export default function CollegesClientWrapper() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -75,67 +76,62 @@ export default function CollegesClientWrapper() {
     },
     [router, searchParams]
   );
- return (
-  <div className="flex flex-col lg:flex-row gap-6">
-    {/* Sidebar */}
-    <FilterSidebarNew
-      filters={filters}
-      selectedFilters={parseSearchParams()}
-      onFilterChange={handleFilterChange}
-    />
+  return (
+    <div className="flex flex-col lg:flex-row gap-6">
+      <FilterSidebarNew
+        filters={filters}
+        selectedFilters={parseSearchParams()}
+        onFilterChange={handleFilterChange}
+      />
 
-    {/* Main Content */}
-    <div className="flex-1 space-y-6 order-first lg:order-none">
-      <AdBanner />
+      <div className="flex-1 space-y-6 order-first lg:order-none">
+        <div className="rounded-2xl">
+          <AdBanner />
+        </div>
 
-      {colleges.length === 0 ? (
-        <p>No colleges found.</p>
-      ) : (
-        <>
-          {colleges.map((college) => (
-            <FilterCollegeCard key={college._id} collegeId={college._id} />
-          ))}
-          {totalPages > 1 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {[...Array(totalPages)].map((_, i) => {
-                const page = (i + 1).toString();
-                return (
-                  <button
-                    key={page}
-                    className={`px-3 py-1 border rounded ${
-                      currentPage === i + 1
-                        ? "bg-black text-white"
-                        : "bg-white text-black"
-                    }`}
-                    onClick={() => {
-                      const updatedFilters = parseSearchParams();
-                      updatedFilters.page = [page];
-                      handleFilterChange(updatedFilters);
-                    }}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-
-    {/* Ad Section */}
-    <div className="w-[275px] space-y-4 shrink-0">
-      <AdBox1 />
-      <AdBox2 />
-    </div>
-
-    {/* Loading Overlay */}
-    {loading && (
-      <div className="fixed inset-0 z-50 bg-white/10 flex items-center justify-center">
-        <div className="animate-spin h-10 w-10 border-4 border-black border-t-transparent rounded-full" />
+        {loading ? (
+          <CollegeListSkeleton />
+        ) : colleges.length === 0 ? (
+          <div className="rounded-2xl bg-white p-6 text-center text-gray-500 shadow-sm">
+            No colleges match the selected filters yet.
+          </div>
+        ) : (
+          <>
+            {colleges.map((college) => (
+              <FilterCollegeCard key={college._id} collegeId={college._id} />
+            ))}
+            {totalPages > 1 && (
+              <div className="flex flex-wrap justify-center gap-2 mt-6">
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = (i + 1).toString();
+                  return (
+                    <button
+                      key={page}
+                      className={`px-3 py-1 border rounded ${
+                        currentPage === i + 1
+                          ? "bg-black text-white"
+                          : "bg-white text-black"
+                      }`}
+                      onClick={() => {
+                        const updatedFilters = parseSearchParams();
+                        updatedFilters.page = [page];
+                        handleFilterChange(updatedFilters);
+                      }}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
       </div>
-    )}
-  </div>
-);
 
+      <div className="w-[275px] space-y-4 shrink-0">
+        <AdBox1 />
+        <AdBox2 />
+      </div>
+    </div>
+  );
 }

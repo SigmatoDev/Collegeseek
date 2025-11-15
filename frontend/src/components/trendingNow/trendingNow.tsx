@@ -56,8 +56,9 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { api_url } from "@/utils/apiCall"; // adjust this path if needed
-import { Loader } from "lucide-react";
+import { api_url } from "@/utils/apiCall";
+import { Loader, TrendingUp, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 const TrendingNow = () => {
   const [exams, setExams] = useState<string[]>([]);
@@ -84,7 +85,8 @@ const TrendingNow = () => {
     fetchTrendingExams();
   }, []);
 
-  const repeatedExams = [...exams, ...exams]; // Duplicate for marquee
+  const repeatedExams = [...exams, ...exams];
+  const accentDots = ["bg-[#F97316]", "bg-[#D946EF]", "bg-[#0EA5E9]", "bg-[#22C55E]"];
 
   if (loading) {
     return (
@@ -99,29 +101,42 @@ const TrendingNow = () => {
   }
 
   return (
-    <section className="relative w-full bg-[#fcfcfd] py-[30px] border-y border-gray-200 overflow-hidden">
-      <div className="flex justify-center">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-[20px]">
-          Trending Now
-        </h2>
+    <section className="relative w-full overflow-hidden bg-gradient-to-r from-[#fef9f6] to-[#ffeee9]">
+      <div className="pointer-events-none absolute inset-0 opacity-60">
+        <div className="absolute -top-10 left-1/4 h-40 w-40 rounded-full bg-[#ffeee9] blur-3xl" />
+        <div className="absolute top-10 right-1/4 h-52 w-52 rounded-full bg-[#ffeee9] blur-[90px]" />
       </div>
 
-      <div className="group relative w-full overflow-hidden">
-        <div className="pointer-events-none absolute left-0 top-0 h-full w-24 bg-gradient-to-r from-white to-transparent z-10" />
-        <div className="pointer-events-none absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-white to-transparent z-10" />
+      <div className="relative mx-auto flex max-w-8xl flex-col items-center text-center">
+        
 
-        <div className="whitespace-nowrap animate-marquee group-hover:pause flex w-max gap-6 px-6 mt-6 mb-3">
-          {repeatedExams.map((exam, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center bg-white hover:bg-[#FFF7ED] transition duration-300 ease-in-out transform hover:scale-105 
-                 rounded-full px-4 md:px-6 py-2 text-sm md:text-lg text-black font-medium shadow-md hover:shadow-lg 
-                 border border-black"
-              aria-label={`Trending exam: ${exam}`}
-            >
-              {exam}
-            </span>
-          ))}
+      
+
+        <div className="group relative w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-32 bg-gradient-to-r from-[#fef9f6] to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-[#fbf6ff] to-transparent" />
+
+          <div className="whitespace-nowrap animate-marquee group-hover:pause flex w-max gap-6 px-10 py-6 text-base">
+            {repeatedExams.map((exam, index) => (
+              <Link
+                key={`${exam}-${index}`}
+                href={`/college?streams=${encodeURIComponent(exam)}`}
+                className="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/90 px-6 py-3 text-base font-semibold text-gray-900 shadow-[0_12px_30px_rgba(210,92,64,0.18)] transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_15px_45px_rgba(210,92,64,0.28)]"
+                aria-label={`Explore colleges for ${exam}`}
+              >
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${accentDots[index % accentDots.length]}`}
+                />
+                {exam}
+                <span className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                  explore
+                </span>
+              </Link>
+            ))}
+            {exams.length === 0 && (
+              <span className="text-gray-500">No trends available right now.</span>
+            )}
+          </div>
         </div>
       </div>
     </section>

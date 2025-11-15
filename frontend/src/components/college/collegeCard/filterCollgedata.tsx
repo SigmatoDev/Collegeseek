@@ -80,14 +80,14 @@ export default function FilterCollegeCard({ collegeId }: Props) {
     return DOMPurify.sanitize(cleaned);
   };
   if (!collegeData)
-    return <div className="text-center p-4">No data available.</div>;
+    return <div className="text-center p-4">...</div>;
 
   const sanitizedDescription = cleanDescription(collegeData.description || "");
 
   if (loading) return <div className="text-center p-4">Loading...</div>;
   if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
   if (!collegeData)
-    return <div className="text-center p-4">No data available.</div>;
+    return <div className="text-center p-4">...</div>;
 
   const imageUrlFinal = collegeData.image
     ? `${img_url}uploads/${collegeData.image.replace(/^\/?uploads\//, "")}`

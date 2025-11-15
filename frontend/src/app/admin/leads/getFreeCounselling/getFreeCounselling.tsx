@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
+import { PencilSquareIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface CounsellingRequest {
   _id: string;
@@ -15,6 +15,7 @@ interface CounsellingRequest {
   college: string;
   message: string;
   createdAt: string;
+  status: "pending" | "contacted" | "in-progress" | "closed";
 }
 
 interface PaginationInfo {
@@ -47,7 +48,14 @@ const AdminCounselling = () => {
         return;
       }
 
-      setCounsellingRequests(data.data);
+      setCounsellingRequests(
+        data.data.map(
+          (request: CounsellingRequest & { status?: CounsellingRequest["status"] }) => ({
+            ...request,
+            status: request.status || "pending",
+          })
+        )
+      );
       setPagination(data.pagination);
       setError(null);
     } catch (err: any) {
@@ -66,30 +74,76 @@ const AdminCounselling = () => {
     }
   }, [page]);
 
-  const handleDelete = async (counsellingId: string) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this counselling request?"
-      )
-    )
-      return;
-
+  const exportCounselling = async () => {
     try {
-      await axios.delete(`${api_url}/counselling/${counsellingId}`);
-      toast.success("Counselling request deleted successfully!");
-      fetchCounsellingRequests(page); // refresh current page
-    } catch (err) {
-      console.error("Error deleting counselling request:", err);
-      toast.error("Error deleting counselling request. Please try again.");
+      const { data } = await axios.get(`${api_url}/counselling`, {
+        params: { page: 1, limit: 1000 },
+      });
+      const rows: CounsellingRequest[] = Array.isArray(data.data)
+        ? data.data
+        : [];
+      if (!rows.length) {
+        toast.error("No counselling requests to export.");
+        return;
+      }
+
+      const escapeValue = (value: string | number) =>
+        `"${(value ?? "")
+          .toString()
+          .replace(/\r?\n|\r/g, " ")
+          .replace(/"/g, '""')}"`;
+      const header = [
+        "Name",
+        "Email",
+        "Phone",
+        "College",
+        "Message",
+        "Status",
+        "Created At",
+      ].join(",");
+      const csvRows = rows
+        .map((row) =>
+          [
+            escapeValue(row.name),
+            escapeValue(row.email),
+            escapeValue(row.phone),
+            escapeValue(row.college),
+            escapeValue(row.message || ""),
+            escapeValue((row.status || "pending").replace("-", " ")),
+            escapeValue(new Date(row.createdAt).toLocaleString()),
+          ].join(",")
+        )
+        .join("\n");
+
+      const blob = new Blob([`${header}\n${csvRows}`], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `counselling-requests-${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Counselling requests exported.");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export counselling requests.");
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Counselling Requests
-        </h1>
+      <header className="mb-6 flex flex-col gap-3 text-gray-800 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold">Counselling Requests</h1>
+        <button
+          onClick={exportCounselling}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+        >
+          <ArrowDownTrayIcon className="h-5 w-5" />
+          Export CSV
+        </button>
       </header>
 
       {loading && (
@@ -109,8 +163,7 @@ const AdminCounselling = () => {
                     "Name",
                     "Email",
                     "Phone",
-                    "College",
-                    "Message",
+                    "Status",
                     "Created At",
                     "Actions",
                   ].map((header) => (
@@ -136,11 +189,20 @@ const AdminCounselling = () => {
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {request.phone}
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">
-                        {request.college}
-                      </td>
-                      <td className="px-6 py-3 text-sm text-gray-700">
-                        {request.message}
+                     
+                      <td className="px-6 py-3 text-sm">
+                        <span
+                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                            {
+                              pending: "bg-amber-50 text-amber-700",
+                              contacted: "bg-blue-50 text-blue-700",
+                              "in-progress": "bg-purple-50 text-purple-700",
+                              closed: "bg-emerald-50 text-emerald-700",
+                            }[request.status] || "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {request.status.replace("-", " ")}
+                        </span>
                       </td>
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {new Date(request.createdAt).toLocaleDateString()}
@@ -157,19 +219,12 @@ const AdminCounselling = () => {
                           <PencilSquareIcon className="h-5 w-5" />
                           <span>Edit</span>
                         </button>
-                        <button
-                          onClick={() => handleDelete(request._id)}
-                          className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                          <span>Delete</span>
-                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center py-4 text-gray-500">
+                    <td colSpan={8} className="text-center py-4 text-gray-500">
                       No counselling requests found.
                     </td>
                   </tr>

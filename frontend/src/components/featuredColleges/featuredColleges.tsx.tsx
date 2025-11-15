@@ -28,6 +28,7 @@ const FeaturedColleges = () => {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackMap, setFallbackMap] = useState<Record<string, string>>({});
   const swiperRef = useRef<any>(null);
 
   useEffect(() => {
@@ -51,10 +52,11 @@ const FeaturedColleges = () => {
     fetchFeaturedColleges();
   }, []);
 
+  const fallbackImage = "/image/fallback-image.webp";
   const getImageUrl = (image: string) =>
     image
       ? `${img_url}uploads/${image.replace(/^\/?uploads\//, "")}`
-      : "/logo/logo1.png";
+      : fallbackImage;
 
   if (loading)
     return <div className="text-center py-6">Loading featured colleges...</div>;
@@ -106,15 +108,20 @@ const FeaturedColleges = () => {
                   className="block bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 h-[341px] flex-col justify-between"
                 >
                   <div className="w-full h-[200px] relative">
-                <Image
-  src={getImageUrl(college.image)}
-  alt={college.name}
-  fill
-  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-  style={{ objectFit: "cover" }}
-  className="absolute inset-0"
-/>
-
+                    <Image
+                      src={fallbackMap[college._id] || getImageUrl(college.image)}
+                      alt={college.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      style={{ objectFit: "cover" }}
+                      className="absolute inset-0"
+                      onError={() => {
+                        setFallbackMap((prev) => ({
+                          ...prev,
+                          [college._id]: fallbackImage,
+                        }));
+                      }}
+                    />
                   </div>
 
                   <div className="p-4 flex flex-col justify-between">

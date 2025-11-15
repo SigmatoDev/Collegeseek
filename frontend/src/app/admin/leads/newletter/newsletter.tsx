@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { api_url } from "@/utils/apiCall";
 import { TrashIcon } from "@heroicons/react/24/solid";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 
 interface Callback {
   _id: string;
@@ -75,11 +76,66 @@ const AdminCallbacks = () => {
     setPage(pageNumber);
   };
 
+  const exportCallbacks = async () => {
+    try {
+      const { data } = await axios.get(
+        `${api_url}/callbacks?page=1&limit=1000`
+      );
+      const rows: Callback[] = Array.isArray(data.data) ? data.data : [];
+      if (!rows.length) {
+        toast.error("No newsletter records to export.");
+        return;
+      }
+
+      const csvHeader = ["Name", "Mobile", "Email", "Stream"].join(",");
+      const escapeValue = (value: string | number) =>
+        `"${(value ?? "")
+          .toString()
+          .replace(/\r?\n|\r/g, " ")
+          .replace(/"/g, '""')}"`;
+      const csvRows = rows
+        .map((row) =>
+          [
+            escapeValue(row.name),
+            escapeValue(row.mobile),
+            escapeValue(row.email),
+            escapeValue(row.stream),
+          ].join(",")
+        )
+        .join("\n");
+
+      const csvContent = `${csvHeader}\n${csvRows}`;
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `newsletter-${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Newsletter list exported.");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export newsletter list.");
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">
-        Manage Callback Requests
-      </h1>
+      <div className="mb-6 flex flex-col gap-3 text-gray-800 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl font-bold">Manage Newsletter List</h1>
+        <button
+          onClick={exportCallbacks}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+        >
+          <ArrowDownTrayIcon className="h-5 w-5" />
+          Export CSV
+        </button>
+      </div>
 
       {loading && (
         <div className="flex justify-center items-center py-6">

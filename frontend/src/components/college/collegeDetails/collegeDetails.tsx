@@ -47,6 +47,8 @@ export default function CollegeDetailsPage() {
   const [hasBrochure, setHasBrochure] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [alreadyShortlisted, setAlreadyShortlisted] = useState(false); // ✅ new state
+  const fallbackImage = "/image/fallback-image.webp";
+  const [mainImageSrc, setMainImageSrc] = useState<string>(fallbackImage);
 
   // Zustand store
   const { user, addToShortlist, isCollegeShortlisted } = useUserStore();
@@ -126,6 +128,18 @@ export default function CollegeDetailsPage() {
 
     checkIfAlreadyShortlisted();
   }, [user, collegeData]);
+
+  useEffect(() => {
+    if (collegeData?.image) {
+      const resolvedSrc = `${img_url}uploads/${collegeData.image.replace(
+        /^\/?uploads\//,
+        ""
+      )}`;
+      setMainImageSrc(resolvedSrc);
+    } else {
+      setMainImageSrc(fallbackImage);
+    }
+  }, [collegeData]);
 
   const handleDownload = async (collegeId: string) => {
     try {
@@ -221,17 +235,26 @@ export default function CollegeDetailsPage() {
   if (!collegeData)
     return <div className="text-center py-10">No college data available.</div>;
 
-  const imageUrlFinal = collegeData.image
-    ? `${img_url}uploads/${collegeData.image.replace(/^\/?uploads\//, "")}`
-    : "/logo/logo1.png";
+  const imageGalleryUrls = (collegeData.imageGallery || [])
+    .map((img) => `${img_url}uploads/${img.replace(/^\/?uploads\//, "")}`)
+    .filter(Boolean);
+  const galleryImages =
+    imageGalleryUrls.length > 0 ? imageGalleryUrls : [fallbackImage];
 
-  const imageGalleryUrls = (collegeData.imageGallery || []).map(
-    (img) => `${img_url}uploads/${img.replace(/^\/?uploads\//, "")}`
-  );
+  const handleMainImageError = () => {
+    setMainImageSrc(fallbackImage);
+  };
+
+  const handleGalleryImageError = (
+    event: React.SyntheticEvent<HTMLImageElement, Event>
+  ) => {
+    const target = event.currentTarget;
+    target.src = fallbackImage;
+  };
 
   return (
     <>
-      <div className="pt-6 pr-4 pl-4 sm:pr-10 sm:pl-10">
+      <div className="bg-[#f6f4fb] border-b border-[#e5e2f5] pt-3 pb-3 px-4 sm:px-8">
         <Breadcrumb
           items={[
             { label: "Home", href: "/" },
@@ -260,7 +283,7 @@ export default function CollegeDetailsPage() {
               </span>
 
               <div className="flex -space-x-3 overflow-x-auto scrollbar-hide p-1">
-                {imageGalleryUrls.map((img, index) => (
+                {galleryImages.map((img, index) => (
                   <Image
                     key={index}
                     src={img}
@@ -268,11 +291,12 @@ export default function CollegeDetailsPage() {
                     height={50}
                     className="rounded-full border-2 border-gray-300 hover:border-blue-500 hover:scale-110 transition-all duration-300 shadow-md"
                     alt={`Gallery ${index + 1}`}
+                    onError={handleGalleryImageError}
                   />
                 ))}
               </div>
 
-              {imageGalleryUrls.length > 1 && (
+              {galleryImages.length > 1 && (
                 <button
                   onClick={() => setIsGalleryOpen(true)}
                   className="text-[#403A83] underline font-semibold hover:text-blue-800"
@@ -319,12 +343,13 @@ export default function CollegeDetailsPage() {
           {/* Right */}
           <div className="lg:w-1/3 w-full">
             <Image
-              src={imageUrlFinal}
+              src={mainImageSrc}
               width={500}
               height={500}
               priority
               className="rounded-xl shadow-lg w-full object-cover"
               alt={collegeData.name}
+              onError={handleMainImageError}
             />
           </div>
         </div>
@@ -376,7 +401,7 @@ export default function CollegeDetailsPage() {
         </div>
 
         {/* Gallery Modal */}
-        {isGalleryOpen && imageGalleryUrls.length > 1 && (
+        {isGalleryOpen && galleryImages.length > 1 && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-xl transition-opacity duration-300 ease-in-out">
             <div className="bg-[#E5E7EB] p-6 rounded-2xl shadow-2xl w-[90%] sm:max-w-lg relative overflow-hidden">
               <button
@@ -398,7 +423,7 @@ export default function CollegeDetailsPage() {
                       transform: `translateX(-${currentImageIndex * 100}%)`,
                     }}
                   >
-                    {imageGalleryUrls.map((img, index) => (
+                    {galleryImages.map((img, index) => (
                       <div key={index} className="flex-shrink-0 w-full">
                         <Image
                           src={img}
@@ -406,6 +431,7 @@ export default function CollegeDetailsPage() {
                           height={400}
                           className="rounded-xl object-cover shadow-lg"
                           alt={`Gallery ${index + 1}`}
+                          onError={handleGalleryImageError}
                         />
                       </div>
                     ))}
@@ -416,8 +442,8 @@ export default function CollegeDetailsPage() {
                   onClick={() =>
                     setCurrentImageIndex(
                       (prev) =>
-                        (prev - 1 + imageGalleryUrls.length) %
-                        imageGalleryUrls.length
+                        (prev - 1 + galleryImages.length) %
+                        galleryImages.length
                     )
                   }
                   className="absolute left-2 top-1/2 transform -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-gray-900/90 text-white rounded-full hover:scale-110 hover:bg-[#D35B42] transition-all duration-300"
@@ -428,7 +454,7 @@ export default function CollegeDetailsPage() {
                 <button
                   onClick={() =>
                     setCurrentImageIndex(
-                      (prev) => (prev + 1) % imageGalleryUrls.length
+                      (prev) => (prev + 1) % galleryImages.length
                     )
                   }
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-gray-900/90 text-white rounded-full hover:scale-110 hover:bg-[#D35B42] transition-all duration-300"

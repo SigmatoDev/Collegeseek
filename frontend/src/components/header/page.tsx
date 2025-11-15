@@ -1,26 +1,87 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentType } from "react";
 import axios from "axios";
 import { img_url, api_url } from "@/utils/apiCall";
-import { PhoneIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { PhoneIcon, Bars3Icon, XMarkIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import Link from "next/link";
 import debounce from "lodash.debounce";
 import MegaMenu from "../coursesMegaMenu/page";
 import ProfileDropdown from "../users/ProfileDropdown/page";
 import SearchBar from "./SearchBar";
+import Modal from "../counselling/model/page";
+import CounsellingForm from "../counselling/counsellingForm/page";
 
 interface HeaderProps {
   title?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
+const DEFAULT_CONTACT_INFO = {
+  phone: "1800-572-9877",
+  email: "hello@collegeseek.in",
+} as const;
+
+const DEFAULT_SOCIAL_LINKS = {
+  facebook: "#",
+  instagram: "#",
+  linkedin: "#",
+  x: "#",
+  youtube: "#",
+} as const;
+
+type SocialLinks = Record<keyof typeof DEFAULT_SOCIAL_LINKS, string>;
+type SocialNetwork = keyof SocialLinks;
+
+const SOCIAL_ORDER: SocialNetwork[] = [
+  "facebook",
+  "instagram",
+  "linkedin",
+  "x",
+  "youtube",
+];
+
+type SocialIconProps = {
+  className?: string;
+};
+
+const XLogo = ({ className }: SocialIconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    strokeWidth={1.8}
+    stroke="currentColor"
+    fill="none"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4 4l16 16M20 4L8.5 15.5M4 20l7-7"
+    />
+  </svg>
+);
+
+const SOCIAL_ICON_MAP: Record<SocialNetwork, ComponentType<SocialIconProps>> = {
+  facebook: (props) => <Facebook {...props} />,
+  instagram: (props) => <Instagram {...props} />,
+  linkedin: (props) => <Linkedin {...props} />,
+  youtube: (props) => <Youtube {...props} />,
+  x: (props) => <XLogo {...props} />,
+};
+
+const Header = ({ title = "My Website" }: HeaderProps) => {
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [contactInfo, setContactInfo] = useState(DEFAULT_CONTACT_INFO);
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({
+    ...DEFAULT_SOCIAL_LINKS,
+  });
+  const [isCounsellingOpen, setIsCounsellingOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,9 +94,19 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
             ? `${img_url.replace(/\/$/, "")}${data.siteLogo}`
             : "/default-logo.png"
         );
+        setContactInfo({
+          phone: data.contactPhone || DEFAULT_CONTACT_INFO.phone,
+          email: data.contactEmail || DEFAULT_CONTACT_INFO.email,
+        });
+        setSocialLinks({
+          ...DEFAULT_SOCIAL_LINKS,
+          ...(data.socialLinks || {}),
+        });
       } catch (error) {
         console.error("Error fetching site logo:", error);
         setSiteLogo("/default-logo.png");
+        setContactInfo(DEFAULT_CONTACT_INFO);
+        setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
       }
     };
 
@@ -67,66 +138,95 @@ const Header: React.FC<HeaderProps> = ({ title = "My Website" }) => {
 
   if (!isMounted) return null;
 
+  const phoneHref = contactInfo.phone.replace(/[^+\d]/g, "");
+  const contactItems = [
+    {
+      icon: PhoneIcon,
+      label: contactInfo.phone,
+      href: `tel:${phoneHref}`,
+    },
+    {
+      icon: EnvelopeIcon,
+      label: contactInfo.email,
+      href: `mailto:${contactInfo.email}`,
+    },
+  ];
+
   return (
-    <header className="bg-[#0a0536] text-white w-full relative">
+    <header className="bg-white text-gray-900 w-full relative shadow-sm">
       {/* Top Bar */}
-      <div className="bg-[#441a6b] text-sm w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-9 py-2 flex justify-between items-center">
-          {/* Contact Info */}
-          <div className="flex items-center space-x-4 ml-4 sm:ml-[10px]">
-            <div className="flex items-center">
-              <PhoneIcon className="h-4 w-4 mr-1 text-blue-400" />
-              <span>1800-572-9877</span>
-            </div>
-            <div className="hidden sm:flex items-center">
-              <span>hello@collegeseek.in</span>
-            </div>
+      <div className="bg-[#fdf1ea] border-b-0 border-[#f4b3b1] text-sm">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-10 py-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-4 text-[#1f1b3b]">
+            {contactItems.map(({ icon: Icon, label, href }) => (
+              <a
+                key={label}
+                href={href}
+                className="flex items-center gap-2 text-xs sm:text-sm font-medium hover:text-[#7b5cd6] transition"
+              >
+                <span className="w-7 h-7 rounded-full bg-white text-[#c25541] flex items-center justify-center shadow-sm">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span>{label}</span>
+              </a>
+            ))}
           </div>
 
-          {/* Social Icons */}
-          <div className="flex items-center space-x-4 pr-3 mr-4 sm:mr-[10px]">
-            <span className="hidden md:block">
-              We're on your favorite socials!
+          <div className="flex items-center gap-3 text-[#c25541]">
+           
+            <nav className="hidden md:flex items-center gap-4 text-xs mr-2 font-semibold tracking-wide">
+              <Link href="/company" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">
+                About Company
+              </Link>
+              <Link href="/contactUs" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">
+                Contact
+              </Link>
+              <button
+                onClick={() => setIsCounsellingOpen(true)}
+                className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ff8f66] to-[#d95540] px-4 py-1.5 text-white shadow-lg text-sm"
+              >
+                <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#d95540] shadow animate-bounce">
+                  📞
+                </span>
+                <span className="pl-4">Get Counselling</span>
+              </button>
+            </nav>
+            <div className="flex items-center gap-2">
+            <span className="hidden lg:block text-xs uppercase tracking-widest">
+              Connect with us
             </span>
-            <div className="flex space-x-3">
-              {[
-                {
-                  href: "#",
-                  src: "/svg/facebook-svgrepo-com (5).svg",
-                  alt: "Facebook",
-                },
-                {
-                  href: "#",
-                  src: "/svg/instagram-svgrepo-com (1).svg",
-                  alt: "Instagram",
-                },
-                {
-                  href: "#",
-                  src: "/svg/linkedin-svgrepo-com.svg",
-                  alt: "LinkedIn",
-                },
-                {
-                  href: "#",
-                  src: "/svg/twitter-154-svgrepo-com.svg",
-                  alt: "Twitter",
-                },
-                {
-                  href: "#",
-                  src: "/svg/youtube-168-svgrepo-com.svg",
-                  alt: "YouTube",
-                },
-              ].map((icon, index) => (
-                <a key={index} href={icon.href}>
-                  <img src={icon.src} alt={icon.alt} className="h-4 w-4" />
-                </a>
-              ))}
+              {SOCIAL_ORDER.map((network) => {
+                const url = socialLinks[network] || "#";
+                const Icon = SOCIAL_ICON_MAP[network];
+                const isPlaceholder = !url || url === "#";
+                return (
+                  <a
+                    key={network}
+                    href={url}
+                    {...(!isPlaceholder
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                    className="p-2 rounded-full bg-white shadow-sm hover:bg-[#ece7ff] text-[#c25541] transition"
+                    aria-label={`Visit our ${network} page`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
+      <Modal
+        isOpen={isCounsellingOpen}
+        onClose={() => setIsCounsellingOpen(false)}
+      >
+        <CounsellingForm collegeId="global" onClose={() => setIsCounsellingOpen(false)} />
+      </Modal>
+
       {/* Main Navigation */}
-      <nav className="bg-gray-100 border-b border-gray-700 text-gray-800 pt-2 relative w-full">
+      <nav className="bg-white shadow-lg text-gray-800 pt-2 relative w-full">
         <div className="w-full px-4 sm:px-6 lg:px-11">
           <div className="flex justify-between h-16 items-center w-full">
             {/* Logo */}

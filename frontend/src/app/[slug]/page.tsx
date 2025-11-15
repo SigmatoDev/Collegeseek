@@ -139,7 +139,7 @@ const PageView = () => {
   return (
     <>
       <Header />
-       <div className="px-10 pt-6">
+       <div className="px-10 pt-6 bg-gradient-to-br from-gray-50 via-white to-gray-100">
   <Breadcrumb
     items={[
       { label: "Home", href: "/" },

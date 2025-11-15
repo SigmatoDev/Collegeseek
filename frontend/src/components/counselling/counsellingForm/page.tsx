@@ -2,7 +2,7 @@ import { api_url } from "@/utils/apiCall";
 import React, { useState, useEffect } from "react";
 
 interface CounsellingFormProps {
-  collegeId: string;
+  collegeId?: string;
   onClose?: () => void;
 }
 
@@ -35,12 +35,19 @@ const CounsellingForm = ({ collegeId, onClose }: CounsellingFormProps) => {
 
   // Fetch college details
   useEffect(() => {
+    if (!collegeId || collegeId === "global") {
+      setCollege({ id: "global", name: "General Counselling" });
+      setFetchError(null);
+      return;
+    }
+
     const fetchCollege = async () => {
       try {
         const response = await fetch(`${api_url}/colleges/${collegeId}`);
         const data = await response.json();
         if (data?.data) {
           setCollege(data.data);
+          setFetchError(null);
         } else {
           setFetchError("No data found for this college.");
         }
@@ -94,15 +101,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     const data = await response.json();
 
     if (response.ok) {
-      // show success message briefly
       setSuccessMessage("Thanks! We’ll connect with you shortly.");
-
-      // Close modal after short delay
-      setTimeout(() => {
-        if (onClose) onClose(); // closes parent modal
-      }, 300);
-
-      // Reset form after closure (optional)
       setFormData({
         name: "",
         email: "",
@@ -131,17 +130,25 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 sm:p-8 bg-white rounded-lg shadow-xl border border-gray-200">
-      <h3 className="text-2xl font-semibold text-center mb-2 text-gray-800">
-        Get Free Counselling for College
+    <div className="max-w-2xl mx-auto p-5 sm:p-6 bg-white rounded-2xl border border-gray-100">
+      <h3 className="text-2xl font-semibold text-center text-gray-900">
+        Get Free Counselling
       </h3>
-      <h4 className="text-[16px] pt-2 pb-5 font-medium text-center text-blue-600">
+      <p className="text-sm text-center text-gray-500 mb-5">
         {college.name}
-      </h4>
+      </p>
 
       {successMessage ? (
-        <div className="text-green-600 text-center text-lg font-semibold py-6 animate-fadeIn">
-          {successMessage}
+        <div className="rounded-xl bg-[#f6f4fb] p-6 text-center text-sm text-[#4c8c5a] space-y-4">
+          <p>{successMessage}</p>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="inline-flex items-center justify-center rounded-full bg-[#d95540] px-4 py-2 text-white text-sm font-semibold shadow hover:bg-[#c44936] transition"
+            >
+              Close
+            </button>
+          )}
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
@@ -219,8 +226,10 @@ const handleSubmit = async (e: React.FormEvent) => {
 
           <button
             type="submit"
-            className={`w-full py-3 text-white rounded-lg text-xl font-semibold transition-all duration-300 ${
-              loading ? "bg-gray-500 cursor-not-allowed" : "bg-[#581845] hover:bg-[#4a1538]"
+            className={`w-full py-3 rounded-lg text-base font-semibold transition-all duration-300 ${
+              loading
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-gradient-to-r from-[#ff8f66] to-[#d95540] text-white hover:from-[#f77d52] hover:to-[#cf4b38]"
             }`}
             disabled={loading}
           >

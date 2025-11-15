@@ -2,7 +2,6 @@
 
 import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import Header from "./navigater/header";
 import Sidebar from "./sidebar/sidebar";
 import withAdminAuth from "./withAdminAuth/page";
 
@@ -18,18 +17,13 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 h-screen">
-        {/* Header (Fixed) */}
-        <Header />
-
-        {/* Scrollable Content */}
-        <main className="flex-1 overflow-auto mt-4">{children}</main>
+    <div className="flex min-h-screen bg-gray-100">
+      <div className="sticky top-0 h-screen flex-shrink-0">
+        <Sidebar />
       </div>
+      <main className="flex-1 min-h-screen overflow-y-auto p-6 lg:p-10">
+        {children}
+      </main>
     </div>
   );
 };
