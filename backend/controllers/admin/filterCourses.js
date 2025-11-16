@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Course = require("../../models/admin/courseModel");
 const Specialization = require('../../models/admin/specialization'); // <- add this
 
@@ -439,24 +440,171 @@ const getCoursesWithCommonSpecializations = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+const normalizeRangePayload = (value) => {
+  if (!value) return null;
+  const range = typeof value === "object" ? value : {};
+  const min =
+    range.min !== undefined && range.min !== null
+      ? Number(range.min)
+      : undefined;
+  const max =
+    range.max !== undefined && range.max !== null
+      ? Number(range.max)
+      : undefined;
+
+  if (
+    (min === undefined || Number.isNaN(min)) &&
+    (max === undefined || Number.isNaN(max))
+  ) {
+    return null;
+  }
+
+  const normalized = {};
+  if (min !== undefined && !Number.isNaN(min)) normalized.min = min;
+  if (max !== undefined && !Number.isNaN(max)) normalized.max = max;
+  return Object.keys(normalized).length ? normalized : null;
+};
+
+const buildMatchConditions = (filters = []) => {
+  const andConditions = [];
+
+  filters.forEach((filter) => {
+    if (!filter || filter.value === undefined || filter.value === null) return;
+    const rawValue = filter.value;
+
+    switch (filter.field) {
+      case "streams": {
+        const streamIds = (Array.isArray(rawValue) ? rawValue : [rawValue])
+          .filter(Boolean)
+          .map((id) => {
+            try {
+              return new mongoose.Types.ObjectId(id);
+            } catch (err) {
+              return null;
+            }
+          })
+          .filter(Boolean);
+        if (streamIds.length) {
+          andConditions.push({ streams: { $in: streamIds } });
+        }
+        break;
+      }
+      case "avgFee": {
+        const ranges = (Array.isArray(rawValue) ? rawValue : [rawValue])
+          .map(normalizeRangePayload)
+          .filter(Boolean);
+        if (ranges.length) {
+          andConditions.push({
+            $or: ranges.map(({ min, max }) => {
+              const feeCondition = {};
+              if (min !== undefined) feeCondition.$gte = min;
+              if (max !== undefined) feeCondition.$lte = max;
+              return { "fees.amount": feeCondition };
+            }),
+          });
+        }
+        break;
+      }
+      case "courseType": {
+        const modeIds = (Array.isArray(rawValue) ? rawValue : [rawValue])
+          .filter(Boolean)
+          .map((id) => {
+            try {
+              return new mongoose.Types.ObjectId(id);
+            } catch (err) {
+              return null;
+            }
+          })
+          .filter(Boolean);
+        if (modeIds.length) {
+          andConditions.push({ programMode: { $in: modeIds } });
+        }
+        break;
+      }
+      case "duration": {
+        const ranges = (Array.isArray(rawValue) ? rawValue : [rawValue])
+          .map(normalizeRangePayload)
+          .filter(Boolean);
+        if (ranges.length) {
+          andConditions.push({
+            $or: ranges.map(({ min, max }) => {
+              const durationCondition = {};
+              if (min !== undefined) durationCondition.$gte = min;
+              if (max !== undefined) durationCondition.$lte = max;
+              return { durationNumeric: durationCondition };
+            }),
+          });
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  });
+
+  return andConditions.length ? { $and: andConditions } : {};
+};
+
 const getCoursesWithCommonSpecialization = async (req, res) => {
   try {
     // Get page and limit from query params, default values if not provided
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const filters =
+      req.body && Array.isArray(req.body.filters) ? req.body.filters : [];
+    const matchConditions = buildMatchConditions(filters);
 
-    const courses = await Course.aggregate([
+    const basePipeline = [
+      {
+        $addFields: {
+          durationNumeric: {
+            $convert: {
+              input: {
+                $arrayElemAt: [
+                  { $split: [{ $ifNull: ["$duration", "0"] }, " "] },
+                  0,
+                ],
+              },
+              to: "double",
+              onError: null,
+              onNull: null,
+            },
+          },
+        },
+      },
+    ];
+
+    if (Object.keys(matchConditions).length) {
+      basePipeline.push({ $match: matchConditions });
+    }
+
+    const aggregationPipeline = [
+      ...basePipeline,
       {
         $group: {
-          _id: "$specialization", // Group by specialization
-          course: { $first: "$$ROOT" }, // One sample course for info
-          minDuration: { $min: "$duration" },
-          maxDuration: { $max: "$duration" },
+          _id: "$specialization",
+          course: { $first: "$$ROOT" },
+          minDuration: { $min: "$durationNumeric" },
+          maxDuration: { $max: "$durationNumeric" },
           minFees: { $min: "$fees.amount" },
           maxFees: { $max: "$fees.amount" },
           currency: { $first: "$fees.currency" },
           year: { $first: "$fees.year" },
+          collegesOffering: { $addToSet: "$college_id" },
+        },
+      },
+      {
+        $addFields: {
+          collegeCount: {
+            $size: {
+              $filter: {
+                input: "$collegesOffering",
+                as: "college",
+                cond: { $ne: ["$$college", null] },
+              },
+            },
+          },
         },
       },
       {
@@ -465,7 +613,32 @@ const getCoursesWithCommonSpecialization = async (req, res) => {
             $mergeObjects: [
               "$course",
               {
-                durationRange: { $concat: [{ $toString: "$minDuration" }, " - ", { $toString: "$maxDuration" }] },
+                collegeCount: "$collegeCount",
+                durationRange: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $ne: ["$minDuration", null] },
+                        { $ne: ["$maxDuration", null] },
+                      ],
+                    },
+                    {
+                      $cond: [
+                        { $eq: ["$minDuration", "$maxDuration"] },
+                        { $concat: [{ $toString: "$minDuration" }, " Years"] },
+                        {
+                          $concat: [
+                            { $toString: "$minDuration" },
+                            " - ",
+                            { $toString: "$maxDuration" },
+                            " Years",
+                          ],
+                        },
+                      ],
+                    },
+                    "$course.duration",
+                  ],
+                },
                 feesRange: {
                   $concat: [
                     { $toString: "$minFees" },
@@ -475,18 +648,17 @@ const getCoursesWithCommonSpecialization = async (req, res) => {
                     "$currency",
                     " (",
                     { $toString: "$year" },
-                    ")"
-                  ]
-                }
-              }
-            ]
-          }
-        }
+                    ")",
+                  ],
+                },
+              },
+            ],
+          },
+        },
       },
       {
-        $replaceRoot: { newRoot: "$course" }
+        $replaceRoot: { newRoot: "$course" },
       },
-      // Populate category
       {
         $lookup: {
           from: "categories",
@@ -496,7 +668,6 @@ const getCoursesWithCommonSpecialization = async (req, res) => {
         },
       },
       { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
-      // Populate specialization
       {
         $lookup: {
           from: "specializations",
@@ -506,16 +677,36 @@ const getCoursesWithCommonSpecialization = async (req, res) => {
         },
       },
       { $unwind: { path: "$specialization", preserveNullAndEmptyArrays: true } },
-      // Pagination
+      {
+        $lookup: {
+          from: "streams",
+          localField: "streams",
+          foreignField: "_id",
+          as: "streams",
+        },
+      },
+      {
+        $lookup: {
+          from: "programmodes",
+          localField: "programMode",
+          foreignField: "_id",
+          as: "programMode",
+        },
+      },
+      { $unwind: { path: "$programMode", preserveNullAndEmptyArrays: true } },
       { $skip: skip },
       { $limit: limit },
-    ]);
+      { $project: { durationNumeric: 0, collegesOffering: 0 } },
+    ];
 
-    // Get total count for frontend pagination
-    const totalCountAgg = await Course.aggregate([
+    const courses = await Course.aggregate(aggregationPipeline);
+
+    const totalCountPipeline = [
+      ...basePipeline,
       { $group: { _id: "$specialization" } },
-      { $count: "total" }
-    ]);
+      { $count: "total" },
+    ];
+    const totalCountAgg = await Course.aggregate(totalCountPipeline);
     const totalCount = totalCountAgg[0] ? totalCountAgg[0].total : 0;
 
     res.json({

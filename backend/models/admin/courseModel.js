@@ -101,6 +101,14 @@ const CourseSchema = new mongoose.Schema(
     entrance_exam: {
       type: String,
     },
+    examList: {
+      type: [String],
+      default: [],
+    },
+    focusAreas: {
+      type: [String],
+      default: [],
+    },
     enrollmentLink: {
       type: String,
       required: false,
