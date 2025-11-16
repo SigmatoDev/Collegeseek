@@ -19,6 +19,8 @@ export interface Course {
   placements: { median_salary: number; currency: string; placement_rate: number };
   intake_capacity: { male: number; female: number; total: number };
   entrance_exam: string;
+  examList?: string[];
+  focusAreas?: string[];
   enrollmentLink: string;
   brochure_link: string;
 }

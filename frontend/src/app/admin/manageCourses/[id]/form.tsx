@@ -6,12 +6,13 @@ import {
   useCallback,
   useMemo,
   type ReactNode,
+  type KeyboardEvent,
 } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
 import { api_url } from "@/utils/apiCall";
 import { College, Course } from "@/components/model/models";
-import { Loader } from "lucide-react";
+import { Loader, X } from "lucide-react";
 import ProgramModeDropdown from "@/components/programMode/page";
 import SpecializationDropdown from "@/components/specializationDropdown/page";
 import toast from "react-hot-toast";
@@ -75,6 +76,107 @@ const ActualCourseForm = () => {
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchCollege, setSearchCollege] = useState("");
+  const [tagInputs, setTagInputs] = useState({
+    focusAreas: "",
+    examList: "",
+  });
+  const [formErrors, setFormErrors] = useState<string[]>([]);
+
+  const DURATION_OPTIONS = [
+    "1 Year",
+    "2 Years",
+    "3 Years",
+    "4 Years",
+    "5 Years",
+    "6 Months",
+  ];
+
+  const FOCUS_AREA_SUGGESTIONS = [
+    "Analytical Chemist",
+    "Clinical Research Associate",
+    "Clinical Research Coordinator",
+    "Chartered Accountant",
+    "Accounting Analyst",
+    "Equity Analyst",
+    "Financial Analyst",
+    "Software Developer",
+    "Technical Analyst",
+    "Human Resources Manager",
+    "Operations Manager",
+    "Marketing Manager",
+    "Relationship Manager",
+  ];
+
+  const EXAM_SUGGESTIONS = [
+    "NEET",
+    "JEE",
+    "CAT",
+    "MAT",
+    "XAT",
+    "CMAT",
+    "GATE",
+    "CLAT",
+    "NDA",
+    "IBPS",
+    "UPSC",
+  ];
+
+  type TagField = "focusAreas" | "examList";
+
+  const handleTagInputChange = (field: TagField, value: string) => {
+    setTagInputs((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddTag = (field: TagField) => {
+    const value = tagInputs[field].trim();
+    if (!value) return;
+    setCourse((prev: any) => ({
+      ...prev,
+      [field]: [...(prev[field] || []), value],
+    }));
+    setTagInputs((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const handleRemoveTag = (field: TagField, index: number) => {
+    setCourse((prev: any) => ({
+      ...prev,
+      [field]: (prev[field] || []).filter(
+        (_: string, itemIndex: number) => itemIndex !== index
+      ),
+    }));
+  };
+
+  const handleTagKeyDown = (
+    field: TagField,
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAddTag(field);
+    }
+  };
+
+  const handleSuggestedFocusClick = (suggestion: string) => {
+    const exists = (course.focusAreas || []).some(
+      (item: string) => item.toLowerCase() === suggestion.toLowerCase()
+    );
+    if (exists) return;
+    setCourse((prev: any) => ({
+      ...prev,
+      focusAreas: [...(prev.focusAreas || []), suggestion],
+    }));
+  };
+
+  const handleSuggestedExamClick = (suggestion: string) => {
+    const exists = (course.examList || []).some(
+      (item: string) => item.toLowerCase() === suggestion.toLowerCase()
+    );
+    if (exists) return;
+    setCourse((prev: any) => ({
+      ...prev,
+      examList: [...(prev.examList || []), suggestion],
+    }));
+  };
 
   // const [course, setCourse] = useState<Course>({
   //   name: "",
@@ -114,6 +216,8 @@ const ActualCourseForm = () => {
     entrance_exam: "",
     enrollmentLink: "",
     brochure_link: "",
+    focusAreas: [],
+    examList: [],
   });
 
   interface College {
@@ -191,7 +295,14 @@ const ActualCourseForm = () => {
             fetchedCourse.college = fullCollege || null;
           }
 
+          fetchedCourse.focusAreas = fetchedCourse.focusAreas || [];
+          fetchedCourse.examList = fetchedCourse.examList || [];
+
           setCourse(fetchedCourse);
+          setTagInputs({
+            focusAreas: "",
+            examList: "",
+          });
         })
         .catch((err) => console.error(err));
     }
@@ -232,52 +343,36 @@ const ActualCourseForm = () => {
     [router]
   );
 
-  const validateRequiredSelections = () => {
+  const collectValidationErrors = () => {
+    const errors: string[] = [];
     if (!course.college) {
-      toast.error("Please select a college for this course.");
-      return false;
+      errors.push("Select a college for this course.");
     }
     if (!course.category) {
-      toast.error("Please select a degree.");
-      return false;
+      errors.push("Select a degree.");
     }
     if (!course.streams) {
-      toast.error("Please select a stream.");
-      return false;
+      errors.push("Choose a stream.");
     }
     if (!course.specialization) {
-      toast.error("Please select a specialization.");
-      return false;
+      errors.push("Choose a specialization.");
     }
     if (!course.programMode) {
-      toast.error("Please choose a program mode.");
-      return false;
-    }
-    return true;
-  };
-
-  const validateCoreFields = () => {
-    if (!course.name?.trim()) {
-      toast.error("Course title is required.");
-      return false;
+      errors.push("Select a program mode.");
     }
     if (!course.description?.trim()) {
-      toast.error("Add a short description for the course.");
-      return false;
+      errors.push("Add a short description for the course.");
     }
     if (!course.duration?.trim()) {
-      toast.error("Duration cannot be empty.");
-      return false;
+      errors.push("Provide the course duration.");
     }
     if (!course.eligibility?.trim()) {
-      toast.error("Eligibility details are required.");
-      return false;
+      errors.push("Eligibility details are required.");
     }
     if (!course.fees?.amount || Number(course.fees.amount) <= 0) {
-      toast.error("Please enter a valid fee amount.");
-      return false;
+      errors.push("Enter a valid course fee amount.");
     }
-    return true;
+    return errors;
   };
 
   const handleAutofillTemplate = () => {
@@ -305,9 +400,12 @@ const ActualCourseForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateRequiredSelections() || !validateCoreFields()) {
+    const validationErrors = collectValidationErrors();
+    if (validationErrors.length) {
+      setFormErrors(validationErrors);
       return;
     }
+    setFormErrors([]);
     setLoading(true);
 
     try {
@@ -321,6 +419,12 @@ const ActualCourseForm = () => {
         streams: Array.isArray(course.streams)
           ? course.streams.map((s: any) => (s?._id ? s._id : s))
           : course.streams,
+        focusAreas: Array.isArray(course.focusAreas)
+          ? course.focusAreas.filter((item: string) => item?.trim())
+          : [],
+        examList: Array.isArray(course.examList)
+          ? course.examList.filter((item: string) => item?.trim())
+          : [],
       };
 
       // remove nested objects (optional clean up)
@@ -334,6 +438,7 @@ const ActualCourseForm = () => {
       const res = await method(url, payload);
 
       if (res.status >= 200 && res.status < 300) {
+        setFormErrors([]);
         toast.success(
           `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
         );
@@ -343,7 +448,11 @@ const ActualCourseForm = () => {
       }
     } catch (err) {
       console.error("Error submitting course:", err);
-      toast.error("An error occurred.");
+      const message =
+        (axios.isAxiosError(err) && err.response?.data?.message) ||
+        "Failed to save course. Please verify the details and try again.";
+      setFormErrors([message]);
+      toast.error("Unable to submit course");
     } finally {
       setLoading(false);
     }
@@ -375,9 +484,46 @@ const ActualCourseForm = () => {
       onSubmit={handleSubmit}
       className="max-w-[1580px] mx-auto p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-6"
     >
-      <h1 className="text-3xl font-semibold text-gray-900 mb-6">
-        {courseId && courseId !== "new" ? "Edit Course" : "Create New Course"}
-      </h1>
+      <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-3xl font-semibold text-gray-900">
+          {courseId && courseId !== "new" ? "Edit Course" : "Create New Course"}
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          {courseId && courseId !== "new" && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+          >
+            {loading ? (
+              <Loader className="h-4 w-4 animate-spin" />
+            ) : courseId !== "new" ? (
+              "Update Course"
+            ) : (
+              "Publish Course"
+            )}
+          </button>
+        </div>
+      </div>
+
+      {formErrors.length > 0 && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p className="font-semibold">Please fix the following:</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {formErrors.map((error, index) => (
+              <li key={`${error}-${index}`}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="relative">
@@ -528,40 +674,60 @@ const ActualCourseForm = () => {
           required
         />
 
-        <div className="mb-4">
-          <label
-            htmlFor="duration"
-            className="block text-sm font-semibold text-gray-700"
-          >
-            Duration
-          </label>
-          <input
-            id="duration"
-            name="duration"
-            placeholder="Duration"
-            value={course.duration ?? ""}
-            onChange={handleChange}
-            className="p-2 border rounded w-full"
-            required
-          />
-        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="mb-4">
+            <label
+              htmlFor="duration"
+              className="block text-sm font-semibold text-gray-700"
+            >
+              Duration
+            </label>
+            <input
+              id="duration"
+              name="duration"
+              placeholder="Duration (e.g., 4 Years)"
+              value={course.duration ?? ""}
+              onChange={handleChange}
+              className="p-2 border rounded w-full"
+              required
+            />
+            <div className="mt-2 flex gap-2 overflow-x-auto pb-2 text-xs">
+              {DURATION_OPTIONS.map((option) => (
+                <button
+                  type="button"
+                  key={option}
+                  onClick={() =>
+                    setCourse((prev: any) => ({ ...prev, duration: option }))
+                  }
+                  className={`rounded-full border px-3 py-1 ${
+                    course.duration === option
+                      ? "border-blue-500 bg-blue-50 text-blue-600"
+                      : "border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <div className="mb-4">
-          <label
-            htmlFor="eligibility"
-            className="block text-sm font-semibold text-gray-700"
-          >
-            Eligibility
-          </label>
-          <input
-            id="eligibility"
-            name="eligibility"
-            placeholder="Eligibility"
-            value={course.eligibility ?? ""}
-            onChange={handleChange}
-            className="p-2 border rounded w-full mt-2"
-            required
-          />
+          <div className="mb-4">
+            <label
+              htmlFor="eligibility"
+              className="block text-sm font-semibold text-gray-700"
+            >
+              Eligibility
+            </label>
+            <input
+              id="eligibility"
+              name="eligibility"
+              placeholder="Eligibility"
+              value={course.eligibility ?? ""}
+              onChange={handleChange}
+              className="p-2 border rounded w-full"
+              required
+            />
+          </div>
         </div>
 
         <div className="flex flex-col">
@@ -578,10 +744,43 @@ const ActualCourseForm = () => {
             value={course.brochure_link ?? ""}
             onChange={handleChange}
             className="p-2 border rounded"
-            required
           />
         </div>
   
+        <div className="space-y-4">
+          <TagInput
+            label="Focus Areas"
+            placeholder="Add a focus area and press Enter"
+            field="focusAreas"
+            values={course.focusAreas || []}
+            inputValue={tagInputs.focusAreas}
+            onInputChange={handleTagInputChange}
+            onAdd={handleAddTag}
+            onRemove={handleRemoveTag}
+            onKeyDown={handleTagKeyDown}
+            suggestions={FOCUS_AREA_SUGGESTIONS}
+            onSuggestionClick={handleSuggestedFocusClick}
+            suggestionsSingleRow
+            variant="purple"
+            valuesSingleRow
+          />
+          <TagInput
+            label="Exam List"
+            placeholder="Add entrance exams"
+            field="examList"
+            values={course.examList || []}
+            inputValue={tagInputs.examList}
+            onInputChange={handleTagInputChange}
+            onAdd={handleAddTag}
+            onRemove={handleRemoveTag}
+            onKeyDown={handleTagKeyDown}
+            suggestions={EXAM_SUGGESTIONS}
+            onSuggestionClick={handleSuggestedExamClick}
+            suggestionsSingleRow
+            variant="teal"
+            valuesSingleRow
+          />
+        </div>
 
       <Section title="Course Fees" cols={3}>
         <div className="flex flex-col">
@@ -757,29 +956,6 @@ const ActualCourseForm = () => {
         ))}
       </Section>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-blue-600 mt-7 text-white p-3 rounded-lg hover:bg-blue-700"
-      >
-        {loading ? (
-          <Loader className="animate-spin h-5 w-5" />
-        ) : courseId !== "new" ? (
-          "Update Course"
-        ) : (
-          "Publish Course"
-        )}
-      </button>
-
-      {courseId && courseId !== "new" && (
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="bg-gray-500 text-white p-3 rounded-lg ml-4"
-        >
-          Cancel
-        </button>
-      )}
     </form>
   );
 };
@@ -809,5 +985,112 @@ const Section = ({
     </>
   );
 };
+
+interface TagInputProps {
+  label: string;
+  placeholder: string;
+  field: "focusAreas" | "examList";
+  values: string[];
+  inputValue: string;
+  onInputChange: (field: "focusAreas" | "examList", value: string) => void;
+  onAdd: (field: "focusAreas" | "examList") => void;
+  onRemove: (field: "focusAreas" | "examList", index: number) => void;
+  onKeyDown: (
+    field: "focusAreas" | "examList",
+    event: KeyboardEvent<HTMLInputElement>
+  ) => void;
+  suggestions?: string[];
+  onSuggestionClick?: (value: string) => void;
+  suggestionsSingleRow?: boolean;
+  variant?: "default" | "purple" | "teal";
+  valuesSingleRow?: boolean;
+}
+
+const TagInput = ({
+  label,
+  placeholder,
+  field,
+  values,
+  inputValue,
+  onInputChange,
+  onAdd,
+  onRemove,
+  onKeyDown,
+  suggestions = [],
+  onSuggestionClick,
+  suggestionsSingleRow = false,
+  variant = "default",
+  valuesSingleRow = false,
+}: TagInputProps) => (
+  <div className="flex flex-col">
+    <label className="block text-sm font-semibold text-gray-700">{label}</label>
+    <div className="mt-2 flex gap-2">
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => onInputChange(field, e.target.value)}
+        onKeyDown={(event) => onKeyDown(field, event)}
+        placeholder={placeholder}
+        className="flex-1 rounded border p-2 text-sm"
+      />
+      <button
+        type="button"
+        onClick={() => onAdd(field)}
+        className="rounded border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+      >
+        Add
+      </button>
+    </div>
+    {!!suggestions.length && onSuggestionClick && (
+      <div
+        className={`mt-3 flex gap-2 ${
+          suggestionsSingleRow ? "flex-wrap" : "flex-wrap"
+        }`}
+      >
+        {suggestions.map((suggestion) => (
+          <button
+            type="button"
+            key={`${field}-${suggestion}`}
+            onClick={() => onSuggestionClick(suggestion)}
+            className="rounded-full border border-dashed border-gray-300 px-3 py-1 text-xs text-gray-600 hover:border-blue-500 hover:text-blue-600"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
+    )}
+    <div
+      className={`mt-3 flex gap-2 ${
+        valuesSingleRow ? "flex-nowrap overflow-x-auto pb-2" : "flex-wrap"
+      }`}
+    >
+      {values.length === 0 && (
+        <span className="text-xs text-gray-400">No items added yet.</span>
+      )}
+      {values.map((item, index) => (
+        <span
+          key={`${field}-${item}-${index}`}
+          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${
+            variant === "purple"
+              ? "bg-[#ede9fe] text-[#4c1d95]"
+              : variant === "teal"
+              ? "bg-teal-50 text-teal-700"
+              : "bg-gray-100 text-gray-700"
+          }`}
+        >
+          {item}
+          <button
+            type="button"
+            onClick={() => onRemove(field, index)}
+            className="text-gray-500 hover:text-gray-700"
+            aria-label="Remove item"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </span>
+      ))}
+    </div>
+  </div>
+);
 
 export default CourseForm;

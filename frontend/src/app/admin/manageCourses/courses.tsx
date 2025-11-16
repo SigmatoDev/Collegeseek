@@ -9,6 +9,7 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   PlusCircleIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import ExportCoursesButton from "./exportCourses";
 import ImportCourses from "./importCourses";
@@ -24,6 +25,7 @@ interface Course {
   description: string;
   duration: string;
   fees: number;
+  college_id?: { _id: string; name: string };
 }
 
 const AdminCourses = () => {
@@ -36,6 +38,8 @@ const AdminCourses = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [coursesPerPage, setCoursesPerPage] = useState(10);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [showImportPanel, setShowImportPanel] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,6 +59,7 @@ const AdminCourses = () => {
           fees:
             typeof course.fees === "object" ? course.fees.amount : course.fees,
           specialization: course.specialization || { _id: "", name: "N/A" },
+          college_id: course.college_id || null,
         }))
       );
       setTotalPages(data?.totalPages || 1);
@@ -63,6 +68,67 @@ const AdminCourses = () => {
       setError(err.response?.data?.message || "Failed to fetch courses.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDuplicateCourse = async (courseId: string) => {
+    try {
+      setDuplicatingId(courseId);
+      const { data } = await axios.get(`${api_url}/courses/${courseId}`);
+      const courseData = data;
+
+      const resolveStream = () => {
+        if (!courseData.streams) return undefined;
+        if (Array.isArray(courseData.streams)) {
+          const first =
+            courseData.streams[0]?._id || courseData.streams[0] || null;
+          return first || undefined;
+        }
+        if (typeof courseData.streams === "object") {
+          return courseData.streams?._id || undefined;
+        }
+        return courseData.streams;
+      };
+
+      const payload: any = {
+        ...courseData,
+        name: courseData.name
+          ? `${courseData.name} Copy`
+          : `${courseData?.specialization?.name || "Course"} Copy`,
+        college_id: courseData.college_id?._id || courseData.college_id,
+        category: courseData.category?._id || courseData.category,
+        programMode: courseData.programMode?._id || courseData.programMode,
+        specialization:
+          courseData.specialization?._id || courseData.specialization,
+        streams: resolveStream(),
+      };
+
+      if (!payload.streams) {
+        delete payload.streams;
+      }
+      delete payload._id;
+      delete payload.slug;
+      delete payload.createdAt;
+      delete payload.updatedAt;
+      delete payload.created_at;
+      delete payload.updated_at;
+
+      const response = await axios.post(`${api_url}/courses`, payload);
+      const newCourse = response.data;
+      const newCourseId = newCourse?._id || newCourse?.course?._id;
+      toast.success("Course duplicated. You can edit it now.");
+      if (newCourseId) {
+        router.push(`/admin/manageCourses/${newCourseId}`);
+      } else {
+        fetchCourses(currentPage);
+      }
+    } catch (err: any) {
+      console.error("Error duplicating course:", err);
+      toast.error(
+        err.response?.data?.message || "Failed to duplicate the course."
+      );
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -106,190 +172,217 @@ const AdminCourses = () => {
   if (!isMounted) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-2 gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Courses List</h1>
-      </div>
-      <div className="flex justify-between items-center mb-2">
-        <button
-          onClick={() => router.push("/admin/manageCourses/new")}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
-        >
-          <PlusCircleIcon className="w-5 h-5 mr-2" />
-          Add Course
-        </button>
-        <ImportCourses />
-      </div>
-
-      {/* Export + Search */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        {/* Search Bar - Left */}
-        <div className="relative w-full md:w-[440px]">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search courses..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-          />
-        </div>
-
-        {/* Export Button - Right */}
-        <ExportCoursesButton selectedCourseIds={selectedCourses} />
-      </div>
-
-      {/* Rows Per Page + Entries */}
-      <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-black">Rows per page</span>
-          <select
-            value={coursesPerPage}
-            onChange={(e) => {
-              setCoursesPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border-[1px] border-black rounded-md px-3 py-2 text-sm"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </select>
-          <span className="text-sm text-black ">Entries</span>
-        </div>
-      </div>
-
-      {/* Course Table */}
-      {loading && (
-        <p className="text-center text-gray-500">Loading courses...</p>
-      )}
-      {error && <p className="text-center text-red-500">{error}</p>}
-
-      {!loading && !error && (
-        <div className="overflow-x-auto shadow-md rounded bg-white mt-4">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gray-200 text-gray-600">
-              <tr>
-                <th className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    onChange={toggleSelectAll}
-                    checked={
-                      filteredCourses.length > 0 &&
-                      filteredCourses.every((course) =>
-                        selectedCourses.includes(course._id)
-                      )
-                    }
-                  />
-                </th>
-                <th className="px-6 py-3 text-sm font-semibold">
-                  Specialization
-                </th>
-                <th className="px-6 py-3 text-sm font-semibold">Description</th>
-                <th className="px-6 py-3 text-sm font-semibold">Duration</th>
-                <th className="px-6 py-3 text-sm font-semibold">Fees</th>
-                <th className="px-6 py-3 text-sm font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCourses.map((course) => (
-                <tr key={course._id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedCourses.includes(course._id)}
-                      onChange={() => toggleSelectCourse(course._id)}
-                    />
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-700">
-                    {course.specialization?.name || "N/A"}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-700 max-w-[400px] whitespace-pre-wrap">
-                    {course.description}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-700">
-                    {course.duration}
-                  </td>
-                  <td className="px-6 py-3 text-sm text-gray-700">
-                    ₹{course.fees}
-                  </td>
-                  <td className="px-6 py-3">
-                    <button
-                      onClick={() =>
-                        router.push(`/admin/manageCourses/${course._id}`)
-                      }
-                      className="bg-blue-500 text-white px-3 py-1.5 rounded-lg flex items-center space-x-1 hover:bg-blue-600"
-                    >
-                      <PencilSquareIcon className="h-4 w-4" />
-                      <span>Edit</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredCourses.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="text-center py-4 text-gray-500">
-                    No courses found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center p-4 border-t bg-gray-50">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
-              Previous
-            </button>
-
-            <span className="flex items-center space-x-2 text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-              <span className="p-2">/ Go to page:</span>
-              <input
-                type="number"
-                min={1}
-                max={totalPages}
-                placeholder="Page #"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const pageNum = Number(
-                      (e.target as HTMLInputElement).value
-                    );
-                    if (
-                      !isNaN(pageNum) &&
-                      pageNum >= 1 &&
-                      pageNum <= totalPages
-                    ) {
-                      setCurrentPage(pageNum);
-                    }
-                  }
-                }}
-                className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
-              />
-            </span>
-
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
-                currentPage === totalPages
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }`}
-            >
-              Next
-            </button>
+    <div className="mx-auto max-w-[1400px] px-4 py-4">
+      <div className="mb-3 flex flex-col gap-3 border-b border-slate-100 pb-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="text-3xl font-bold text-gray-900">Courses List</div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="relative w-full max-w-xl">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-lg border border-gray-200 pl-10 pr-4 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring"
+            />
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowImportPanel((prev) => !prev)}
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:border-slate-400"
+          >
+            {showImportPanel ? "Hide Import" : "Import"}
+          </button>
+          <ExportCoursesButton selectedCourseIds={selectedCourses} />
+          <button
+            onClick={() => router.push("/admin/manageCourses/new")}
+            className="flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          >
+            <PlusCircleIcon className="mr-2 h-5 w-5" />
+            Add Course
+          </button>
+        </div>
+      </div>
+      {showImportPanel && (
+        <div className="mb-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 shadow-sm">
+          <ImportCourses />
+        </div>
       )}
+      <div className="flex items-center justify-end gap-2 text-sm text-slate-600 pb-3">
+        <span>Rows per page</span>
+        <select
+          value={coursesPerPage}
+          onChange={(e) => {
+            setCoursesPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          className="rounded-md border border-gray-300 px-3 py-1"
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+        </select>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
+        {loading && (
+          <p className="text-center text-gray-500">Loading courses...</p>
+        )}
+        {error && <p className="text-center text-red-500">{error}</p>}
+        {!loading && !error && (
+          <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
+            <div className="max-h-[70vh] overflow-auto">
+              <table className="w-full table-auto text-left text-sm">
+                <thead className="bg-gray-100 text-gray-600">
+                  <tr>
+                    <th className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        onChange={toggleSelectAll}
+                        checked={
+                          filteredCourses.length > 0 &&
+                          filteredCourses.every((course) =>
+                            selectedCourses.includes(course._id)
+                          )
+                        }
+                      />
+                    </th>
+                    <th className="px-6 py-3 font-semibold">Specialization</th>
+                    <th className="px-6 py-3 font-semibold">Duration</th>
+                    <th className="px-6 py-3 font-semibold">Fees</th>
+                    <th className="px-6 py-3 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCourses.map((course) => (
+                    <tr
+                      key={course._id}
+                      className="border-b hover:bg-gray-50 transition"
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedCourses.includes(course._id)}
+                          onChange={() => toggleSelectCourse(course._id)}
+                        />
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {course.specialization?.name || "N/A"}
+                          </span>
+                          {course.college_id?.name && (
+                            <span className="text-xs text-gray-500">
+                              {course.college_id.name}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        {course.duration}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-gray-700">
+                        ₹{course.fees}
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() =>
+                              router.push(`/admin/manageCourses/${course._id}`)
+                            }
+                            className="rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateCourse(course._id)}
+                            disabled={duplicatingId === course._id}
+                            className={`rounded-lg p-1.5 text-purple-600 hover:bg-purple-50 ${
+                              duplicatingId === course._id
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
+                            title="Duplicate course"
+                          >
+                            <DocumentDuplicateIcon className="h-4 w-4" />
+                            <span className="sr-only">Duplicate</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredCourses.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="py-6 text-center text-gray-500"
+                      >
+                        No courses found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t bg-gray-50 px-4 py-3 text-sm text-gray-700 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-2">
+                Page {currentPage} of {totalPages}
+                <span className="text-xs uppercase text-gray-500">Go to</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  placeholder="Page #"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const pageNum = Number(
+                        (e.target as HTMLInputElement).value
+                      );
+                      if (
+                        !isNaN(pageNum) &&
+                        pageNum >= 1 &&
+                        pageNum <= totalPages
+                      ) {
+                        setCurrentPage(pageNum);
+                      }
+                    }
+                  }}
+                  className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className={`rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 ${
+                    currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className={`rounded bg-gray-200 px-4 py-2 hover:bg-gray-300 ${
+                    currentPage === totalPages
+                      ? "cursor-not-allowed opacity-50"
+                      : ""
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
