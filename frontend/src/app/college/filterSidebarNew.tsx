@@ -82,8 +82,8 @@ export default function FilterSidebarNew({
   const hasActiveFilters = Object.values(selected).some((set) => set.size > 0);
   const getListClassName = (length: number) =>
     length > 5
-      ? "space-y-1 max-h-32 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300"
-      : "space-y-1 max-h-32 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300";
+      ? "space-y-1 max-h-48 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300"
+      : "space-y-1 max-h-48 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300";
   return (
     <aside className="w-full lg:w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(235vh-50px)] shadow-lg">
       <div className="flex items-center justify-between mb-4">
@@ -107,25 +107,37 @@ export default function FilterSidebarNew({
                   (filters[key] as FilterItem[]).length
                 )} pl-0 space-y-2`}
               >
-                {(filters[key] as FilterItem[]).map((item) => (
-                  <li
-                    key={item.name}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <label className="flex items-center gap-3 text-gray-700">
-                      <input
-                        type="checkbox"
-                        checked={selected[key]?.has(item.name) || false}
-                        onChange={() => toggleSelect(key, item.name)}
-                        className="h-5 w-5 rounded border-gray-300 text-black focus:ring-black"
-                      />
-                      <span>
-                        {item.name}{" "}
-                        <span className="text-gray-800">({item.count})</span>
-                      </span>
-                    </label>
-                  </li>
-                ))}
+                {(filters[key] as FilterItem[]).map((item) => {
+                  const isSelected = selected[key]?.has(item.name) || false;
+                  return (
+                    <li
+                      key={item.name}
+                      onClick={() => toggleSelect(key, item.name)}
+                      className={`flex cursor-pointer items-center justify-between py-0.8 font-semibold border px-3 text-sm text-gray-600 transition bg-[#eaeaea]/20 ${
+                        isSelected
+                          ? "border-[#7a6be7] bg-[#f0edff] text-[#2f2479]"
+                          : "border-transparent bg-transparent text-gray-700"
+                      }`}
+                    >
+                      <label className="flex flex-1 cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleSelect(key, item.name);
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 accent-[#635dc1] focus:ring-[#635dc1]"
+                        />
+                        <span>
+                          {item.name}{" "}
+                          <span className="text-gray-500">({item.count})</span>
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ) : null
@@ -134,25 +146,37 @@ export default function FilterSidebarNew({
           <div>
             <h3 className="font-medium text-gray-700 mb-2">Fees</h3>
             <ul className={getListClassName(filters.fees.length)}>
-              {filters.fees.map((item) => (
-                <li
-                  key={item.range}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selected["fees"]?.has(item.range) || false}
-                      onChange={() => toggleSelect("fees", item.range)}
-                      className="form-checkbox accent-black"
-                    />
-                    <span>
-                      {item.range}{" "}
-                      <span className="text-gray-500">({item.count})</span>
-                    </span>
-                  </label>
-                </li>
-              ))}
+              {filters.fees.map((item) => {
+                const isSelected = selected["fees"]?.has(item.range) || false;
+                return (
+                  <li
+                    key={item.range}
+                    onClick={() => toggleSelect("fees", item.range)}
+                    className={`flex cursor-pointer items-center justify-between rounded-xl border px-3 text-xs transition hover:border-[#b5a8ff] hover:bg-[#f6f5ff] ${
+                      isSelected
+                        ? "border-[#7a6be7] bg-[#f0edff] text-[#2f2479]"
+                        : "border-transparent bg-transparent text-gray-700"
+                    }`}
+                  >
+                    <label className="flex flex-1 cursor-pointer items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          toggleSelect("fees", item.range);
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 accent-[#635dc1] focus:ring-[#635dc1]"
+                      />
+                      <span>
+                        {item.range}{" "}
+                        <span className="text-gray-500">({item.count})</span>
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

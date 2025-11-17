@@ -13,6 +13,7 @@ const TrendingExamForm = () => {
 
   const [examData, setExamData] = useState({
     name: "",
+    link: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,7 @@ const TrendingExamForm = () => {
 
         setExamData({
           name: data.name || "",
+          link: data.link || "",
         });
       } catch (err) {
         setError("Failed to fetch exam data. Please try again.");
@@ -61,7 +63,7 @@ const TrendingExamForm = () => {
     setError("");
 
     if (!examData.name.trim()) {
-      setError("Exam name is required.");
+      setError("Trending name is required.");
       setLoading(false);
       return;
     }
@@ -109,18 +111,26 @@ const TrendingExamForm = () => {
       {error && <p className="text-red-600 text-center mb-4">{error}</p>}
 
       <form onSubmit={handleFormSubmit} className="space-y-6">
-        <div>
-         <input
-  type="text"
-  name="name"
-  placeholder="Exam Name"
-  value={examData.name}
-  onChange={handleChange}
-  required
-  className="w-full p-3 border-2 border-blue-600 rounded-lg focus:outline-none focus:ring-blue-600"
-  disabled={loading}
-/>
-
+        <div className="space-y-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Label"
+            value={examData.name}
+            onChange={handleChange}
+            required
+            className="w-full p-3 border-2 border-blue-600 rounded-lg focus:outline-none focus:ring-blue-600"
+            disabled={loading}
+          />
+          <input
+            type="url"
+            name="link"
+            placeholder="Optional URL to open when clicked"
+            value={examData.link}
+            onChange={handleChange}
+            className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg focus:outline-none focus:ring-blue-600"
+            disabled={loading}
+          />
         </div>
 
         <div className="flex space-x-4">

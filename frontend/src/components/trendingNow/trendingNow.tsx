@@ -60,8 +60,13 @@ import { api_url } from "@/utils/apiCall";
 import { Loader, TrendingUp, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+interface TrendingEntry {
+  name: string;
+  link?: string;
+}
+
 const TrendingNow = () => {
-  const [exams, setExams] = useState<string[]>([]);
+  const [exams, setExams] = useState<TrendingEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -70,7 +75,12 @@ const TrendingNow = () => {
       try {
         const response = await axios.get(`${api_url}get/trendingNow`);
         if (Array.isArray(response.data)) {
-          setExams(response.data.map((item: any) => item.name));
+          setExams(
+            response.data.map((item: any) => ({
+              name: item.name,
+              link: item.link,
+            }))
+          );
         } else {
           setError("Unexpected response format.");
         }
@@ -117,22 +127,34 @@ const TrendingNow = () => {
           <div className="pointer-events-none absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-[#fbf6ff] to-transparent" />
 
           <div className="whitespace-nowrap animate-marquee group-hover:pause flex w-max gap-6 px-10 py-6 text-base">
-            {repeatedExams.map((exam, index) => (
-              <Link
-                key={`${exam}-${index}`}
-                href={`/college?streams=${encodeURIComponent(exam)}`}
-                className="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/90 px-6 py-3 text-base font-semibold text-gray-900 shadow-[0_12px_30px_rgba(210,92,64,0.18)] transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_15px_45px_rgba(210,92,64,0.28)]"
-                aria-label={`Explore colleges for ${exam}`}
-              >
-                <span
-                  className={`h-2.5 w-2.5 rounded-full ${accentDots[index % accentDots.length]}`}
-                />
-                {exam}
-                <span className="text-xs uppercase tracking-[0.3em] text-gray-400">
-                  explore
-                </span>
-              </Link>
-            ))}
+            {repeatedExams.map((exam, index) => {
+              const fallbackHref = `/college?streams=${encodeURIComponent(
+                exam.name
+              )}`;
+              const href = exam.link?.trim() ? exam.link : fallbackHref;
+              const isExternal = /^https?:\/\//i.test(href);
+
+              return (
+                <Link
+                  key={`${exam.name}-${index}`}
+                  href={href}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/90 px-6 py-3 text-base font-semibold text-gray-900 shadow-[0_12px_30px_rgba(210,92,64,0.18)] transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_15px_45px_rgba(210,92,64,0.28)]"
+                  aria-label={`Explore ${exam.name}`}
+                >
+                  <span
+                    className={`h-2.5 w-2.5 rounded-full ${
+                      accentDots[index % accentDots.length]
+                    }`}
+                  />
+                  {exam.name}
+                  <span className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    explore
+                  </span>
+                </Link>
+              );
+            })}
             {exams.length === 0 && (
               <span className="text-gray-500">No trends available right now.</span>
             )}

@@ -23,7 +23,7 @@
 //         setImage(file);
 //         setPreview(objectUrl);
 //       } else {
-//         toast.error('Image must be exactly 288 x 384 pixels.');
+//         toast.error('Image must be exactly 600 x 800 pixels.');
 //         URL.revokeObjectURL(objectUrl); // cleanup
 //       }
 //     };
@@ -103,10 +103,10 @@
 //   }, []);
 
 //    return (
-//     <div className="p-6 max-w-5xl mx-auto">
+//     <div className="p-2 max-w-6xl mx-auto">
 //       <form
 //         onSubmit={handleSubmit}
-//         className="flex flex-col md:flex-row gap-8 border p-6 rounded-xl bg-white"
+//         className="flex flex-col md:flex-row gap-8 border p-2 rounded-xl bg-white"
 //       >
 //         {/* Image Preview Section */}
 //         <div className="relative w-48 h-64 border rounded-lg overflow-hidden shadow-sm">
@@ -131,7 +131,7 @@
 //               alt="Current Ad"
 //               className="w-full h-full object-cover"
 //               onError={(e) =>
-//                 (e.currentTarget.src = 'https://via.placeholder.com/288x384?text=No+Image')
+//                 (e.currentTarget.src = 'https://via.placeholder.com/600x800?text=No+Image')
 //               }
 //             />
 //           ) : (
@@ -153,7 +153,7 @@
 //               className="mt-1 block w-full text-sm text-gray-600"
 //             />
 //             <p className="text-xs text-gray-500 mt-1">
-//               Required dimensions: <strong>288 x 384</strong> pixels.
+//               Required dimensions: <strong>600 x 800</strong> pixels.
 //             </p>
 //           </div>
 
@@ -192,11 +192,11 @@ export default function AdminCollegePage() {
     img.src = objectUrl;
 
     img.onload = () => {
-      if (img.width === 288 && img.height === 384) {
+      if (img.width === 600 && img.height === 800) {
         setImage(file);
         setPreview(objectUrl);
       } else {
-        toast.error('Image must be exactly 288 x 384 pixels.');
+        toast.error('Image must be exactly 600 x 800 pixels.');
         URL.revokeObjectURL(objectUrl);
       }
     };
@@ -260,10 +260,10 @@ export default function AdminCollegePage() {
   }, []);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-2 max-w-6xl mx-auto">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col md:flex-row gap-8 border p-6 rounded-xl bg-white"
+        className="flex flex-col md:flex-row gap-8 border p-2 rounded-xl bg-white"
       >
         {/* Image Preview Section */}
         <div className="relative w-48 h-64 border rounded-lg overflow-hidden shadow-sm">
@@ -288,7 +288,7 @@ export default function AdminCollegePage() {
               alt="Current Ad"
               className="w-full h-full object-cover"
               onError={(e) =>
-                (e.currentTarget.src = 'https://via.placeholder.com/288x384?text=No+Image')
+                (e.currentTarget.src = 'https://via.placeholder.com/600x800?text=No+Image')
               }
             />
           ) : (
@@ -300,7 +300,7 @@ export default function AdminCollegePage() {
         </div>
 
         {/* Form Section */}
-        <div className="flex-1 space-y-4 pt-[110px]">
+        <div className="flex-1 space-y-4 flex flex-col justify-center">
           <div>
             <label className="block font-medium text-gray-700">Upload New Image</label>
             <input
@@ -310,7 +310,7 @@ export default function AdminCollegePage() {
               className="mt-1 block w-full text-sm text-gray-600"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Required dimensions: <strong>288 x 384</strong> pixels.
+              Required dimensions: <strong>600 x 800</strong> pixels.
             </p>
           </div>
 

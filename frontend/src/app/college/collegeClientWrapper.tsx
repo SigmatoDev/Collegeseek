@@ -8,6 +8,20 @@ import { api_url } from "@/utils/apiCall";
 import FilterSidebarNew from "./filterSidebarNew";
 import AdBanner from "@/components/adBox/adBox5";
 import CollegeListSkeleton from "@/components/college/CollegeListSkeleton";
+const FILTER_LABELS: Record<string, string> = {
+  states: "State",
+  cities: "City",
+  streams: "Stream",
+  ownerships: "Ownership",
+  exams: "Exam",
+  approvals: "Approval",
+  affiliatedBy: "Affiliation",
+  categories: "Category",
+  specializations: "Specialization",
+  programModes: "Program Mode",
+  fees: "Fee Range",
+};
+
 export default function CollegesClientWrapper() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -76,11 +90,40 @@ export default function CollegesClientWrapper() {
     },
     [router, searchParams]
   );
+  const selectedFilters = parseSearchParams();
+  const activeFilterChips = Object.entries(selectedFilters)
+    .filter(([key]) => key !== "page")
+    .flatMap(([key, values]) =>
+      values.map((value) => ({
+        key,
+        value,
+        label: FILTER_LABELS[key] || key,
+      }))
+    );
+
+  const handleRemoveFilter = (section: string, value: string) => {
+    const updatedFilters = parseSearchParams();
+    const nextValues = (updatedFilters[section] || []).filter(
+      (item) => item !== value
+    );
+    if (nextValues.length) {
+      updatedFilters[section] = nextValues;
+    } else {
+      delete updatedFilters[section];
+    }
+    updatedFilters.page = ["1"];
+    handleFilterChange(updatedFilters);
+  };
+
+  const handleClearFilters = () => {
+    handleFilterChange({});
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       <FilterSidebarNew
         filters={filters}
-        selectedFilters={parseSearchParams()}
+        selectedFilters={selectedFilters}
         onFilterChange={handleFilterChange}
       />
 
@@ -88,6 +131,31 @@ export default function CollegesClientWrapper() {
         <div className="rounded-2xl">
           <AdBanner />
         </div>
+
+        {activeFilterChips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 p-3 text-xs shadow-sm">
+            <span className="font-semibold text-slate-600">Active filters:</span>
+            {activeFilterChips.map((chip) => (
+              <button
+                key={`${chip.key}-${chip.value}`}
+                onClick={() => handleRemoveFilter(chip.key, chip.value)}
+                className="inline-flex items-center gap-1 rounded-full border border-[#cbc4ff] bg-[#f6f5ff] px-3 py-1 text-[11px] font-medium text-[#44368a] hover:border-[#7a6be7]"
+              >
+                <span className="text-[10px] uppercase text-[#8b7ed9]">
+                  {chip.label}:
+                </span>
+                <span>{chip.value}</span>
+                <span className="text-xs text-[#7a6be7]">&times;</span>
+              </button>
+            ))}
+            <button
+              onClick={handleClearFilters}
+              className="ml-auto text-[11px] font-semibold text-[#7a6be7] underline-offset-2 hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <CollegeListSkeleton />
@@ -128,7 +196,7 @@ export default function CollegesClientWrapper() {
         )}
       </div>
 
-      <div className="w-[275px] space-y-4 shrink-0">
+      <div className="w-[320px] space-y-4 shrink-0">
         <AdBox1 />
         <AdBox2 />
       </div>

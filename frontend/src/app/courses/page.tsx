@@ -44,8 +44,8 @@ const CollegesPage = () => {
   );
 
   const activeFiltersCount =
-    filtersPayload.streams.length +
-    filtersPayload.courseTypes.length +
+    filtersPayload.streams?.length || 0 +
+    (filtersPayload.courseTypes?.length ?? 0) +
     (filtersPayload.feeRanges?.length || 0) +
     (filtersPayload.durations?.length || 0);
 

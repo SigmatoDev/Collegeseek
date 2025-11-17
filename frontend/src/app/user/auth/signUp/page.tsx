@@ -310,25 +310,25 @@ const Register = () => {
           </div>
 
           {showModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-              <div className="bg-white p-6 rounded-lg w-80 text-center shadow-xl">
+            <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50 px-4">
+              <div className="bg-white px-5 py-4 rounded-2xl w-full max-w-xs text-center shadow-[0_20px_45px_rgba(15,23,42,0.25)]">
                 {error ? (
                   <>
-                    <h3 className="text-xl font-semibold text-red-500">
+                    <h3 className="text-lg font-semibold text-red-500">
                       Registration Failed
                     </h3>
-                    <p className="text-gray-600 mt-2">{error}</p>
+                    <p className="text-sm text-gray-600 mt-2">{error}</p>
                   </>
                 ) : (
                   <>
-                    <h3 className="text-xl font-semibold text-green-500">
+                    <h3 className="text-lg font-semibold text-green-600">
                       Success!
                     </h3>
-                    <p className="text-gray-600 mt-2">{success}</p>
+                    <p className="text-sm text-gray-600 mt-2">{success}</p>
                   </>
                 )}
                 <button
-                  className="mt-4 bg-[#581845] text-white p-2 rounded-md"
+                  className="mt-4 bg-[#581845] text-white px-4 py-1.5 rounded-full text-sm shadow-sm"
                   onClick={() => setShowModal(false)}
                 >
                   Close

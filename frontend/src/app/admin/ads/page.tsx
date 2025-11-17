@@ -20,7 +20,7 @@ const SettingsPage = () => {
 
   return (
     <AdminLayout>
-      <div className="p-10 bg-gray-50 min-h-screen max-w-[1540px] mx-auto">
+      <div className="p-4 bg-gray-50 min-h-screen max-w-[1540px] mx-auto">
         <Toaster position="top-right" />
 
         {/* College Page Ads Section */}
@@ -36,14 +36,14 @@ const SettingsPage = () => {
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-2 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-3">
                 Advertisement 1
               </h2>
               <AdminCollegePage />
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-2 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-3">
                 Advertisement 2
               </h2>
@@ -65,14 +65,14 @@ const SettingsPage = () => {
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-2 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-3">
                 Advertisement 1
               </h2>
               <AdminCoursesPagead1 />
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-8 hover:shadow-xl transition-shadow duration-300">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-2 hover:shadow-xl transition-shadow duration-300">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b border-gray-300 pb-3">
                 Advertisement 2
               </h2>
@@ -93,7 +93,7 @@ const SettingsPage = () => {
             </p>
           </header>
 
-          <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-8 hover:shadow-xl transition-shadow duration-300 max-w-full">
+          <div className="bg-white border border-gray-200 rounded-3xl shadow-md p-2 hover:shadow-xl transition-shadow duration-300 max-w-full">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-b border-gray-300 pb-4">
               Advertisement Manager
             </h2>

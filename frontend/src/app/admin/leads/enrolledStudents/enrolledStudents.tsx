@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
@@ -23,6 +23,8 @@ const AdminEnrollments = () => {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const limit = 10;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
 
   const router = useRouter();
 
@@ -67,10 +69,63 @@ const AdminEnrollments = () => {
     }
   };
 
+  const filteredEnrollments = useMemo(() => {
+    const normalized = searchTerm.trim().toLowerCase();
+    const matches = enrollments.filter((enrollment) => {
+      if (!normalized) return true;
+      return [enrollment.name, enrollment.email, enrollment.phone, enrollment.course]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalized));
+    });
+
+    const sorted = [...matches];
+    sorted.sort((a, b) => {
+      if (sortBy === "name") {
+        return a.name.localeCompare(b.name);
+      }
+      const diff =
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return sortBy === "oldest" ? diff : -diff;
+    });
+    return sorted;
+  }, [enrollments, searchTerm, sortBy]);
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Enrollment List</h1>
+      <header className="mb-6 space-y-4">
+        <div className="flex flex-col items-start justify-between gap-3 text-gray-800 sm:flex-row sm:items-center">
+          <h1 className="text-2xl font-bold">Enrollment List</h1>
+        </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white/80 p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div className="flex w-full items-center gap-3">
+            <label className="text-sm font-semibold text-gray-500">
+              Search
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email, phone or course..."
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none"
+            />
+          </div>
+          <div className="flex w-full items-center gap-3 md:w-auto">
+            <label className="text-sm font-semibold text-gray-500">
+              Sort by
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as "newest" | "oldest" | "name")
+              }
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none"
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="name">Name A-Z</option>
+            </select>
+          </div>
+        </div>
       </header>
 
       {loading && (
@@ -102,8 +157,8 @@ const AdminEnrollments = () => {
                 </tr>
               </thead>
               <tbody>
-                {enrollments.length > 0 ? (
-                  enrollments.map((enrollment) => (
+                {filteredEnrollments.length > 0 ? (
+                  filteredEnrollments.map((enrollment) => (
                     <tr
                       key={enrollment._id}
                       className="border-b hover:bg-gray-50"

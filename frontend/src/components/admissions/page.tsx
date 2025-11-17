@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function CollegeAdmissions() {
   return (
-    <section className="relative bg-gradient-to-b from-[#fef7f4] via-white to-[#f3f1ff] py-16 mt-5">
+    <section className="relative bg-gradient-to-b from-[#fef7f4] via-white to-[#f3f1ff] py-16 mt-0">
       <div className="absolute inset-0 opacity-60 pointer-events-none">
         <div className="absolute left-10 top-6 h-32 w-32 rounded-full bg-[#ffd7c5] blur-3xl" />
         <div className="absolute right-16 top-20 h-40 w-40 rounded-full bg-[#d9d4ff] blur-[80px]" />

@@ -175,7 +175,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
           <div className="flex items-center gap-3 text-[#c25541]">
            
             <nav className="hidden md:flex items-center gap-4 text-xs mr-2 font-semibold tracking-wide">
-              <Link href="/company" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">
+              <Link href="/aboutUs" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">
                 About Company
               </Link>
               <Link href="/contactUs" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">

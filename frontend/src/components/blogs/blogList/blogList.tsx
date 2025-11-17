@@ -1,18 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import { Navigation, Pagination } from "swiper/modules";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import BlogCard from "../BlogCard/BlogCard";
+import Link from "next/link";
+import Image from "next/image";
 import { api_url } from "@/utils/apiCall";
 
 export default function BlogList() {
-  const swiperRef = useRef<any>(null);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,8 +27,7 @@ export default function BlogList() {
   }, []);
 
   return (
-    <>
-      <section className="container-1 mx-auto px-4 sm:px-6 py-[70px] bg-white">
+  <section className="container-1 mx-auto px-4 sm:px-6 py-[70px] bg-white">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-900 mb-8">
           Blog & News
         </h2>
@@ -53,57 +46,41 @@ export default function BlogList() {
         )}
 
         {!loading && blogs.length > 0 && (
-          <div className="relative max-w-5xl mx-auto">
-            {/* Left Arrow */}
-            <button
-              aria-label="Previous blog"
-              className="hidden sm:flex absolute left-[-70px] top-1/2 transform -translate-y-1/2 z-10 p-3 bg-gray-200 hover:bg-gray-300 rounded-full transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={() => swiperRef.current?.slidePrev()}
-            >
-              <ArrowLeft size={25} />
-            </button>
-
-            {/* Swiper Carousel */}
-            <Swiper
-              modules={[Navigation, Pagination]}
-              spaceBetween={16}
-              loop={true}
-              onSwiper={(swiper) => (swiperRef.current = swiper)}
-              pagination={{
-                clickable: true,
-                el: ".external-swiper-pagination", // External pagination element
-              }}
-              breakpoints={{
-                0: { slidesPerView: 1 },
-                640: { slidesPerView: 1 },
-                768: { slidesPerView: 2 },
-                1024: { slidesPerView: 3 },
-              }}
-            >
-              {blogs.map((blog, index) => (
-                <SwiperSlide key={blog.id || index}>
-                  <BlogCard {...blog} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-
-            {/* Right Arrow */}
-            <button
-              aria-label="Next blog"
-              className="hidden sm:flex absolute right-[-70px] top-1/2 transform -translate-y-1/2 z-10 p-3 bg-gray-200 hover:bg-gray-300 rounded-full transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onClick={() => swiperRef.current?.slideNext()}
-            >
-              <ArrowRight size={25} />
-            </button>
-{/* External Pagination Dots Outside the Section */}
-<div className="external-swiper-pagination mt-6 flex justify-center"></div>
-
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {blogs.slice(0, 4).map((blog, index) => (
+              <article
+                key={blog.id || index}
+                className="flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-[0_18px_40px_rgba(62,44,92,0.15)]"
+              >
+                <div className="relative h-52 w-full">
+                  <Image
+                    src={blog.image}
+                    alt={blog.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col gap-3 p-5">
+                  <span className="inline-flex w-max rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-[#c25541]">
+                    {blog.category}
+                  </span>
+                  <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                    {blog.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-3">{blog.description}</p>
+                  <Link
+                    href={blog.link ?? '/blogs'}
+                    className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#c25541] hover:gap-3"
+                  >
+                    Read the story
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              </article>
+            ))}
           </div>
         )}
       </section>
-
-      {/* 🔽 External Pagination Dots Outside the Section */}
-      {/* <div className="external-swiper-pagination mt-6 flex justify-center"></div> */}
-    </>
   );
 }

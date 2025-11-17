@@ -33,7 +33,7 @@ const AdBox1 = () => {
   }, []);
 
   return (
-    <div className="bg-gray-100 p-4 w-72 h-96 shadow-lg rounded-lg flex flex-col items-center">
+    <div className="bg-gray-100 p-4 w-[300px] h-[400px] shadow-lg rounded-lg flex flex-col items-center">
       {loading ? (
         <p className="text-center">Loading...</p>
       ) : (
@@ -46,7 +46,7 @@ const AdBox1 = () => {
                 href={ad.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 w-full h-full relative rounded-lg overflow-hidden block"
+                className="mt-0 w-full h-full relative rounded-lg overflow-hidden block"
               >
                 <Image
                   src={`${api_url.replace(/api\/?$/, "")}${ad.image.replace(

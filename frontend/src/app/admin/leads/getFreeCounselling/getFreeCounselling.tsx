@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
@@ -33,6 +33,13 @@ const AdminCounselling = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "status">(
+    "newest"
+  );
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | CounsellingRequest["status"]
+  >("all");
   const router = useRouter();
 
   const fetchCounsellingRequests = async (currentPage: number) => {
@@ -67,6 +74,41 @@ const AdminCounselling = () => {
       setLoading(false);
     }
   };
+
+  const filteredRequests = useMemo(() => {
+    const normalized = searchTerm.trim().toLowerCase();
+    const matches = counsellingRequests.filter((request) => {
+      if (statusFilter !== "all" && request.status !== statusFilter) {
+        return false;
+      }
+      if (!normalized) return true;
+      return [
+        request.name,
+        request.email,
+        request.phone,
+        request.college,
+        request.message,
+        request.status,
+      ]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalized));
+    });
+
+    const sorted = [...matches];
+    sorted.sort((a, b) => {
+      if (sortBy === "name") {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortBy === "status") {
+        return a.status.localeCompare(b.status);
+      }
+      const dateDiff =
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return sortBy === "oldest" ? dateDiff : -dateDiff;
+    });
+
+    return sorted;
+  }, [counsellingRequests, searchTerm, sortBy, statusFilter]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -135,15 +177,74 @@ const AdminCounselling = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-6 flex flex-col gap-3 text-gray-800 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold">Counselling Requests</h1>
-        <button
-          onClick={exportCounselling}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-        >
-          <ArrowDownTrayIcon className="h-5 w-5" />
-          Export CSV
-        </button>
+      <header className="mb-6 space-y-4 text-gray-800">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold">Counselling Requests</h1>
+          <button
+            onClick={exportCounselling}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+          >
+            <ArrowDownTrayIcon className="h-5 w-5" />
+            Export CSV
+          </button>
+        </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white/80 p-4 shadow-sm md:flex-row md:flex-wrap md:items-center md:justify-between">
+          <div className="flex w-full items-center gap-3 md:max-w-sm">
+            <label className="text-sm font-semibold text-gray-500">
+              Search
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email, phone or note..."
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none"
+            />
+          </div>
+          <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-semibold text-gray-500">
+                Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(
+                    e.target.value as
+                      | "all"
+                      | CounsellingRequest["status"]
+                  )
+                }
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="contacted">Contacted</option>
+                <option value="in-progress">In progress</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-semibold text-gray-500">
+                Sort by
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(
+                    e.target.value as "newest" | "oldest" | "name" | "status"
+                  )
+                }
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none"
+              >
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="name">Name A-Z</option>
+                <option value="status">Status</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </header>
 
       {loading && (
@@ -177,8 +278,8 @@ const AdminCounselling = () => {
                 </tr>
               </thead>
               <tbody>
-                {counsellingRequests.length > 0 ? (
-                  counsellingRequests.map((request) => (
+                {filteredRequests.length > 0 ? (
+                  filteredRequests.map((request) => (
                     <tr key={request._id} className="border-b hover:bg-gray-50">
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {request.name}

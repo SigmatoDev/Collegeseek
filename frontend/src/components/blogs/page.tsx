@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/navigation";
-import { Navigation } from "swiper/modules";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { useState } from "react";
+ import Image from "next/image";
+ import Link from "next/link";
 
 const categories = [
   "Academics",
@@ -20,38 +16,44 @@ const blogs = [
   {
     title: "Exam Preparation Strategies",
     category: "Academics",
-    image: "/image/1.jpg", // Ensure this exists in the 'public/image/' folder
+    image: "/image/1.jpg",
     description: "Effective study techniques to ace your exams.",
+    link: "/blog/exam-prep",
   },
   {
     title: "Top Research Projects of 2025",
     category: "Academics",
-    image: "/image/3.jpg", // Ensure this exists in the 'public/image/' folder
+    image: "/image/3.jpg",
     description: "Discover groundbreaking studies happening at your college.",
-  },
-  {
-    title: "Top Research Projects of 2025",
-    category: "Academics",
-    image: "/image/4.avif",
-    description: "Discover groundbreaking studies happening at your college.",
+    link: "/blog/top-research-projects",
   },
   {
     title: "Annual College Fest Highlights",
     category: "Campus Life",
     image: "https://source.unsplash.com/400x300/?festival,students",
     description: "A recap of the most exciting moments from this year’s college festival.",
+    link: "/blog/college-fest-highlights",
   },
   {
     title: "Internship Guide for Students",
     category: "Career & Internships",
     image: "https://source.unsplash.com/400x300/?office,internship",
     description: "How to land your dream internship while studying.",
+    link: "/blog/internship-guide",
   },
   {
     title: "AI & Robotics in Education",
     category: "Technology & Innovation",
     image: "https://source.unsplash.com/400x300/?robotics,AI",
     description: "How AI is shaping the future of learning.",
+    link: "/blog/ai-robotics-education",
+  },
+  {
+    title: "Managing Stress Before Exams",
+    category: "Student Wellness",
+    image: "https://source.unsplash.com/400x300/?meditation,stress",
+    description: "Simple ways to stay calm and focused before your exams.",
+    link: "/blog/managing-stress-before-exams",
   },
   {
     title: "Managing Stress Before Exams",
@@ -63,15 +65,10 @@ const blogs = [
 
 export default function BlogNewsSection() {
   const [activeCategory, setActiveCategory] = useState(categories[0]);
-  const [imageFallbacks, setImageFallbacks] = useState<Record<number, string>>(
-    {}
-  );
-  const swiperRef = useRef<any>(null);
-  const fallbackImage = "/image/fallback-image.webp";
+  const [imageFallbacks, setImageFallbacks] = useState<Record<string, string>>({});
+  const fallbackImage = "/image/fallback/fallback-1.webp";
 
-  const filteredBlogs = blogs.filter(
-    (blog) => blog.category === activeCategory
-  );
+  const filteredBlogs = blogs.filter((blog) => blog.category === activeCategory);
 
   return (
     <section className="relative py-16">
@@ -109,74 +106,45 @@ export default function BlogNewsSection() {
           ))}
         </div>
 
-        <div className="relative mt-12">
-          <button
-            className="absolute left-[-20px] top-1/2 hidden -translate-y-1/2 rounded-full bg-white/90 p-3 text-gray-700 shadow-lg transition hover:bg-[#c25541] hover:text-white sm:flex"
-            aria-label="Previous stories"
-            onClick={() => swiperRef.current?.slidePrev()}
-          >
-            <ArrowLeft size={24} />
-          </button>
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {filteredBlogs.slice(0, 4).map((blog, index) => (
+            <article
+              key={`${blog.title}-${index}`}
+              className="flex h-full flex-col overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_18px_50px_rgba(62,44,92,0.15)] backdrop-blur"
+            >
+              <div className="relative h-52 w-full overflow-hidden">
+                <Image
+                  src={blog.image}
+                  alt={blog.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition duration-500 hover:scale-105"
+                  unoptimized={blog.image.includes("unsplash.com")}
+                  onError={(e) => (e.currentTarget.src = fallbackImage)}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#c25541]">
+                  {blog.category}
+                </span>
+              </div>
 
-          <Swiper
-            modules={[Navigation]}
-            spaceBetween={24}
-            slidesPerView={1}
-            onSwiper={(swiper) => (swiperRef.current = swiper)}
-            breakpoints={{
-              640: { slidesPerView: 1 },
-              768: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 },
-            }}
-          >
-            {filteredBlogs.map((blog, index) => (
-              <SwiperSlide key={`${blog.title}-${index}`}>
-                <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/70 bg-white/80 shadow-[0_20px_60px_rgba(62,44,92,0.12)] backdrop-blur">
-                  <div className="relative h-52 w-full overflow-hidden">
-                    <Image
-                      src={imageFallbacks[index] || blog.image}
-                      alt={blog.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover transition duration-500 group-hover:scale-105"
-                      unoptimized={blog.image.includes("unsplash.com")}
-                      onError={() =>
-                        setImageFallbacks((prev) => ({
-                          ...prev,
-                          [index]: fallbackImage,
-                        }))
-                      }
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#c25541]">
-                      {blog.category}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col gap-3 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                      {blog.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 line-clamp-3">
-                      {blog.description}
-                    </p>
-                    <button className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#c25541] transition group-hover:gap-3">
-                      Read the story
-                      <span aria-hidden="true">→</span>
-                    </button>
-                  </div>
-                </article>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-
-          <button
-            className="absolute right-[-20px] top-1/2 hidden -translate-y-1/2 rounded-full bg-white/90 p-3 text-gray-700 shadow-lg transition hover:bg-[#c25541] hover:text-white sm:flex"
-            aria-label="Next stories"
-            onClick={() => swiperRef.current?.slideNext()}
-          >
-            <ArrowRight size={24} />
-          </button>
+              <div className="flex flex-1 flex-col gap-3 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                  {blog.title}
+                </h3>
+                <p className="text-sm text-gray-600 line-clamp-3">
+                  {blog.description}
+                </p>
+                <Link
+                  href={blog.link}
+                  className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#c25541] transition hover:gap-3"
+                >
+                  Read the story
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>

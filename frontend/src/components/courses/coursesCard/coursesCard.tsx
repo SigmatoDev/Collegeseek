@@ -45,9 +45,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
   collegeName,
 }) => {
   const specialization = title;
-  const detailHref = specialization
-    ? `/course/${encodeURIComponent(specialization)}`
-    : "/courses";
+  const specializationQuery = specialization
+    ? encodeURIComponent(specialization)
+    : "";
+  const collegeFilterHref = specializationQuery
+    ? `/college?specializations=${specializationQuery}`
+    : "/college";
   const fallbackFocus = streams
     .map((stream) => stream?.name)
     .filter(Boolean) as string[];
@@ -82,7 +85,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm shadow-slate-100 transition hover:border-[#635dc1]/40 hover:shadow-lg hover:shadow-slate-200">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
         <div className="flex items-start gap-4">
-          <Link href={detailHref} className="hidden sm:block">
+          <Link href={collegeFilterHref} className="hidden sm:block">
             <img
               src={image}
               alt={title}
@@ -98,7 +101,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <span className="h-2 w-2 rounded-full bg-gradient-to-r from-[#ff8c6b] to-[#f9c26b]" />
               Curated Course
             </div>
-            <Link href={detailHref} className="inline-block group focus:outline-none">
+            <Link href={collegeFilterHref} className="inline-block group focus:outline-none">
               <h2 className="text-xl font-semibold text-slate-900 group-hover:text-[#635dc1] transition-colors">
                 {title}
               </h2>
@@ -108,7 +111,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             )}
             {description && (
               <Link
-                href={detailHref}
+                href={collegeFilterHref}
                 className="mt-2 block text-sm text-slate-600 line-clamp-2 hover:text-[#635dc1]"
               >
                 {description}
@@ -124,28 +127,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
           label="Duration"
           value={durationLabel}
           variant="indigo"
-          href={detailHref}
+          href={collegeFilterHref}
         />
         <CourseChip
           icon={<Layers className="h-4 w-4 text-[#ff8c6b]" />}
           label="Course Type"
           value={modeLabel || "Flexible"}
           variant="orange"
-          href={detailHref}
+          href={collegeFilterHref}
         />
         <CourseChip
           icon={<GraduationCap className="h-4 w-4 text-[#38337E]" />}
           label="Degree"
           value={degreeLabel || "Varies by college"}
           variant="violet"
-          href={detailHref}
+          href={collegeFilterHref}
         />
         <CourseChip
           icon={<Layers className="h-4 w-4 text-emerald-600" />}
           label="Stream"
           value={primaryStream}
           variant="green"
-          href={detailHref}
+          href={collegeFilterHref}
         />
       </div>
 
@@ -162,7 +165,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               focusDisplay.map((area, idx) => (
                 <Link
                   key={`${area}-${idx}`}
-                  href={detailHref}
+                  href={collegeFilterHref}
                   className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold bg-white hover:border-[#635dc1] hover:text-[#635dc1] ${
                     focusChipStyles[idx % focusChipStyles.length]
                   }`}
@@ -173,7 +176,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               ))
             ) : (
               <Link
-                href={detailHref}
+                href={collegeFilterHref}
                 className="inline-flex rounded-full border border-slate-300/70 px-3 py-1 text-[11px] font-medium text-slate-600 hover:border-[#635dc1] hover:text-[#635dc1]"
               >
                 {focusSummaryText}
@@ -183,9 +186,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </div>
         <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap sm:justify-end">
           <Link
-            href={`/college?specializations=${encodeURIComponent(
-              specialization
-            )}`}
+            href={collegeFilterHref}
             className="inline-flex items-center gap-2 rounded-full border border-[#635dc1] px-4 py-1.5 text-xs font-semibold text-[#635dc1] transition hover:bg-[#635dc1] hover:text-white"
           >
             View Colleges

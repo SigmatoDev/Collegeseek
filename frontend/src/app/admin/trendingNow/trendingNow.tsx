@@ -14,6 +14,7 @@ import {
 interface TrendingExam {
   _id: string;
   name: string;
+  link?: string;
 }
 
 const PAGE_LIMIT = 10;
@@ -94,6 +95,7 @@ const AdminTrendingNow = () => {
               <thead className="bg-gray-200 text-gray-600">
                 <tr>
                   <th className="px-6 py-3 text-sm font-semibold">Name</th>
+                  <th className="px-6 py-3 text-sm font-semibold">Link</th>
                   <th className="px-6 py-3 text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
@@ -103,6 +105,19 @@ const AdminTrendingNow = () => {
                     <tr key={exam._id} className="border-b hover:bg-gray-50">
                       <td className="px-6 py-3 text-sm text-gray-700">
                         {exam.name}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-blue-600 underline">
+                        {exam.link ? (
+                          <a
+                            href={exam.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {exam.link}
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">Not set</span>
+                        )}
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
                         <button
@@ -126,7 +141,7 @@ const AdminTrendingNow = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={2} className="text-center py-4 text-gray-500">
+                    <td colSpan={3} className="text-center py-4 text-gray-500">
                       No trending exams found.
                     </td>
                   </tr>
