@@ -136,7 +136,7 @@ export default function BlogNewsSection() {
                   {blog.description}
                 </p>
                 <Link
-                  href={blog.link}
+                  href={blog.link || "/blogs"}
                   className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#c25541] transition hover:gap-3"
                 >
                   Read the story
