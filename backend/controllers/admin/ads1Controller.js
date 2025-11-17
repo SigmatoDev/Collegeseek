@@ -1,6 +1,12 @@
 const Ads = require('../../models/admin/ads1Model');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const { getImageDimensions } = require('../../utils/imageDimensionValidator');
+
+const REQUIRED_WIDTH = 600;
+const REQUIRED_HEIGHT = 800;
+const DIMENSION_ERROR = `Image must be exactly ${REQUIRED_WIDTH} x ${REQUIRED_HEIGHT} pixels.`;
 
 // Configure multer to store uploaded images
 const storage = multer.diskStorage({
@@ -30,6 +36,17 @@ const uploadImagee = (req, res) => {
 
       if (!imagePath) {
         return res.status(400).json({ error: 'No image file uploaded' });
+      }
+
+      try {
+        const { width, height } = getImageDimensions(imagePath);
+        if (width !== REQUIRED_WIDTH || height !== REQUIRED_HEIGHT) {
+          fs.unlink(imagePath, () => {});
+          return res.status(400).json({ error: DIMENSION_ERROR });
+        }
+      } catch (dimensionError) {
+        fs.unlink(imagePath, () => {});
+        return res.status(400).json({ error: dimensionError.message });
       }
 
       const ad = new Ads({
@@ -103,11 +120,23 @@ const updateImage = (req, res) => {
       // Check if a new image is provided
       let imagePath = req.file ? req.file.path.replace(/\\/g, '/') : ad.image; // Use existing image if no new image is uploaded
 
+      if (req.file) {
+        try {
+          const { width, height } = getImageDimensions(imagePath);
+          if (width !== REQUIRED_WIDTH || height !== REQUIRED_HEIGHT) {
+            fs.unlink(imagePath, () => {});
+            return res.status(400).json({ error: DIMENSION_ERROR });
+          }
+        } catch (dimensionError) {
+          fs.unlink(imagePath, () => {});
+          return res.status(400).json({ error: dimensionError.message });
+        }
+      }
+
       // If a new image is uploaded, we should delete the old image from the server (optional)
       if (req.file && ad.image) {
-        const fs = require('fs');
         const oldImagePath = ad.image.replace(/\\/g, '/');
-        fs.unlinkSync(oldImagePath); // Delete the old image file from the server (ensure to handle errors)
+        fs.unlink(oldImagePath, () => {});
       }
 
       // Update the ad image in the database

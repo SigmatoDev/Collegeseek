@@ -44,7 +44,7 @@ exports.getAlltrendingNows = async (req, res) => {
 // Add a new exam
 exports.createtrendingNow = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, link = "" } = req.body;
     if (!name) {
       return res.status(400).json({ message: 'Exam name is required' });
     }
@@ -54,7 +54,7 @@ exports.createtrendingNow = async (req, res) => {
       return res.status(400).json({ message: 'Exam already exists' });
     }
 
-    const exam = new Exam({ name });
+    const exam = new Exam({ name, link: link?.trim?.() || "" });
     await exam.save();
 
     res.status(201).json(exam);
@@ -67,7 +67,7 @@ exports.createtrendingNow = async (req, res) => {
 exports.updateTrendingNow = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, link = "" } = req.body;
     if (!name) {
       return res.status(400).json({ message: 'Exam name is required' });
     }
@@ -77,7 +77,11 @@ exports.updateTrendingNow = async (req, res) => {
       return res.status(400).json({ message: 'Another exam with this name already exists' });
     }
 
-    const updatedExam = await Exam.findByIdAndUpdate(id, { name }, { new: true });
+    const updatedExam = await Exam.findByIdAndUpdate(
+      id,
+      { name, link: link?.trim?.() || "" },
+      { new: true }
+    );
 
     if (!updatedExam) {
       return res.status(404).json({ message: 'Exam not found' });

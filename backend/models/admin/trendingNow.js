@@ -8,6 +8,11 @@ const examSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  link: {
+    type: String,
+    default: "",
+    trim: true,
+  },
 });
 
 const Exam = mongoose.model('Trending Now', examSchema);
