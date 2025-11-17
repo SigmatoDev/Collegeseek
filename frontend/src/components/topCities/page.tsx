@@ -2,67 +2,105 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface CityCard {
   name: string;
   image: string;
-  colleges: number;
-  courses: number;
   slug?: string;
+  queryNames?: string[];
 }
 
 const CITIES: CityCard[] = [
-  {
-    name: "Bengaluru",
-    image: "/image/cities/bangalore.webp",
-    colleges: 134,
-    courses: 742,
-  },
-  {
-    name: "Mumbai",
-    image: "/image/cities/mumbai.webp",
-    colleges: 118,
-    courses: 588,
-  },
-  {
-    name: "Delhi NCR",
-    image: "/image/cities/delhi.webp",
-    colleges: 142,
-    courses: 812,
-  },
-  {
-    name: "Pune",
-    image: "/image/cities/pune.webp",
-    colleges: 96,
-    courses: 468,
-  },
-  {
-    name: "Hyderabad",
-    image: "/image/cities/hyderbad.webp",
-    colleges: 101,
-    courses: 452,
-  },
-  {
-    name: "Chennai",
-    image: "/image/cities/chennai.webp",
-    colleges: 89,
-    courses: 397,
-  },
-  {
-    name: "Kolkata",
-    image: "/image/cities/kolkata.webp",
-    colleges: 74,
-    courses: 312,
-  },
-  {
-    name: "Ahmedabad",
-    image: "/image/cities/ahmedabad.webp",
-    colleges: 62,
-    courses: 295,
-  },
+  { name: "Bengaluru", image: "/image/cities/bangalore.webp", queryNames: ["Bengaluru", "Bangalore"] },
+  { name: "Mumbai", image: "/image/cities/mumbai.webp" },
+  { name: "Delhi NCR", image: "/image/cities/delhi.webp", queryNames: ["Delhi NCR", "Delhi", "New Delhi"] },
+  { name: "Pune", image: "/image/cities/pune.webp" },
+  { name: "Hyderabad", image: "/image/cities/hyderbad.webp", queryNames: ["Hyderabad"] },
+  { name: "Chennai", image: "/image/cities/chennai.webp" },
+  { name: "Kolkata", image: "/image/cities/kolkata.webp" },
+  { name: "Ahmedabad", image: "/image/cities/ahmedabad.webp" },
 ];
 
+const normalizeName = (name: string) => name.toLowerCase().trim();
+
 const TopStudyCities = () => {
+  const [cityStats, setCityStats] = useState<Record<string, number>>({});
+  const [courseStats, setCourseStats] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const [collegeResults, courseRes] = await Promise.all([
+          Promise.all(
+            CITIES.map(async (city) => {
+              const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL || ""}get/colleges/filter`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    cities: city.queryNames || [city.name],
+                    page: 1,
+                    limit: 1,
+                  }),
+                }
+              );
+
+              if (!res.ok) return { name: city.name, count: undefined };
+              const data = await res.json();
+              const total =
+                data?.totalColleges ||
+                data?.total ||
+                data?.pagination?.total ||
+                (Array.isArray(data?.allCollegeIds) ? data.allCollegeIds.length : undefined) ||
+                (Array.isArray(data?.colleges) ? data.colleges.length : undefined) ||
+                (typeof data?.totalPages === "number" && typeof data?.limit === "number"
+                  ? data.totalPages * data.limit
+                  : undefined);
+              return { name: city.name, count: Number.isFinite(total) ? Number(total) : undefined };
+            })
+          ),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}get/courses/count/by-city`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cities: CITIES.flatMap((c) => c.queryNames || [c.name]) }),
+          }),
+        ]);
+
+        const collegeMap: Record<string, number> = {};
+        collegeResults.forEach(({ name, count }) => {
+          if (count !== undefined && count !== null) collegeMap[normalizeName(name)] = count;
+        });
+        setCityStats(collegeMap);
+        console.log("TopCities colleges response", {
+          requestCities: CITIES.map((c) => c.queryNames || [c.name]),
+          collegeMap,
+        });
+
+        if (courseRes.ok) {
+          const courseData = await courseRes.json();
+          const counts = courseData?.counts || {};
+          const normalized: Record<string, number> = {};
+          Object.entries(counts || {}).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) normalized[normalizeName(key)] = value as number;
+          });
+          setCourseStats(normalized);
+          console.log("TopCities courses response", {
+            requestCities: CITIES.flatMap((c) => c.queryNames || [c.name]),
+            courseCounts: normalized,
+          });
+        } else {
+          setCourseStats({});
+        }
+      } catch (e) {
+        console.error("Failed to fetch city stats", e);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
   return (
     <section className="relative py-12">
       <div className="absolute inset-0 bg-gradient-to-r from-[#fff1e7] via-[#f2e9ff] to-[#ece4ff]" />
@@ -78,8 +116,8 @@ const TopStudyCities = () => {
             </h3>
           </div>
           <p className="text-sm text-gray-500 max-w-md">
-            Explore curated college lists by city and find programs that match
-            your goals and lifestyle.
+            Explore curated college lists by city and find programs that match your goals and
+            lifestyle.
           </p>
         </div>
 
@@ -109,27 +147,37 @@ const TopStudyCities = () => {
               </div>
 
               <div className="flex flex-col gap-3 px-5 pb-5 pt-3">
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-gray-700">
-                  <div className="rounded-2xl border border-[#fdd5c4] bg-gradient-to-br from-[#fff5f1] to-[#ffe4d4] px-3 py-2 text-center shadow-sm">
-                    <p className="text-[10px] uppercase tracking-wide text-[#d35c40]">
-                      Colleges
-                    </p>
-                    <p className="text-base font-bold text-gray-900">
-                      {city.colleges.toLocaleString()}
-                    </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between rounded-2xl bg-white/80 px-4 py-3 shadow-sm border border-orange-50">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] uppercase tracking-[0.25em] text-[#c25541]">
+                        Colleges
+                      </span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {cityStats[normalizeName(city.name)] ?? "--"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-[#d8cffc] bg-gradient-to-br from-[#f9f7ff] to-[#eceaff] px-3 py-2 text-center shadow-sm">
-                    <p className="text-[10px] uppercase tracking-wide text-[#5b4fc9]">
-                      Courses
-                    </p>
-                    <p className="text-base font-bold text-gray-900">
-                      {city.courses.toLocaleString()}
-                    </p>
+
+                  <div className="flex items-center justify-between rounded-2xl bg-white/80 px-4 py-3 shadow-sm border border-orange-50">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] uppercase tracking-[0.25em] text-[#c25541]">
+                        Courses
+                      </span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {courseStats[normalizeName(city.name)] ?? "--"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#c25541] opacity-0 transition group-hover:opacity-100">
-                  Explore →
-                </span>
+
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm font-semibold text-gray-900">Explore colleges & courses</p>
+                  <p className="text-xs text-gray-600">View curated lists and programs in {city.name}.</p>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#c25541] opacity-0 transition group-hover:opacity-100">
+                    Explore →
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

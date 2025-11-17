@@ -148,9 +148,39 @@ export default function CategoryGrid() {
             college?.title ||
             college?.institution ||
             'College',
-          slug: college?.slug || college?._id,
+          slug: college?.slug || college?.collegeSlug || college?._id,
         }));
-        setRelatedColleges(normalized.slice(0, 15));
+
+        if (normalized.length === 0) {
+          // Fallback: show a few colleges even if filter returns empty
+          const fallbackRes = await fetch(`${api_url}get/colleges/filter`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ page: 1, limit: 15 }),
+            signal: controller.signal,
+          });
+          const fallbackData = await fallbackRes.json();
+          const fallbackList =
+            fallbackData?.colleges ||
+            fallbackData?.data?.colleges ||
+            fallbackData?.data?.data ||
+            fallbackData?.data ||
+            [];
+          const normalizedFallback = (Array.isArray(fallbackList) ? fallbackList : []).map(
+            (college: any) => ({
+              name:
+                college?.name ||
+                college?.collegeName ||
+                college?.title ||
+                college?.institution ||
+                'College',
+              slug: college?.slug || college?.collegeSlug || college?._id,
+            })
+          );
+          setRelatedColleges(normalizedFallback.slice(0, 15));
+        } else {
+          setRelatedColleges(normalized.slice(0, 15));
+        }
       } catch (error: any) {
         if (error.name !== 'AbortError') {
           console.error('Failed to fetch related colleges:', error);

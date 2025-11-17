@@ -10,6 +10,9 @@ export default function BlogList() {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageFallbacks, setImageFallbacks] = useState<Record<number, string>>({});
+
+  const fallbackImages = Array.from({ length: 8 }, (_, idx) => `/image/fallback/fallback-${idx + 1}.webp`);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -54,23 +57,38 @@ export default function BlogList() {
               >
                 <div className="relative h-52 w-full">
                   <Image
-                    src={blog.image}
-                    alt={blog.title}
+                    src={
+                      imageFallbacks[index] ||
+                      (typeof blog.image === "string" && blog.image.trim()
+                        ? blog.image
+                        : fallbackImages[index % fallbackImages.length])
+                    }
+                    alt={blog.title || "Blog image"}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
+                    onError={() =>
+                      setImageFallbacks((prev) => ({
+                        ...prev,
+                        [index]: fallbackImages[(index + 1) % fallbackImages.length],
+                      }))
+                    }
                   />
                 </div>
                 <div className="flex flex-1 flex-col gap-3 p-5">
                   <span className="inline-flex w-max rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-[#c25541]">
-                    {blog.category}
+                    {blog.category || "Updates"}
                   </span>
                   <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                     {blog.title}
                   </h3>
                   <p className="text-sm text-gray-600 line-clamp-3">{blog.description}</p>
                   <Link
-                    href={blog.link ?? '/blogs'}
+                    href={
+                      typeof blog.link === "string" && blog.link.trim()
+                        ? blog.link
+                        : "/blogs"
+                    }
                     className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#c25541] hover:gap-3"
                   >
                     Read the story
