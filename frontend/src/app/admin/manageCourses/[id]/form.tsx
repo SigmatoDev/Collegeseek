@@ -398,65 +398,77 @@ const ActualCourseForm = () => {
     toast.success("Template values applied. Feel free to tweak them.");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationErrors = collectValidationErrors();
-    if (validationErrors.length) {
-      setFormErrors(validationErrors);
-      return;
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  console.log("🔍 SUBMIT TRIGGERED");
+
+  const validationErrors = collectValidationErrors();
+  if (validationErrors.length) {
+    console.warn("⚠️ Validation Errors:", validationErrors);
+    setFormErrors(validationErrors);
+    return;
+  }
+
+  setFormErrors([]);
+  setLoading(true);
+
+  try {
+    // Transform course before sending
+    const payload = {
+      ...course,
+      college_id: course.college?._id || course.college,
+      category: course.category?._id || course.category,
+      programMode: course.programMode?._id || course.programMode,
+      specialization: course.specialization?._id || course.specialization,
+      streams: Array.isArray(course.streams)
+        ? course.streams.map((s: any) => (s?._id ? s._id : s))
+        : course.streams,
+      focusAreas: Array.isArray(course.focusAreas)
+        ? course.focusAreas.filter((item: string) => item?.trim())
+        : [],
+      examList: Array.isArray(course.examList)
+        ? course.examList.filter((item: string) => item?.trim())
+        : [],
+    };
+
+    // remove nested objects
+    delete (payload as any).college;
+
+    const isEditing = courseId && courseId !== "new";
+
+    const url = `${api_url}courses${isEditing ? `/${courseId}` : ""}`;
+    const method = isEditing ? axios.put : axios.post;
+
+    console.log("📌 Mode:", isEditing ? "UPDATE (PUT)" : "CREATE (POST)");
+    console.log("🌐 URL:", url);
+    console.log("📦 Payload:", payload);
+
+    const res = await method(url, payload);
+
+    console.log("✅ Response:", res);
+
+    if (res.status >= 200 && res.status < 300) {
+      setFormErrors([]);
+      toast.success(`Course ${isEditing ? "updated" : "added"} successfully!`);
+      router.push("/admin/manageCourses");
+    } else {
+      toast.error("Failed to save course.");
     }
-    setFormErrors([]);
-    setLoading(true);
+  } catch (err) {
+    console.error("❌ Error submitting course:", err);
 
-    try {
-      // Transform course before sending
-      const payload = {
-        ...course,
-        college_id: course.college?._id || course.college, // normalize to id
-        category: course.category?._id || course.category,
-        programMode: course.programMode?._id || course.programMode,
-        specialization: course.specialization?._id || course.specialization,
-        streams: Array.isArray(course.streams)
-          ? course.streams.map((s: any) => (s?._id ? s._id : s))
-          : course.streams,
-        focusAreas: Array.isArray(course.focusAreas)
-          ? course.focusAreas.filter((item: string) => item?.trim())
-          : [],
-        examList: Array.isArray(course.examList)
-          ? course.examList.filter((item: string) => item?.trim())
-          : [],
-      };
+    const message =
+      (axios.isAxiosError(err) && err.response?.data?.message) ||
+      "Failed to save course. Please verify the details and try again.";
 
-      // remove nested objects (optional clean up)
-      delete (payload as any).college;
-
-      const url = `${api_url}courses${
-        courseId && courseId !== "new" ? `/${courseId}` : ""
-      }`;
-
-      const method = courseId && courseId !== "new" ? axios.put : axios.post;
-      const res = await method(url, payload);
-
-      if (res.status >= 200 && res.status < 300) {
-        setFormErrors([]);
-        toast.success(
-          `Course ${courseId !== "new" ? "updated" : "added"} successfully!`
-        );
-        router.push("/admin/manageCourses");
-      } else {
-        toast.error("Failed to save course.");
-      }
-    } catch (err) {
-      console.error("Error submitting course:", err);
-      const message =
-        (axios.isAxiosError(err) && err.response?.data?.message) ||
-        "Failed to save course. Please verify the details and try again.";
-      setFormErrors([message]);
-      toast.error("Unable to submit course");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setFormErrors([message]);
+    toast.error("Unable to submit course");
+  } finally {
+    setLoading(false);
+    console.log("🔚 Submit Completed");
+  }
+};
 
   const handleProgramModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCourse((prev: any) => ({ ...prev, programMode: e.target.value }));

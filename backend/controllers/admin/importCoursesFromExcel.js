@@ -244,7 +244,6 @@
 //     res.status(500).json({ error: "Failed to import courses" });
 //   }
 // };
-
 const ExcelJS = require("exceljs");
 const mongoose = require("mongoose");
 const Course = require("../../models/admin/courseModel");
@@ -257,7 +256,7 @@ const Stream = require("../../models/admin/streams");
 // Utility to safely parse number
 const parseNumber = (val) => (val ? Number(val) : undefined);
 
-// Generate unique slug based on specialization + college + state + city
+// Generate unique slug
 const generateSlug = async (specializationName, college) => {
   if (!college) return `course-${Date.now()}`;
 
@@ -269,41 +268,52 @@ const generateSlug = async (specializationName, college) => {
 
   let slug = baseSlug;
   let counter = 1;
+
   while (await Course.findOne({ slug })) {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
 
+  console.log(`Generated slug: ${slug}`);
   return slug;
 };
 
 exports.importCoursesFromExcel = async (req, res) => {
   try {
-    // console.log("📂 Starting importCoursesFromExcel...");
-
     if (!req.file) {
       console.log("❌ No file uploaded");
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // console.log(`📄 Reading Excel file: ${req.file.path}`);
+    console.log("📂 Reading Excel file:", req.file.path);
 
+    // Load workbook
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(req.file.path);
-    const worksheet = workbook.getWorksheet("Courses");
 
-    if (!worksheet) {
-      console.log("❌ 'Courses' sheet not found");
-      return res
-        .status(400)
-        .json({ error: "No 'Courses' sheet found in Excel file" });
-    }
+    // Auto-detect correct sheet
+  let worksheet = workbook.getWorksheet("Courses");
 
-    // console.log(`✅ Found sheet: 'Courses' with ${worksheet.rowCount} rows`);
+if (!worksheet) {
+  worksheet = workbook.worksheets.find((ws) =>
+    ws.name.toLowerCase().includes("course")
+  );
+}
+
+if (!worksheet) {
+  return res.status(400).json({
+    error:
+      "No sheet related to 'Courses' found. Please name the sheet 'Courses'.",
+  });
+}
+
+
+    console.log(`✅ Using sheet: ${worksheet.name}`);
 
     const rows = worksheet.getSheetValues();
-    rows.shift(); // undefined index 0
-    rows.shift(); // header row
+    rows.shift(); // remove undefined first row
+    const headerRow = rows.shift(); // remove header row
+    console.log("Header row:", headerRow);
 
     let importedCount = 0;
     let updatedCount = 0;
@@ -313,15 +323,13 @@ exports.importCoursesFromExcel = async (req, res) => {
       const row = rows[i];
       if (!row) continue;
 
-      // console.log(`\n🔹 Processing Row #${i + 2}`);
-
       try {
         const mongoId = row[2]?.toString().trim();
         let slug = row[3]?.toString().trim().toLowerCase().replace(/\s+/g, "-");
 
         const specializationName = row[4]?.toString().trim();
         const description = row[5]?.toString().trim();
-        const collegeNameRaw = row[6]?.toString().trim();
+        const rawCollegeName = row[6]?.toString().trim();
         const categoryName = row[7]?.toString().trim();
         const programModeName = row[8]?.toString().trim();
         const duration = row[9]?.toString().trim();
@@ -340,21 +348,9 @@ exports.importCoursesFromExcel = async (req, res) => {
         const streamsRaw = row[22]?.toString().trim();
         const brochure_link = row[23]?.toString().trim();
 
-        // console.log(
-        //   `➡️ Specialization: ${specializationName}, College: ${collegeNameRaw}`
-        // );
+        console.log(`\n📌 Processing row ${i + 1}: ${specializationName}`);
 
-        // --- College ---
-        // const collegeName = collegeNameRaw?.split("(")[0].trim();
-        // const college = collegeName
-        //   ? await College.findOne({ name: new RegExp(`^${collegeName}$`, "i") })
-        //   : null;
-        const cleanCollegeName = collegeNameRaw
-          ?.replace(/\(.*?\)/g, "") // remove anything inside parentheses
-          .trim();
-
-        // console.log("🧩 Raw:", collegeNameRaw, "| Cleaned:", cleanCollegeName);
-
+        const cleanCollegeName = rawCollegeName?.replace(/\(.*?\)/g, "").trim();
         const college = cleanCollegeName
           ? await College.findOne({
               name: new RegExp(
@@ -365,98 +361,48 @@ exports.importCoursesFromExcel = async (req, res) => {
           : null;
 
         if (!college) {
-          // console.log(
-          //   `❌ College not found for cleaned name: ${cleanCollegeName}`
-          // );
-        }
-
-        if (!college) {
-          // console.log(`❌ College not found: ${collegeNameRaw}`);
+          console.log(`❌ College not found: ${rawCollegeName}`);
           failedCourses.push({
             course: specializationName || "Unnamed",
-            error: `College not found: ${collegeNameRaw}`,
+            error: `College not found: ${rawCollegeName}`,
           });
           continue;
         }
 
-        // --- Category ---
         const category = categoryName
-          ? await Category.findOne({
-              name: new RegExp(`^${categoryName.trim()}$`, "i"),
-            })
+          ? await Category.findOne({ name: new RegExp(`^${categoryName}$`, "i") })
           : null;
-        if (categoryName && !category) {
-          // console.log(`⚠️ Category not found: ${categoryName}`);
-          failedCourses.push({
-            course: specializationName || "Unnamed",
-            error: `Category not found: ${categoryName}`,
-          });
-        }
-
-        // --- ProgramMode ---
         const programMode = programModeName
-          ? await ProgramMode.findOne({
-              name: new RegExp(`^${programModeName.trim()}$`, "i"),
-            })
+          ? await ProgramMode.findOne({ name: new RegExp(`^${programModeName}$`, "i") })
           : null;
-        if (programModeName && !programMode) {
-          // console.log(`⚠️ ProgramMode not found: ${programModeName}`);
-          failedCourses.push({
-            course: specializationName || "Unnamed",
-            error: `ProgramMode not found: ${programModeName}`,
-          });
-        }
-
-        // --- Specialization ---
         const specialization = specializationName
-          ? await Specialization.findOne({
-              name: new RegExp(`^${specializationName.trim()}$`, "i"),
-            })
+          ? await Specialization.findOne({ name: new RegExp(`^${specializationName}$`, "i") })
           : null;
-        if (specializationName && !specialization) {
-          // console.log(`⚠️ Specialization not found: ${specializationName}`);
-          failedCourses.push({
-            course: specializationName,
-            error: `Specialization not found: ${specializationName}`,
-          });
-        }
 
-        // --- Streams ---
         let streamIds = [];
         if (streamsRaw) {
           const streamNames = streamsRaw.split("|").map((s) => s.trim());
           for (const sName of streamNames) {
-            const stream = await Stream.findOne({ name: sName });
-            if (stream) {
-              streamIds.push(stream._id);
-              // console.log(`✅ Stream found: ${sName}`);
-            } else {
-              // console.log(`⚠️ Stream not found: ${sName}`);
-              failedCourses.push({
-                course: specializationName || "Unnamed",
-                error: `Stream not found: ${sName}`,
-              });
-            }
+            const stream = await Stream.findOne({ name: new RegExp(`^${sName}$`, "i") });
+            if (stream) streamIds.push(stream._id);
+            else console.log(`❌ Stream not found: ${sName}`);
           }
         }
 
-        // --- Slug ---
-        if (!slug || slug === "") {
+        if (!slug) {
           slug = await generateSlug(specializationName || "course", college);
-          // console.log(`🆕 Generated slug: ${slug}`);
         }
 
-        // --- Find existing course ---
         let course = null;
         if (mongoId && mongoose.Types.ObjectId.isValid(mongoId)) {
           course = await Course.findById(mongoId);
         }
-        if (!course && slug) {
+        if (mongoId && !course && slug) {
           course = await Course.findOne({ slug });
         }
 
         if (course) {
-          // console.log(`🛠 Updating existing course: ${slug}`);
+          console.log(`🔄 Updating course: ${specializationName}`);
           course.slug = slug;
           course.specialization = specialization?._id;
           course.description = description;
@@ -466,25 +412,16 @@ exports.importCoursesFromExcel = async (req, res) => {
           course.duration = duration;
           course.fees = { amount: fees_amount, year: fees_year, currency };
           course.eligibility = eligibility;
-          course.application_dates = {
-            start_date: app_start,
-            end_date: app_end,
-          };
+          course.application_dates = { start_date: app_start, end_date: app_end };
           course.placements = { median_salary, placement_rate };
-          course.intake_capacity = {
-            male: intake_male,
-            female: intake_female,
-            total: intake_total,
-          };
+          course.intake_capacity = { male: intake_male, female: intake_female, total: intake_total };
           course.entrance_exam = entrance_exam;
           course.streams = streamIds;
           course.brochure_link = brochure_link;
-
           await course.save();
           updatedCount++;
-          console.log(`✅ Course updated: ${slug}`);
         } else {
-          console.log(`➕ Creating new course: ${slug}`);
+          console.log(`✅ Creating new course: ${specializationName}`);
           await Course.create({
             slug,
             specialization: specialization?._id,
@@ -497,21 +434,15 @@ exports.importCoursesFromExcel = async (req, res) => {
             eligibility,
             application_dates: { start_date: app_start, end_date: app_end },
             placements: { median_salary, placement_rate },
-            intake_capacity: {
-              male: intake_male,
-              female: intake_female,
-              total: intake_total,
-            },
+            intake_capacity: { male: intake_male, female: intake_female, total: intake_total },
             entrance_exam,
             streams: streamIds,
             brochure_link,
           });
-
           importedCount++;
-          // console.log(`✅ New course imported: ${slug}`);
         }
       } catch (rowError) {
-        console.error(`❌ Error processing row #${i + 2}:`, rowError.message);
+        console.log(`❌ Error in row ${i + 1}:`, rowError.message);
         failedCourses.push({
           course: row[4] || "Unknown",
           error: rowError.message,
@@ -519,13 +450,9 @@ exports.importCoursesFromExcel = async (req, res) => {
       }
     }
 
-    // console.log("\n📊 Import Summary:");
-    // console.log(`✅ Imported: ${importedCount}`);
-    // console.log(`🛠 Updated: ${updatedCount}`);
-    // console.log(`⚠️ Failed: ${failedCourses.length}`);
+    console.log(`\n📊 Import summary: ${importedCount} imported, ${updatedCount} updated, ${failedCourses.length} failed`);
 
     if (failedCourses.length > 0) {
-      console.table(failedCourses);
       return res.status(400).json({
         message: "Some courses failed to import",
         imported: importedCount,
@@ -541,7 +468,9 @@ exports.importCoursesFromExcel = async (req, res) => {
       failedCourses,
     });
   } catch (err) {
-    console.error("💥 Import error:", err);
+    console.error("❌ Import error:", err);
     res.status(500).json({ error: "Failed to import courses" });
   }
 };
+
+

@@ -14,7 +14,7 @@ interface CityCard {
 const CITIES: CityCard[] = [
   { name: "Bengaluru", image: "/image/cities/bangalore.webp", queryNames: ["Bengaluru", "Bangalore"] },
   { name: "Mumbai", image: "/image/cities/mumbai.webp" },
-  { name: "Delhi NCR", image: "/image/cities/delhi.webp", queryNames: ["Delhi NCR", "Delhi", "New Delhi"] },
+  { name: "New Delhi", image: "/image/cities/delhi.webp", queryNames: ["Delhi NCR", "Delhi", "New Delhi"] },
   { name: "Pune", image: "/image/cities/pune.webp" },
   { name: "Hyderabad", image: "/image/cities/hyderbad.webp", queryNames: ["Hyderabad"] },
   { name: "Chennai", image: "/image/cities/chennai.webp" },
@@ -73,10 +73,10 @@ const TopStudyCities = () => {
           if (count !== undefined && count !== null) collegeMap[normalizeName(name)] = count;
         });
         setCityStats(collegeMap);
-        console.log("TopCities colleges response", {
-          requestCities: CITIES.map((c) => c.queryNames || [c.name]),
-          collegeMap,
-        });
+        // console.log("TopCities colleges response", {
+        //   requestCities: CITIES.map((c) => c.queryNames || [c.name]),
+        //   collegeMap,
+        // });
 
         if (courseRes.ok) {
           const courseData = await courseRes.json();
@@ -86,10 +86,10 @@ const TopStudyCities = () => {
             if (value !== undefined && value !== null) normalized[normalizeName(key)] = value as number;
           });
           setCourseStats(normalized);
-          console.log("TopCities courses response", {
-            requestCities: CITIES.flatMap((c) => c.queryNames || [c.name]),
-            courseCounts: normalized,
-          });
+          // console.log("TopCities courses response", {
+          //   requestCities: CITIES.flatMap((c) => c.queryNames || [c.name]),
+          //   courseCounts: normalized,
+          // });
         } else {
           setCourseStats({});
         }
@@ -100,6 +100,18 @@ const TopStudyCities = () => {
 
     fetchCounts();
   }, []);
+const formatCity = (name: string) => {
+  return name
+    .split(" ")
+    .map((w, i) =>
+      i === 0
+        ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()   // First word: Capitalized
+        : w.toLowerCase()                                        // Other words: lowercase
+    )
+    .join("+");
+};
+
+
 
   return (
     <section className="relative py-12">
@@ -125,7 +137,7 @@ const TopStudyCities = () => {
           {CITIES.map((city, index) => (
             <Link
               key={city.name}
-              href={`/college?cities=${encodeURIComponent(city.slug || city.name)}`}
+href={`/college?cities=${formatCity(city.slug || city.name)}`}
               className="group relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white/90 to-white/60 shadow-[0_18px_40px_rgba(99,93,193,0.14)] transition hover:-translate-y-1.5"
             >
               <div className="flex items-center gap-4 px-5 pt-5">

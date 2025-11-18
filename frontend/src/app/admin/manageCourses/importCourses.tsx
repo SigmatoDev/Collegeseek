@@ -32,7 +32,7 @@ const ImportCourses = () => {
     }
   };
 
-  const handleUpload = async () => {
+ const handleUpload = async () => {
   if (!file) {
     console.warn("⚠️ No file selected for upload");
     return toast.error("Please select a file first.");
@@ -45,13 +45,15 @@ const ImportCourses = () => {
     setLoading(true);
     console.log("⏳ Uploading file:", file.name);
 
-    const { data } = await axios.post(
+    const response = await axios.post(
       `${api_url}courses/import-excel`,
       formData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
 
-    // ✅ Success response
+    const data = response.data;
+
+    // ✅ Success
     console.log("✅ Server Response:", data);
     toast.success(data.message);
 
@@ -64,11 +66,14 @@ const ImportCourses = () => {
     });
 
     setFile(null);
+
   } catch (error: any) {
     console.error("🚨 Upload failed:", error);
 
-    // ✅ Handle backend 400 error response gracefully
     if (error.response) {
+      // 🔍 Log backend error for debugging
+      console.error("📡 Backend error details:", error.response.data);
+
       const backendMessage =
         error.response.data?.message ||
         error.response.data?.error ||
@@ -83,21 +88,24 @@ const ImportCourses = () => {
         failedCourses: error.response.data?.failedCourses || [],
       });
 
-      if (error.response.data?.failedCourses?.length > 0) {
-        const failed = error.response.data.failedCourses;
-        setFailed(failed);
+      const failedRows = error.response.data?.failedCourses || [];
+      setFailed(failedRows);
 
-        failed.forEach((f: any) =>
-          toast.error(`${f.course}: ${f.error}`)
-        );
-      }
+      // 🔔 Notify each failed row
+      failedRows.forEach((f: any) => {
+        toast.error(`${f.course}: ${f.error}`);
+      });
+
     } else {
-      toast.error(error.message || "Unexpected error");
+      // ❌ Fatal or network level error
+      console.error("❌ Unexpected error:", error.message);
+      toast.error(error.message || "Unexpected error occurred");
     }
   } finally {
     setLoading(false);
   }
 };
+
 
 
   const reset = () => {
