@@ -2,74 +2,77 @@ const fs = require("fs");
 const path = require("path");
 const Page = require("../../models/admin/Page");
 const slugify = require("slugify");
-exports.createPages = async (req, res) => {
-  console.log("hit me new page creation");
-  try {
-    const { title, description, content } = req.body;
-    if (!title || !description || !content) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-    // Generate a slug from the title if it's not provided
-    let slug = slugify(title, { lower: true });
-    // Check if the slug already exists in the database
-    let existingPage = await Page.findOne({ slug });
-    let originalSlug = slug;
-    let count = 1;
-    // If the slug exists, append a number to make it unique
-    while (existingPage) {
-      slug = `${originalSlug}-${count}`;
-      existingPage = await Page.findOne({ slug });
-      count++;
-    }
-    const parsedContent =
-      typeof content === "string" ? JSON.parse(content) : content;
-    // Loop through blocks to process base64 images
-    const processedBlocks = await Promise.all(
-      parsedContent.blocks.map(async (block) => {
-        if (
-          block.type === "image" &&
-          block.data &&
-          block.data.file &&
-          block.data.file.url?.startsWith("data:image/")
-        ) {
-          const base64Data = block.data.file.url;
-          const matches = base64Data.match(/^data:(image\/.+);base64,(.+)$/);
-          if (!matches) {
-            throw new Error("Failed to process image format.");
-          }
-          const ext = matches[1].split("/")[1];
-          const base64 = matches[2];
-          const buffer = Buffer.from(base64, "base64");
-          const fileName = `${Date.now()}-${Math.floor(
-            Math.random() * 1000
-          )}.${ext}`;
-          const filePath = path.join(__dirname, "../../uploads", fileName);
-          fs.writeFileSync(filePath, buffer);
-          // Replace the base64 with a URL path
-          block.data.file.url = `/uploads/${fileName}`;
-        }
-        return block;
-      })
-    );
-    // Create the new page
-    const newPage = new Page({
-      title,
-      description,
-      slug, // Ensure the slug is set
-      content: {
-        ...parsedContent,
-        blocks: processedBlocks,
-      },
-    });
-    await newPage.save();
-    res.status(200).json(newPage);
-  } catch (error) {
-    console.error("Error creating page:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to process images", error: error.message });
-  }
-};
+
+
+
+// exports.createPages = async (req, res) => {
+//   console.log("hit me new page creation");
+//   try {
+//     const { title, description, content } = req.body;
+//     if (!title || !description || !content) {
+//       return res.status(400).json({ message: "Missing required fields" });
+//     }
+//     // Generate a slug from the title if it's not provided
+//     let slug = slugify(title, { lower: true });
+//     // Check if the slug already exists in the database
+//     let existingPage = await Page.findOne({ slug });
+//     let originalSlug = slug;
+//     let count = 1;
+//     // If the slug exists, append a number to make it unique
+//     while (existingPage) {
+//       slug = `${originalSlug}-${count}`;
+//       existingPage = await Page.findOne({ slug });
+//       count++;
+//     }
+//     const parsedContent =
+//       typeof content === "string" ? JSON.parse(content) : content;
+//     // Loop through blocks to process base64 images
+//     const processedBlocks = await Promise.all(
+//       parsedContent.blocks.map(async (block) => {
+//         if (
+//           block.type === "image" &&
+//           block.data &&
+//           block.data.file &&
+//           block.data.file.url?.startsWith("data:image/")
+//         ) {
+//           const base64Data = block.data.file.url;
+//           const matches = base64Data.match(/^data:(image\/.+);base64,(.+)$/);
+//           if (!matches) {
+//             throw new Error("Failed to process image format.");
+//           }
+//           const ext = matches[1].split("/")[1];
+//           const base64 = matches[2];
+//           const buffer = Buffer.from(base64, "base64");
+//           const fileName = `${Date.now()}-${Math.floor(
+//             Math.random() * 1000
+//           )}.${ext}`;
+//           const filePath = path.join(__dirname, "../../uploads", fileName);
+//           fs.writeFileSync(filePath, buffer);
+//           // Replace the base64 with a URL path
+//           block.data.file.url = `/uploads/${fileName}`;
+//         }
+//         return block;
+//       })
+//     );
+//     // Create the new page
+//     const newPage = new Page({
+//       title,
+//       description,
+//       slug, // Ensure the slug is set
+//       content: {
+//         ...parsedContent,
+//         blocks: processedBlocks,
+//       },
+//     });
+//     await newPage.save();
+//     res.status(200).json(newPage);
+//   } catch (error) {
+//     console.error("Error creating page:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Failed to process images", error: error.message });
+//   }
+// };
 // exports.getPageById = async (req, res) => {
 //   try {
 //     const page = await Page.findById(req.params.id);
@@ -82,77 +85,77 @@ exports.createPages = async (req, res) => {
 //     res.status(500).json({ message: "Server error", error });
 //   }
 // };
-// exports.createPages = async (req, res) => {
-//   console.log("hit me new page creation");
-//   try {
-//     const { title, description, content } = req.body;
+exports.createPages = async (req, res) => {
+  console.log("hit me new page creation");
+  try {
+    const { title, description, content } = req.body;
 
-//     if (!title || !description || !content) {
-//       return res.status(400).json({ message: "Missing required fields" });
-//     }
+    if (!title || !description || !content) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
-//     // Create slug
-//     let slug = slugify(title, { lower: true });
-//     let existingPage = await Page.findOne({ slug });
+    // Create slug
+    let slug = slugify(title, { lower: true });
+    let existingPage = await Page.findOne({ slug });
 
-//     let originalSlug = slug;
-//     let count = 1;
+    let originalSlug = slug;
+    let count = 1;
 
-//     while (existingPage) {
-//       slug = `${originalSlug}-${count}`;
-//       existingPage = await Page.findOne({ slug });
-//       count++;
-//     }
+    while (existingPage) {
+      slug = `${originalSlug}-${count}`;
+      existingPage = await Page.findOne({ slug });
+      count++;
+    }
 
-//     // TinyMCE sends HTML content, DO NOT JSON.parse()
-//     let processedContent = content;
+    // TinyMCE sends HTML content, DO NOT JSON.parse()
+    let processedContent = content;
 
-//     // Find base64 images inside TinyMCE HTML
-//     const base64Images = [
-//       ...content.matchAll(/<img[^>]+src="data:(image\/[^;]+);base64,([^"]+)"/g),
-//     ];
+    // Find base64 images inside TinyMCE HTML
+    const base64Images = [
+      ...content.matchAll(/<img[^>]+src="data:(image\/[^;]+);base64,([^"]+)"/g),
+    ];
 
-//     for (const match of base64Images) {
-//       const mimeType = match[1];
-//       const base64Data = match[2];
+    for (const match of base64Images) {
+      const mimeType = match[1];
+      const base64Data = match[2];
 
-//       const ext = mimeType.split("/")[1];
-//       const buffer = Buffer.from(base64Data, "base64");
+      const ext = mimeType.split("/")[1];
+      const buffer = Buffer.from(base64Data, "base64");
 
-//       const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
-//       const filePath = path.join(__dirname, "../../uploads", fileName);
+      const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+      const filePath = path.join(__dirname, "../../uploads", fileName);
 
-//       fs.writeFileSync(filePath, buffer);
+      fs.writeFileSync(filePath, buffer);
 
-//       // Replace base64 with image URL
-//       processedContent = processedContent.replace(
-//         match[0],
-//         match[0].replace(
-//           /src="[^"]+"/,
-//           `src="/uploads/${fileName}"`
-//         )
-//       );
-//     }
+      // Replace base64 with image URL
+      processedContent = processedContent.replace(
+        match[0],
+        match[0].replace(
+          /src="[^"]+"/,
+          `src="/uploads/${fileName}"`
+        )
+      );
+    }
 
-//     // Save page
-//     const newPage = new Page({
-//       title,
-//       description,
-//       slug,
-//       content: processedContent, // Save cleaned HTML
-//     });
+    // Save page
+    const newPage = new Page({
+      title,
+      description,
+      slug,
+      content: processedContent, // Save cleaned HTML
+    });
 
-//     await newPage.save();
+    await newPage.save();
 
-//     res.status(200).json(newPage);
-//   } catch (error) {
-//     console.error("Error creating page:", error);
-//     res.status(500).json({
-//       message: "Failed to process images",
-//       error: error.message,
-//     });
-//   }
-// };
+    res.status(200).json(newPage);
+  } catch (error) {
+    console.error("Error creating page:", error);
+    res.status(500).json({
+      message: "Failed to process images",
+      error: error.message,
+    });
+  }
+};
 exports.getPageById = async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);
