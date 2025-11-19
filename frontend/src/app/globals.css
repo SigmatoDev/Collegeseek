@@ -238,3 +238,12 @@ ol li::marker {
 .rich-content p {
   margin-bottom: 1rem;
 }
+.tox-tinymce-aux,
+.tox-dialog-wrap,
+.tox-dialog {
+  z-index: 999999 !important;
+}
+
+.tox-editor-container {
+  z-index: 1000 !important;
+}

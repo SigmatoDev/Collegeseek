@@ -258,7 +258,13 @@ const parseNumber = (val) => (val ? Number(val) : undefined);
 
 // Generate unique slug
 const generateSlug = async (specializationName, college) => {
-  if (!college) return `course-${Date.now()}`;
+  console.log("🔧 Generating slug for:", specializationName);
+
+  if (!college) {
+    const fallbackSlug = `course-${Date.now()}`;
+    console.log("⚠ No college found. Using fallback slug:", fallbackSlug);
+    return fallbackSlug;
+  }
 
   let baseSlug =
     `${specializationName}-${college.name}-${college.state}-${college.city}`
@@ -270,60 +276,87 @@ const generateSlug = async (specializationName, college) => {
   let counter = 1;
 
   while (await Course.findOne({ slug })) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
+    slug = `${baseSlug}-${counter++}`;
   }
 
-  console.log(`Generated slug: ${slug}`);
+  console.log("✅ Final slug:", slug);
   return slug;
 };
 
 exports.importCoursesFromExcel = async (req, res) => {
   try {
+    console.log("📥 Received Excel import request");
+
     if (!req.file) {
-      console.log("❌ No file uploaded");
-      return res.status(400).json({ error: "No file uploaded" });
+      console.log("⛔ No file uploaded.");
+      return res.status(400).json({
+        message: "No file uploaded.",
+        imported: 0,
+        updated: 0,
+        failedCourses: [],
+      });
     }
 
-    console.log("📂 Reading Excel file:", req.file.path);
+    console.log("📄 File uploaded:", req.file.path);
 
-    // Load workbook
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(req.file.path);
 
-    // Auto-detect correct sheet
-  let worksheet = workbook.getWorksheet("Courses");
+    // ============================
+    // SMART SHEET DETECTION
+    // ============================
 
-if (!worksheet) {
-  worksheet = workbook.worksheets.find((ws) =>
-    ws.name.toLowerCase().includes("course")
-  );
-}
+    console.log("📘 Searching for worksheet...");
 
-if (!worksheet) {
-  return res.status(400).json({
-    error:
-      "No sheet related to 'Courses' found. Please name the sheet 'Courses'.",
-  });
-}
+    let worksheet = workbook.getWorksheet("Courses");
 
+    if (!worksheet) worksheet = workbook.getWorksheet("Sheet1");
 
-    console.log(`✅ Using sheet: ${worksheet.name}`);
+    if (!worksheet) {
+      worksheet = workbook.worksheets.find((ws) =>
+        ws.name.toLowerCase().includes("course")
+      );
+    }
 
+    if (!worksheet) {
+      console.log(
+        "⛔ No valid sheet found. Available sheets:",
+        workbook.worksheets.map((ws) => ws.name)
+      );
+
+      return res.status(400).json({
+        message:
+          "Excel sheet not found. Sheet must be named 'Courses' or 'Sheet1' or contain the word 'course'.",
+        imported: 0,
+        updated: 0,
+        failedCourses: [],
+      });
+    }
+
+    console.log("📘 Worksheet loaded:", worksheet.name);
+
+    // Extracting data
     const rows = worksheet.getSheetValues();
-    rows.shift(); // remove undefined first row
-    const headerRow = rows.shift(); // remove header row
-    console.log("Header row:", headerRow);
+    rows.shift();
+    const headerRow = rows.shift();
+
+    console.log("📊 Header Row:", headerRow);
 
     let importedCount = 0;
     let updatedCount = 0;
     let failedCourses = [];
 
+    console.log(`🔍 Starting import. Total rows: ${rows.length}`);
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (!row) continue;
 
+      console.log(`\n========================`);
+      console.log(`➡ Processing Row ${i + 1}`);
+
       try {
+        // Extract fields
         const mongoId = row[2]?.toString().trim();
         let slug = row[3]?.toString().trim().toLowerCase().replace(/\s+/g, "-");
 
@@ -348,20 +381,24 @@ if (!worksheet) {
         const streamsRaw = row[22]?.toString().trim();
         const brochure_link = row[23]?.toString().trim();
 
-        console.log(`\n📌 Processing row ${i + 1}: ${specializationName}`);
+        console.log(`📌 Row Data:`, {
+          mongoId,
+          specializationName,
+          rawCollegeName,
+        });
 
+        // CLEAN COLLEGE NAME
         const cleanCollegeName = rawCollegeName?.replace(/\(.*?\)/g, "").trim();
-        const college = cleanCollegeName
-          ? await College.findOne({
-              name: new RegExp(
-                cleanCollegeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-                "i"
-              ),
-            })
-          : null;
+
+        const college = await College.findOne({
+          name: new RegExp(
+            cleanCollegeName?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            "i"
+          ),
+        });
 
         if (!college) {
-          console.log(`❌ College not found: ${rawCollegeName}`);
+          console.log(`❌ College not found:`, cleanCollegeName);
           failedCourses.push({
             course: specializationName || "Unnamed",
             error: `College not found: ${rawCollegeName}`,
@@ -369,59 +406,102 @@ if (!worksheet) {
           continue;
         }
 
-        const category = categoryName
-          ? await Category.findOne({ name: new RegExp(`^${categoryName}$`, "i") })
-          : null;
-        const programMode = programModeName
-          ? await ProgramMode.findOne({ name: new RegExp(`^${programModeName}$`, "i") })
-          : null;
-        const specialization = specializationName
-          ? await Specialization.findOne({ name: new RegExp(`^${specializationName}$`, "i") })
-          : null;
+        console.log(`🏫 College matched:`, college.name);
 
+        // CATEGORY
+        const category =
+          categoryName &&
+          (await Category.findOne({
+            name: new RegExp(`^${categoryName}$`, "i"),
+          }));
+
+        // PROGRAM MODE
+        const programMode =
+          programModeName &&
+          (await ProgramMode.findOne({
+            name: new RegExp(`^${programModeName}$`, "i"),
+          }));
+
+        // SPECIALIZATION
+        const specialization =
+          specializationName &&
+          (await Specialization.findOne({
+            name: new RegExp(`^${specializationName}$`, "i"),
+          }));
+
+        // STREAMS
         let streamIds = [];
         if (streamsRaw) {
           const streamNames = streamsRaw.split("|").map((s) => s.trim());
+          console.log("📚 Stream names:", streamNames);
+
           for (const sName of streamNames) {
-            const stream = await Stream.findOne({ name: new RegExp(`^${sName}$`, "i") });
-            if (stream) streamIds.push(stream._id);
-            else console.log(`❌ Stream not found: ${sName}`);
+            const stream = await Stream.findOne({
+              name: new RegExp(`^${sName}$`, "i"),
+            });
+            if (stream) {
+              streamIds.push(stream._id);
+              console.log(`✔ Stream matched: ${sName}`);
+            } else {
+              console.log(`⚠ Stream not found: ${sName}`);
+            }
           }
         }
 
+        // SLUG GENERATION
         if (!slug) {
           slug = await generateSlug(specializationName || "course", college);
         }
 
+        // CHECK IF COURSE EXISTS
         let course = null;
         if (mongoId && mongoose.Types.ObjectId.isValid(mongoId)) {
+          console.log("🔍 Searching by mongoId:", mongoId);
           course = await Course.findById(mongoId);
         }
-        if (mongoId && !course && slug) {
+
+        if (!course && slug) {
+          console.log("🔍 Searching by slug:", slug);
           course = await Course.findOne({ slug });
         }
 
         if (course) {
-          console.log(`🔄 Updating course: ${specializationName}`);
-          course.slug = slug;
-          course.specialization = specialization?._id;
-          course.description = description;
-          course.college_id = college._id;
-          course.category = category?._id;
-          course.programMode = programMode?._id;
-          course.duration = duration;
-          course.fees = { amount: fees_amount, year: fees_year, currency };
-          course.eligibility = eligibility;
-          course.application_dates = { start_date: app_start, end_date: app_end };
-          course.placements = { median_salary, placement_rate };
-          course.intake_capacity = { male: intake_male, female: intake_female, total: intake_total };
-          course.entrance_exam = entrance_exam;
-          course.streams = streamIds;
-          course.brochure_link = brochure_link;
-          await course.save();
+          console.log("✏ Updating existing course:", course.slug);
+
+          await Course.updateOne(
+            { _id: course._id },
+            {
+              slug,
+              specialization: specialization?._id,
+              description,
+              college_id: college._id,
+              category: category?._id,
+              programMode: programMode?._id,
+              duration,
+              fees: {
+                amount: fees_amount,
+                year: fees_year,
+                currency,
+              },
+              eligibility,
+              application_dates: { start_date: app_start, end_date: app_end },
+              placements: { median_salary, placement_rate },
+              intake_capacity: {
+                male: intake_male,
+                female: intake_female,
+                total: intake_total,
+              },
+              entrance_exam,
+              streams: streamIds,
+              brochure_link,
+            }
+          );
+
           updatedCount++;
+          console.log("✅ Course Updated");
         } else {
-          console.log(`✅ Creating new course: ${specializationName}`);
+          console.log("➕ Creating new course:", slug);
+
           await Course.create({
             slug,
             specialization: specialization?._id,
@@ -430,27 +510,41 @@ if (!worksheet) {
             category: category?._id,
             programMode: programMode?._id,
             duration,
-            fees: { amount: fees_amount, year: fees_year, currency },
+            fees: {
+              amount: fees_amount,
+              year: fees_year,
+              currency,
+            },
             eligibility,
             application_dates: { start_date: app_start, end_date: app_end },
             placements: { median_salary, placement_rate },
-            intake_capacity: { male: intake_male, female: intake_female, total: intake_total },
+            intake_capacity: {
+              male: intake_male,
+              female: intake_female,
+              total: intake_total,
+            },
             entrance_exam,
             streams: streamIds,
             brochure_link,
           });
+
           importedCount++;
+          console.log("📗 New Course Added");
         }
-      } catch (rowError) {
-        console.log(`❌ Error in row ${i + 1}:`, rowError.message);
+      } catch (err) {
+        console.log("❌ Error on row", i + 1, err.message);
         failedCourses.push({
           course: row[4] || "Unknown",
-          error: rowError.message,
+          error: String(err.message),
         });
       }
     }
 
-    console.log(`\n📊 Import summary: ${importedCount} imported, ${updatedCount} updated, ${failedCourses.length} failed`);
+    console.log("\n========================");
+    console.log("📦 Import Completed");
+    console.log("Imported:", importedCount);
+    console.log("Updated:", updatedCount);
+    console.log("Failed:", failedCourses.length);
 
     if (failedCourses.length > 0) {
       return res.status(400).json({
@@ -465,12 +559,18 @@ if (!worksheet) {
       message: "Courses imported successfully",
       imported: importedCount,
       updated: updatedCount,
-      failedCourses,
+      failedCourses: [],
     });
   } catch (err) {
-    console.error("❌ Import error:", err);
-    res.status(500).json({ error: "Failed to import courses" });
+    console.log("💥 Fatal Error:", err);
+
+    res.status(500).json({
+      message: "Internal server error",
+      error: String(err.message),
+      imported: 0,
+      updated: 0,
+      failedCourses: [],
+    });
   }
 };
-
 

@@ -56,3 +56,60 @@ exports.updatePageById = async (req, res) => {
     res.status(500).json({ message: "Update failed", error: error.message });
   }
 };
+// exports.updatePageById = async (req, res) => {
+//   try {
+//     const pageId = req.params.id;
+//     const { title, description, content } = req.body;
+
+//     if (!title || !description || !content) {
+//       return res.status(400).json({ message: "Missing required fields" });
+//     }
+
+//     const page = await Page.findById(pageId);
+//     if (!page) {
+//       return res.status(404).json({ message: "Page not found" });
+//     }
+
+//     // TinyMCE sends HTML — DO NOT JSON.parse()
+//     let processedContent = content;
+
+//     // Find all base64 images inside HTML
+//     const base64Images = [
+//       ...content.matchAll(/<img[^>]+src="data:(image\/[^;]+);base64,([^"]+)"/g),
+//     ];
+
+//     for (const match of base64Images) {
+//       const mimeType = match[1];
+//       const base64Data = match[2];
+
+//       const ext = mimeType.split("/")[1];
+//       const buffer = Buffer.from(base64Data, "base64");
+
+//       const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+//       const filePath = path.join(__dirname, "../../uploads", fileName);
+
+//       fs.writeFileSync(filePath, buffer);
+
+//       // Replace base64 image with image URL
+//       processedContent = processedContent.replace(
+//         match[0],
+//         match[0].replace(/src="[^"]+"/, `src="/uploads/${fileName}"`)
+//       );
+//     }
+
+//     // Update page fields
+//     page.title = title;
+//     page.description = description;
+//     page.content = processedContent;
+
+//     await page.save();
+
+//     res.status(200).json({ message: "Page updated successfully", page });
+//   } catch (error) {
+//     console.error("Error updating page:", error);
+//     res.status(500).json({
+//       message: "Update failed",
+//       error: error.message,
+//     });
+//   }
+// };

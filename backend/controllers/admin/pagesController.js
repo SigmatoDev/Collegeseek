@@ -82,6 +82,77 @@ exports.createPages = async (req, res) => {
 //     res.status(500).json({ message: "Server error", error });
 //   }
 // };
+// exports.createPages = async (req, res) => {
+//   console.log("hit me new page creation");
+//   try {
+//     const { title, description, content } = req.body;
+
+//     if (!title || !description || !content) {
+//       return res.status(400).json({ message: "Missing required fields" });
+//     }
+
+//     // Create slug
+//     let slug = slugify(title, { lower: true });
+//     let existingPage = await Page.findOne({ slug });
+
+//     let originalSlug = slug;
+//     let count = 1;
+
+//     while (existingPage) {
+//       slug = `${originalSlug}-${count}`;
+//       existingPage = await Page.findOne({ slug });
+//       count++;
+//     }
+
+//     // TinyMCE sends HTML content, DO NOT JSON.parse()
+//     let processedContent = content;
+
+//     // Find base64 images inside TinyMCE HTML
+//     const base64Images = [
+//       ...content.matchAll(/<img[^>]+src="data:(image\/[^;]+);base64,([^"]+)"/g),
+//     ];
+
+//     for (const match of base64Images) {
+//       const mimeType = match[1];
+//       const base64Data = match[2];
+
+//       const ext = mimeType.split("/")[1];
+//       const buffer = Buffer.from(base64Data, "base64");
+
+//       const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+//       const filePath = path.join(__dirname, "../../uploads", fileName);
+
+//       fs.writeFileSync(filePath, buffer);
+
+//       // Replace base64 with image URL
+//       processedContent = processedContent.replace(
+//         match[0],
+//         match[0].replace(
+//           /src="[^"]+"/,
+//           `src="/uploads/${fileName}"`
+//         )
+//       );
+//     }
+
+//     // Save page
+//     const newPage = new Page({
+//       title,
+//       description,
+//       slug,
+//       content: processedContent, // Save cleaned HTML
+//     });
+
+//     await newPage.save();
+
+//     res.status(200).json(newPage);
+//   } catch (error) {
+//     console.error("Error creating page:", error);
+//     res.status(500).json({
+//       message: "Failed to process images",
+//       error: error.message,
+//     });
+//   }
+// };
 exports.getPageById = async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);

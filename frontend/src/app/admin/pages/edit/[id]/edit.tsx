@@ -200,3 +200,143 @@ const EditPage = () => {
   );
 };
 export default EditPage;
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import { useRouter, useParams } from "next/navigation";
+// import { Editor } from "@tinymce/tinymce-react";
+// import axios from "axios";
+// import { toast } from "react-hot-toast";
+// import { api_url } from "@/utils/apiCall";
+
+// export default function EditPage() {
+//   const [title, setTitle] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [content, setContent] = useState("");
+//   const [loading, setLoading] = useState(false);
+
+//   const router = useRouter();
+//   const params = useParams();
+//   const pageId = params?.id as string;
+
+//   const dynamicApiKey = process.env.NEXT_PUBLIC_TINYMCE_KEY || "no-api-key";
+
+//   useEffect(() => {
+//     if (!pageId) return;
+
+//     const fetchPage = async () => {
+//       try {
+//         const res = await axios.get(`${api_url}pages/by/id/${pageId}`);
+//         const page = res.data?.page;
+
+//         if (!page) {
+//           toast.error("Page not found");
+//           return;
+//         }
+
+//         setTitle(page.title);
+//         setDescription(page.description);
+//         setContent(page.contentHTML || page.content || ""); // backend compatibility
+//       } catch (error) {
+//         console.error(error);
+//         toast.error("Failed to load page");
+//       }
+//     };
+
+//     fetchPage();
+//   }, [pageId]);
+
+//   const handleEditorChange = (value: string) => {
+//     setContent(value);
+//   };
+
+//   const handleUpdate = async () => {
+//     if (!title.trim() || !description.trim()) {
+//       toast.error("Title and description are required.");
+//       return;
+//     }
+
+//     setLoading(true);
+
+//     try {
+//       const payload = {
+//         title,
+//         description,
+//         content, // HTML content
+//       };
+
+//       const res = await axios.put(`${api_url}pages/update/${pageId}`, payload);
+
+//       if (res.status === 200) {
+//         toast.success("Page updated successfully!");
+//         router.push("/admin/pages");
+//       }
+//     } catch (err) {
+//       console.error("Update error", err);
+//       toast.error("Failed to update page");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="max-w-7xl mx-auto px-6 py-10 space-y-8 bg-gray-50 rounded-lg shadow-md">
+//       <h1 className="text-4xl font-bold text-gray-800">Edit Page</h1>
+
+//       {/* Title */}
+//       <input
+//         type="text"
+//         placeholder="Enter page title"
+//         value={title}
+//         onChange={(e) => setTitle(e.target.value)}
+//         className="w-full p-4 border border-gray-300 rounded-md bg-white"
+//       />
+
+//       {/* Description */}
+//       <textarea
+//         placeholder="Enter page description"
+//         value={description}
+//         onChange={(e) => setDescription(e.target.value)}
+//         className="w-full p-4 border border-gray-300 rounded-md bg-white"
+//       />
+
+//       {/* Content Editor */}
+//       <div className="flex flex-col space-y-1">
+//         <label className="text-gray-800 font-medium">Page Content</label>
+
+//         <Editor
+//           apiKey={dynamicApiKey}
+//           value={content}
+//           onEditorChange={handleEditorChange}
+//           textareaName="content"
+//           init={{
+//             height: 500,
+//             menubar: true,
+//             plugins:
+//               "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+//             toolbar:
+//               "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
+//               "align lineheight | numlist bullist indent outdent | " +
+//               "link image media table | emoticons charmap | removeformat",
+
+//             images_upload_handler: (blobInfo: { base64: () => any; blob: () => { (): any; new(): any; type: any; }; }) =>
+//               new Promise((resolve) => {
+//                 const base64 = blobInfo.base64();
+//                 resolve(`data:${blobInfo.blob().type};base64,${base64}`);
+//               }),
+//           }}
+//         />
+//       </div>
+
+//       <div className="pt-6">
+//         <button
+//           disabled={loading}
+//           onClick={handleUpdate}
+//           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all disabled:opacity-50"
+//         >
+//           {loading ? "Updating..." : "Update Page"}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
