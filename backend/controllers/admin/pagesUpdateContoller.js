@@ -71,10 +71,32 @@ exports.updatePageById = async (req, res) => {
       return res.status(404).json({ message: "Page not found" });
     }
 
-    // TinyMCE sends HTML — DO NOT JSON.parse()
     let processedContent = content;
 
-    // Find all base64 images inside HTML
+    // --------------------------------------------------
+    // 1️⃣ Convert ANY relative image URL → absolute URL
+    // --------------------------------------------------
+    processedContent = processedContent.replace(
+      /<img[^>]+src="([^"]+)"/g,
+      (match, src) => {
+        // If already absolute → keep it
+        if (src.startsWith("http") || src.startsWith("/uploads/")) {
+          return match;
+        }
+
+        // If TinyMCE gave a relative path like "../../uploads/xxx"
+        if (src.includes("uploads")) {
+          const cleanSrc = src.replace(/^(\.\.\/)+/, ""); // remove ../../
+          return match.replace(src, "/" + cleanSrc);
+        }
+
+        return match; // keep other normal images
+      }
+    );
+
+    // --------------------------------------------------
+    // 2️⃣ Convert base64 images → uploaded files
+    // --------------------------------------------------
     const base64Images = [
       ...content.matchAll(/<img[^>]+src="data:(image\/[^;]+);base64,([^"]+)"/g),
     ];
@@ -86,19 +108,22 @@ exports.updatePageById = async (req, res) => {
       const ext = mimeType.split("/")[1];
       const buffer = Buffer.from(base64Data, "base64");
 
-      const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
+      const fileName = `${Date.now()}-${Math.floor(
+        Math.random() * 1000
+      )}.${ext}`;
       const filePath = path.join(__dirname, "../../uploads", fileName);
 
       fs.writeFileSync(filePath, buffer);
 
-      // Replace base64 image with image URL
       processedContent = processedContent.replace(
         match[0],
         match[0].replace(/src="[^"]+"/, `src="/uploads/${fileName}"`)
       );
     }
 
-    // Update page fields
+    // --------------------------------------------------
+    // 3️⃣ Save updated content
+    // --------------------------------------------------
     page.title = title;
     page.description = description;
     page.content = processedContent;
@@ -114,3 +139,4 @@ exports.updatePageById = async (req, res) => {
     });
   }
 };
+

@@ -202,14 +202,20 @@
 // export default EditPage;
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Editor } from "@tinymce/tinymce-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { api_url } from "@/utils/apiCall";
 
-export default function EditPage() {
+// Load TinyMCE client-side only
+const Editor = dynamic(
+  () => import("@tinymce/tinymce-react").then((m) => m.Editor),
+  { ssr: false }
+);
+
+function EditPageComponent() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
@@ -221,86 +227,82 @@ export default function EditPage() {
   const params = useParams();
   const pageId = params?.id as string;
 
-  // -------------------------------------------------------------
-  // 🔹 1. Fetch TinyMCE API Key
-  // -------------------------------------------------------------
+  /** ========================================================
+   *  Fetch TinyMCE API KEY
+   * ======================================================== */
   useEffect(() => {
-    const fetchApiKey = async () => {
-      // console.log("🔑 [API] Fetching TinyMCE API key...");
+    const fetchKey = async () => {
       try {
         const res = await axios.get(`${api_url}settings`);
-
-        // console.log("🔑 [API Response] TinyMCE Key:", res.data);
-
         setDynamicApiKey(res.data?.tinymceApiKey || "");
       } catch (err) {
-        console.error("❌ [API Error] Failed to load TinyMCE Key:", err);
+        console.error("❌ Failed loading TinyMCE key:", err);
         setDynamicApiKey("");
       }
     };
-    fetchApiKey();
+
+    fetchKey();
   }, []);
 
-  // -------------------------------------------------------------
-  // 🔹 2. Load Page Data
-  // -------------------------------------------------------------
+  /** ========================================================
+   *  Load page content
+   * ======================================================== */
   useEffect(() => {
     if (!pageId) return;
 
-    const fetchPage = async () => {
-      console.log("📄 [API] Fetching Page:", pageId);
-
+    const loadPage = async () => {
       try {
         const res = await axios.get(`${api_url}pages/by/id/${pageId}`);
 
-        console.log("📄 [API Response] Page Loaded:", res.data);
-
         if (!res.data?.page) {
-          toast.error("Page not found");
+          toast.error("Page not found.");
           return;
         }
 
         const page = res.data.page;
-
         setTitle(page.title);
         setDescription(page.description);
         setContent(page.contentHTML || page.content || "");
-      } catch (error) {
-        console.error("❌ [API Error] Failed to fetch page:", error);
+
+      } catch (err) {
+        console.error("❌ Error loading page:", err);
         toast.error("Failed to load page");
       }
     };
 
-    fetchPage();
+    loadPage();
   }, [pageId]);
 
-  // -------------------------------------------------------------
-  // 🔹 3. Update Page
-  // -------------------------------------------------------------
+  /** ========================================================
+   *  Update Page (Redirect same as Create Page)
+   * ======================================================== */
   const handleUpdate = async () => {
+    console.log("🟡 Updating Page:", { title, description, content });
+
     if (!title.trim() || !description.trim()) {
-      toast.error("Title and description are required.");
+      toast.error("Title and description required.");
       return;
     }
 
     setLoading(true);
 
-    const payload = { title, description, content };
-
-    console.log("📤 [API] Updating Page...");
-    console.log("📦 Payload:", payload);
-
     try {
-      const res = await axios.put(`${api_url}pages/update/${pageId}`, payload);
+      const payload = { title, description, content };
+      console.log("📤 Sending Update:", payload);
 
-      console.log("📥 [API Response] Update Result:", res.data);
+      const res = await axios.put(
+        `${api_url}pages/update/${pageId}`,
+        payload
+      );
 
-      if (res.status === 200) {
-        toast.success("Page updated successfully!");
-        router.push("/admin/pages");
-      }
-    } catch (err) {
-      console.error("❌ [API Error] Update failed:", err);
+      console.log("🟢 Update Response:", res.data);
+
+      // ⭐ EXACT SAME LOGIC AS CREATE PAGE
+      toast.success("Page updated successfully!");
+      router.replace("/admin/pages"); // More reliable than push()
+
+    } catch (error: any) {
+      console.error("❌ Update Failed:", error?.response?.data || error);
       toast.error("Failed to update page");
     } finally {
       setLoading(false);
@@ -311,35 +313,34 @@ export default function EditPage() {
     <div className="max-w-7xl mx-auto px-6 py-10 space-y-8 bg-gray-50 rounded-lg shadow-md">
       <h1 className="text-4xl font-bold text-gray-800">Edit Page</h1>
 
-      {/* Title */}
       <input
         type="text"
-        placeholder="Enter page title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        placeholder="Enter page title"
         className="w-full p-4 border border-gray-300 rounded-md bg-white"
       />
 
-      {/* Description */}
       <textarea
-        placeholder="Enter page description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        placeholder="Enter page description"
         className="w-full p-4 border border-gray-300 rounded-md bg-white"
       />
 
-      {/* Content Editor */}
       <div className="flex flex-col space-y-1">
         <label className="text-gray-800 font-medium">Page Content</label>
 
         {dynamicApiKey === null ? (
-          <p className="text-gray-600">Loading editor...</p>
+          <p className="text-gray-500">Loading Editor...</p>
         ) : (
           <Editor
             apiKey={dynamicApiKey || undefined}
             value={content}
-            onEditorChange={(value) => setContent(value)}
-            textareaName="content"
+            onEditorChange={(value) => {
+              console.log("✏️ Editor Updated:", value);
+              setContent(value);
+            }}
             init={{
               height: 500,
               menubar: true,
@@ -350,69 +351,56 @@ export default function EditPage() {
                 "align lineheight | numlist bullist indent outdent | " +
                 "link image media table | emoticons charmap | removeformat",
 
-              // -------------------------------------------------------------
-              // 🔹 4. TinyMCE Image Upload Debugging
-              // -------------------------------------------------------------
-              images_upload_handler: async (blobInfo: any) => {
-                console.log("🟦 [TinyMCE] Image Upload Triggered");
-                console.log("📄 File Name:", blobInfo?.filename());
-                console.log("📦 File Size:", blobInfo?.blob()?.size, "bytes");
+              /** ==========================================================
+               *  IMAGE UPLOAD HANDLER (Works same as your existing backend)
+               * ========================================================== */
+               images_upload_handler: async (blobInfo: { blob: () => Blob }) => {
+                console.log("Uploading image...");
+                console.log("Blob Info:", blobInfo);
+                console.log("Blob MIME Type:", blobInfo.blob().type);
 
-                const fileBlob = blobInfo.blob();
-                console.log("🧪 Blob File:", fileBlob);
+                return new Promise((resolve, reject) => {
+                  try {
+                    const reader = new FileReader();
 
-                const formData = new FormData();
-                formData.append("file", fileBlob, blobInfo.filename());
+                    reader.onloadend = () => {
+                      const base64data = reader.result as string;
 
-                const uploadUrl = `${api_url}upload/page-image`;
+                      console.log(
+                        "Base64 Image Generated:",
+                        base64data.substring(0, 60) + "..."
+                      );
 
-                console.log("📤 [TinyMCE] Uploading to:", uploadUrl);
-                console.log("📤 [TinyMCE] FormData:", formData);
+                      resolve(base64data);
+                    };
 
-                try {
-                  const response = await axios.post(uploadUrl, formData, {
-                    headers: {
-                      "Content-Type": "multipart/form-data",
-                    },
-                  });
+                    reader.onerror = (err) => {
+                      console.error("FileReader error:", err);
+                      reject("FileReader error");
+                    };
 
-                  console.log("📥 [TinyMCE] Upload Response:", response.data);
-
-                  if (response.data?.location) {
-                    console.log(
-                      "✅ [TinyMCE] Final Uploaded URL:",
-                      response.data.location
-                    );
-                    return response.data.location;
-                  } else {
-                    console.error(
-                      "❌ [TinyMCE] Upload Missing 'location':",
-                      response.data
-                    );
-                    throw new Error("Invalid upload response");
+                    reader.readAsDataURL(blobInfo.blob());
+                  } catch (error) {
+                    console.error("Upload handler error:", error);
+                    reject("Image processing error");
                   }
-                } catch (error) {
-                  console.error("🔥 [TinyMCE] Upload Error:", error);
-                  toast.error("Image upload failed");
-                  throw error;
-                }
-              },
+                });
+              }
             }}
           />
         )}
       </div>
 
-      <div className="pt-6">
-        <button
-          disabled={loading}
-          onClick={handleUpdate}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-all disabled:opacity-50"
-        >
-          {loading ? "Updating..." : "Update Page"}
-        </button>
-      </div>
+      <button
+        disabled={loading}
+        onClick={handleUpdate}
+        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg disabled:opacity-50"
+      >
+        {loading ? "Updating..." : "Update Page"}
+      </button>
     </div>
   );
 }
 
-
+// Prevent hydration issues by disabling SSR
+export default dynamic(() => Promise.resolve(EditPageComponent), { ssr: false });

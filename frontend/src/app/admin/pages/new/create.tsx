@@ -185,14 +185,20 @@
 
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Editor } from "@tinymce/tinymce-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { api_url } from "@/utils/apiCall";
 
-export default function Create() {
+// Load TinyMCE only on client
+const Editor = dynamic(
+  () => import("@tinymce/tinymce-react").then((m) => m.Editor),
+  { ssr: false }
+);
+
+function CreateComponent() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
@@ -201,20 +207,35 @@ export default function Create() {
 
   const router = useRouter();
 
-  // Fetch TinyMCE API Key
+  /** ================================
+   *  Fetch TinyMCE API Key
+   * ================================ */
   useEffect(() => {
+    console.log("Fetching TinyMCE key from:", `${api_url}settings`);
+
     const fetchApiKey = async () => {
       try {
-        const response = await axios.get(`${api_url}settings`);
-        setDynamicApiKey(response.data?.tinymceApiKey || "");
-      } catch {
+        const res = await axios.get(`${api_url}settings`);
+        console.log("TinyMCE Settings Response:", res.data);
+        setDynamicApiKey(res.data?.tinymceApiKey || "");
+      } catch (err) {
+        console.error("Failed to fetch TinyMCE Key:", err);
         setDynamicApiKey("");
       }
     };
+
     fetchApiKey();
   }, []);
 
+  /** ================================
+   *  Submit Page
+   * ================================ */
   const handleSubmit = async () => {
+    console.log("Submitting Page...");
+    console.log("Title:", title);
+    console.log("Description:", description);
+    console.log("Content Length:", content.length);
+
     if (!title.trim() || !description.trim()) {
       toast.error("Title and description are required.");
       return;
@@ -223,18 +244,18 @@ export default function Create() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${api_url}create/pages`, {
-        title,
-        description,
-        content,
-      });
+      const payload = { title, description, content };
+      console.log("Sending POST request →", payload);
 
-      if (response.data?.success) {
-        toast.success("Page created successfully!");
-        router.push("/admin/pages");
-      }
-    } catch (error) {
-      console.error(error);
+      const response = await axios.post(`${api_url}create/pages`, payload);
+      console.log("Create Page Response:", response.data);
+
+      // ️🚀 ALWAYS REDIRECT after a successful POST
+      toast.success("Page created successfully!");
+      router.replace("/admin/pages"); // ⭐ using replace() is more reliable
+
+    } catch (error: any) {
+      console.error("Error creating page:", error?.response?.data || error);
       toast.error("Error publishing the page.");
     } finally {
       setLoading(false);
@@ -250,7 +271,10 @@ export default function Create() {
         type="text"
         placeholder="Enter page title"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => {
+          console.log("Title changed:", e.target.value);
+          setTitle(e.target.value);
+        }}
         className="w-full p-4 border border-gray-300 rounded-md bg-white"
       />
 
@@ -258,11 +282,14 @@ export default function Create() {
       <textarea
         placeholder="Enter page description"
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        onChange={(e) => {
+          console.log("Description changed:", e.target.value);
+          setDescription(e.target.value);
+        }}
         className="w-full p-4 border border-gray-300 rounded-md bg-white"
       />
 
-      {/* Page Editor */}
+      {/* Content Editor */}
       <div className="flex flex-col space-y-1">
         <label className="text-gray-800 font-medium">Page Content</label>
 
@@ -272,7 +299,10 @@ export default function Create() {
           <Editor
             apiKey={dynamicApiKey || undefined}
             value={content}
-            onEditorChange={(value) => setContent(value)}
+            onEditorChange={(value: any) => {
+              console.log("Editor content updated (length):", value.length);
+              setContent(value);
+            }}
             textareaName="content"
             init={{
               height: 500,
@@ -284,43 +314,49 @@ export default function Create() {
                 "link image media table | align lineheight | numlist bullist indent outdent | " +
                 "emoticons charmap | removeformat",
 
-              // ⭐⭐⭐ REAL IMAGE UPLOAD (NOT BASE64)
-              images_upload_handler: async (blobInfo: any) => {
-                console.log("📤 Uploading Image:", blobInfo.filename());
+              /*
+                ==================================================================
+                🖼️ BASE64 IMAGE UPLOADER (NO API USED)
+                ==================================================================
+              */
+              images_upload_handler: async (blobInfo: { blob: () => Blob }) => {
+                console.log("Uploading image...");
+                console.log("Blob Info:", blobInfo);
+                console.log("Blob MIME Type:", blobInfo.blob().type);
 
-                const formData = new FormData();
-                formData.append("file", blobInfo.blob(), blobInfo.filename());
+                return new Promise((resolve, reject) => {
+                  try {
+                    const reader = new FileReader();
 
-                try {
-                  const response = await axios.post(
-                    `${api_url}upload/page-image`,
-                    formData,
-                    {
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                    }
-                  );
+                    reader.onloadend = () => {
+                      const base64data = reader.result as string;
 
-                  console.log("📥 Upload Response:", response.data);
+                      console.log(
+                        "Base64 Image Generated:",
+                        base64data.substring(0, 60) + "..."
+                      );
 
-                  if (response.data?.location) {
-                    return response.data.location; // full URL
-                  } else {
-                    throw new Error("Invalid image upload response");
+                      resolve(base64data);
+                    };
+
+                    reader.onerror = (err) => {
+                      console.error("FileReader error:", err);
+                      reject("FileReader error");
+                    };
+
+                    reader.readAsDataURL(blobInfo.blob());
+                  } catch (error) {
+                    console.error("Upload handler error:", error);
+                    reject("Image processing error");
                   }
-                } catch (error) {
-                  console.error("❌ TinyMCE Image Upload Error:", error);
-                  toast.error("Image upload failed");
-                  throw error;
-                }
+                });
               },
             }}
           />
         )}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit */}
       <button
         disabled={loading}
         onClick={handleSubmit}
@@ -331,3 +367,6 @@ export default function Create() {
     </div>
   );
 }
+
+export default CreateComponent;
+

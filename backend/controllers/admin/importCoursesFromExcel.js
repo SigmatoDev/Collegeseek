@@ -302,10 +302,7 @@ exports.importCoursesFromExcel = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(req.file.path);
 
-    // ============================
     // SMART SHEET DETECTION
-    // ============================
-
     console.log("📘 Searching for worksheet...");
 
     let worksheet = workbook.getWorksheet("Courses");
@@ -335,7 +332,7 @@ exports.importCoursesFromExcel = async (req, res) => {
 
     console.log("📘 Worksheet loaded:", worksheet.name);
 
-    // Extracting data
+    // Extract data
     const rows = worksheet.getSheetValues();
     rows.shift();
     const headerRow = rows.shift();
@@ -379,12 +376,24 @@ exports.importCoursesFromExcel = async (req, res) => {
         const intake_total = parseNumber(row[20]);
         const entrance_exam = row[21]?.toString().trim();
         const streamsRaw = row[22]?.toString().trim();
-        const brochure_link = row[23]?.toString().trim();
+
+        // ================================
+        // ⭐ BROCHURE LINK FIXED HERE ⭐
+        // ================================
+        let brochure_link = "";
+        if (row[23]) {
+          if (typeof row[23] === "object") {
+            brochure_link = row[23].hyperlink || row[23].text || "";
+          } else {
+            brochure_link = row[23].toString().trim();
+          }
+        }
 
         console.log(`📌 Row Data:`, {
           mongoId,
           specializationName,
           rawCollegeName,
+          brochure_link,
         });
 
         // CLEAN COLLEGE NAME
