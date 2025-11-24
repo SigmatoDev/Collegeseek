@@ -14,9 +14,10 @@ const LogIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showModal, setShowModal] = useState(false);
+
   const [mounted, setMounted] = useState(false);
 
   const [emailError, setEmailError] = useState(false);
@@ -24,124 +25,135 @@ const LogIn = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // ✅ DO NOT redirect immediately — only allow component to render
+useEffect(() => {
+  setMounted(true);
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
+  const saved = sessionStorage.getItem("redirectAfterLogin");
+  const current = window.location.href;
 
-  const trimmedEmail = email.trim().toLowerCase();
-  const trimmedPassword = password.trim();
-
-  const isEmailEmpty = !trimmedEmail;
-  const isPasswordEmpty = !trimmedPassword;
-  setEmailError(isEmailEmpty);
-  setPasswordError(isPasswordEmpty);
-
-  if (isEmailEmpty || isPasswordEmpty) {
-    setError("Please enter both email and password.");
-    setShowModal(true);
-    return;
+  if (!saved) {
+    console.log("📌 No redirect stored yet. Setting current page as fallback:", current);
+    sessionStorage.setItem("redirectAfterLogin", current);
   }
+}, []);
 
-  try {
-    const res = await fetch(`${api_url}user/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: trimmedEmail,
-        password: trimmedPassword,
-      }),
-    });
 
-    let data;
-    try {
-      data = await res.json();
-    } catch {
-      setError("Invalid response from server.");
-      setShowModal(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    const isEmailEmpty = !trimmedEmail;
+    const isPasswordEmpty = !trimmedPassword;
+
+    setEmailError(isEmailEmpty);
+    setPasswordError(isPasswordEmpty);
+
+    if (isEmailEmpty || isPasswordEmpty) {
+      setError("Please enter both email and password.");
       return;
     }
 
-    // ✅ Successful login
-    if (res.ok && data.token && data.user) {
-      sessionStorage.setItem("authToken", data.token);
-
-      useUserStore.getState().setUser({
-        ...data.user,
-        token: data.token,
+    try {
+      const res = await fetch(`${api_url}user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          password: trimmedPassword,
+        }),
       });
 
-      setSuccess("Login successful!");
-      setShowModal(true);
-
-      // ✅ Check for pending shortlist
-      const pendingCollege = sessionStorage.getItem("pendingShortlistCollege");
-      if (pendingCollege) {
-        const college = JSON.parse(pendingCollege);
-        console.log("📦 Pending shortlist detected:", college);
-
-        try {
-          const shortlistRes = await fetch(`${api_url}shortlist`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${data.token}`,
-            },
-            body: JSON.stringify({
-              collegeId: college.id,
-              name: data.user.name || "",
-              email: data.user.email || "",
-              phone: data.user.phone || "",
-            }),
-          });
-
-          if (shortlistRes.ok) {
-            console.log("✅ Auto-shortlisted after login!");
-            sessionStorage.removeItem("pendingShortlistCollege");
-          } else {
-            console.warn("⚠️ Auto-shortlist failed after login.");
-          }
-        } catch (err) {
-          console.error("🚨 Auto-shortlist error:", err);
-        }
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError("Invalid response from server.");
+        return;
       }
 
-      // ✅ Redirect back to the original page (if exists)
-      // ✅ Redirect back to original page (if saved)
-const redirectTo = sessionStorage.getItem("redirectAfterLogin");
-console.log("🎯 Stored redirectAfterLogin:", redirectTo);
+      if (res.ok && data.token && data.user) {
+        // console.log("🔍 LOGIN DEBUG → Login success:", data);
 
-setTimeout(() => {
-  if (redirectTo && redirectTo !== "/user/auth/logIn") {
-    console.log("✅ Redirecting back to:", redirectTo);
-    sessionStorage.removeItem("redirectAfterLogin");
-    router.push(redirectTo);
-  } else {
-    console.log("⚠️ No valid redirect found — going to home page.");
-    router.push("/");
-  }
-}, 1500);
+        sessionStorage.setItem("authToken", data.token);
 
+        useUserStore.getState().setUser({
+          ...data.user,
+          token: data.token,
+        });
 
-    } else if (data.message?.toLowerCase().includes("user not found")) {
-      setError("No account found with this email. Redirecting to sign-up...");
-      setShowModal(true);
-      setTimeout(() => router.push("/user/auth/signUp"), 2500);
-    } else {
-      setError(data.message || "Invalid credentials.");
-      setShowModal(true);
+        setSuccess("Login successful!");
+
+        // 📦 CHECK PENDING SHORTLIST
+        const pendingCollege = sessionStorage.getItem("pendingShortlistCollege");
+        // console.log("🔍 LOGIN DEBUG → Pending shortlist check:", pendingCollege);
+
+        if (pendingCollege) {
+          const college = JSON.parse(pendingCollege);
+
+          try {
+            // console.log("🔍 LOGIN DEBUG → Auto-shortlisting:", college);
+
+            const shortlistRes = await fetch(`${api_url}shortlist`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${data.token}`,
+              },
+              body: JSON.stringify({
+                collegeId: college.id,
+                name: data.user.name || "",
+                email: data.user.email || "",
+                phone: data.user.phone || "",
+              }),
+            });
+
+            if (shortlistRes.ok) {
+              // console.log("🔍 LOGIN DEBUG → Auto-shortlist SUCCESS");
+              sessionStorage.removeItem("pendingShortlistCollege");
+            } else {
+              // console.warn("🔍 LOGIN DEBUG → Auto-shortlist FAILED");
+            }
+          } catch (err) {
+            // console.error("🔍 LOGIN DEBUG → Auto-shortlist error:", err);
+          }
+        }
+
+        // 🎯 DECIDE WHERE TO REDIRECT
+        const redirectTo = sessionStorage.getItem("redirectAfterLogin");
+        // console.log("🔍 LOGIN DEBUG → redirectAfterLogin:", redirectTo);
+
+        setTimeout(() => {
+          if (
+            redirectTo &&
+            redirectTo !== "null" &&
+            redirectTo !== "" &&
+            !redirectTo.includes("/user/auth/logIn")
+          ) {
+            // console.log("🔍 LOGIN DEBUG → Redirecting user to:", redirectTo);
+            sessionStorage.removeItem("redirectAfterLogin");
+            router.push(redirectTo);
+          } else {
+            // console.log("🔍 LOGIN DEBUG → No valid redirect found. Going home.");
+            router.push("/");
+          }
+        }, 1200);
+
+      } else if (data.message?.toLowerCase().includes("user not found")) {
+        setError("No account found with this email. Redirecting to sign-up...");
+        setTimeout(() => router.push("/user/auth/signUp"), 2500);
+      } else {
+        setError(data.message || "Invalid credentials.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Server error. Please try again later.");
     }
-  } catch (err) {
-    console.error(err);
-    setError("Server error. Please try again later.");
-    setShowModal(true);
-  }
-};
-
+  };
 
   if (!mounted) return null;
 
@@ -150,6 +162,7 @@ setTimeout(() => {
       <Header />
       <div className="flex flex-col justify-center items-center min-h-screen bg-white">
         <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
+
           <div className="flex justify-center">
             <Image
               src="/logo/cs-logo_a.webp"
@@ -166,7 +179,7 @@ setTimeout(() => {
 
           {(error || success) && (
             <div
-              className={`mt-4 text-center text-sm font-medium transition-opacity duration-400 ${
+              className={`mt-4 text-center text-sm font-medium ${
                 error ? "text-red-600" : "text-green-600"
               }`}
             >
@@ -181,8 +194,7 @@ setTimeout(() => {
               </label>
               <input
                 type="email"
-                name="email"
-                className={`w-full p-3 border rounded-md focus:outline-none focus:ring ${
+                className={`w-full p-3 border rounded-md ${
                   emailError ? "border-red-500" : "focus:border-[#581845]"
                 }`}
                 placeholder="Enter your email"
@@ -200,8 +212,7 @@ setTimeout(() => {
               </label>
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
-                className={`w-full p-3 border rounded-md focus:outline-none focus:ring ${
+                className={`w-full p-3 border rounded-md ${
                   passwordError ? "border-red-500" : "focus:border-[#581845]"
                 }`}
                 placeholder="Enter password"
@@ -237,7 +248,7 @@ setTimeout(() => {
 
             <button
               type="submit"
-              className="w-full bg-[#581845] text-white p-3 rounded-md hover:bg-[#441137] transition duration-200"
+              className="w-full bg-[#581845] text-white p-3 rounded-md hover:bg-[#441137] transition"
             >
               Log In
             </button>

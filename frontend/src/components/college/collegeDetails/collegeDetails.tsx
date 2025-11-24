@@ -164,26 +164,39 @@ export default function CollegeDetailsPage() {
     }
   };
 
- const handleShortlist = async () => {
+const handleShortlist = async () => {
+  console.log("🔍 Checking login:", user?.token);
+
   if (!user?.token) {
     console.warn("❌ User not logged in — redirecting to login page.");
 
-    // ✅ Store the selected college in sessionStorage before redirecting
-    sessionStorage.setItem(
-      "pendingShortlistCollege",
-      JSON.stringify({
-        id: collegeData?._id || collegeData?.id,
-        name: collegeData?.name,
-        location: collegeData?.location,
-      })
-    );
+    const currentUrl = window.location.href;
+    const existingRedirect = sessionStorage.getItem("redirectAfterLogin");
 
-    // Redirect to login
+    // ✅ Save redirect URL ONLY if not saved already
+    if (!existingRedirect || existingRedirect === "null" || existingRedirect === "") {
+      console.log("📌 Saving redirectAfterLogin:", currentUrl);
+      sessionStorage.setItem("redirectAfterLogin", currentUrl);
+    } else {
+      console.log("⚠️ Redirect already exists →", existingRedirect);
+    }
+
+    // ✅ Save pending college details
+    const pendingCollege = {
+      id: collegeData?._id || collegeData?.id,
+      name: collegeData?.name,
+      location: collegeData?.location,
+    };
+
+    console.log("📦 Saving pendingShortlistCollege:", pendingCollege);
+    sessionStorage.setItem("pendingShortlistCollege", JSON.stringify(pendingCollege));
+
     window.location.href = "/user/auth/logIn";
     return;
   }
 
-  // ✅ Continue with your existing shortlist logic
+  console.log("👤 User logged in — processing shortlist…");
+
   const userId = user.id || user._id;
   const collegeId = collegeData?._id || collegeData?.id;
 
@@ -203,6 +216,7 @@ export default function CollegeDetailsPage() {
     });
 
     const data = await res.json();
+    console.log("📨 API Response:", data);
 
     if (data.message === "User not found.") {
       alert("Your account was not found. Please sign up first.");
@@ -211,7 +225,7 @@ export default function CollegeDetailsPage() {
     }
 
     if (res.ok) {
-      alert("College successfully shortlisted!");
+      console.log("✅ College shortlisted successfully!");
       addToShortlist({
         id: collegeData?._id || collegeData?.id || "",
         name: collegeData?.name || "",
@@ -219,6 +233,7 @@ export default function CollegeDetailsPage() {
       });
       setAlreadyShortlisted(true);
     } else {
+      console.error("❌ Shortlist error:", data.message);
       alert(data.message || "Failed to shortlist this college.");
     }
   } catch (err) {
@@ -226,6 +241,9 @@ export default function CollegeDetailsPage() {
     alert("Something went wrong. Please try again.");
   }
 };
+
+
+
 
 
   if (!mounted) return null;

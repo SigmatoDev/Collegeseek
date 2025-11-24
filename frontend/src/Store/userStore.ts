@@ -22,6 +22,12 @@ interface UserStore {
   token: string | null;
   isLoggedIn: boolean;
   shortlist: CollegeShortlist[];
+
+  // 🔔 Notification State
+  hasNotification: boolean;
+  triggerNotification: () => void;
+  clearNotification: () => void;
+
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   addToShortlist: (college: CollegeShortlist) => void;
@@ -39,7 +45,16 @@ export const useUserStore = create<UserStore>()(
       isLoggedIn: false,
       shortlist: [],
 
-      // ✅ Save user and token
+      // 🔔 Notification (initial false)
+      hasNotification: false,
+
+      // 🔔 Trigger red-dot
+      triggerNotification: () => set({ hasNotification: true }),
+
+      // 🔔 Clear red-dot
+      clearNotification: () => set({ hasNotification: false }),
+
+      // Save user and token
       setUser: (user) =>
         set({
           user,
@@ -49,10 +64,15 @@ export const useUserStore = create<UserStore>()(
 
       setToken: (token) => set({ token }),
 
+      // Add college to shortlist + trigger notification
       addToShortlist: (college) => {
         const current = get().shortlist;
+
         if (!current.find((c) => c.id === college.id)) {
-          set({ shortlist: [...current, college] });
+          set({
+            shortlist: [...current, college],
+            hasNotification: true, // 🔔 automatically turn ON
+          });
         }
       },
 
@@ -67,7 +87,14 @@ export const useUserStore = create<UserStore>()(
       isCollegeShortlisted: (collegeId) =>
         !!get().shortlist.find((c) => c.id === collegeId),
 
-      logout: () => set({ user: null, token: null, isLoggedIn: false, shortlist: [] }),
+      logout: () =>
+        set({
+          user: null,
+          token: null,
+          isLoggedIn: false,
+          shortlist: [],
+          hasNotification: false,
+        }),
     }),
     {
       name: "user_store",
