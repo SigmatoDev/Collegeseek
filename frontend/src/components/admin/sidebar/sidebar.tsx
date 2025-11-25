@@ -208,7 +208,7 @@ const Sidebar = () => {
           onClick={() => {
             useAdminStore.getState().logout();
             sessionStorage.removeItem("admin_store");
-            window.location.href = "/admin/auth/logIn";
+            window.location.href = "/cs-admin";
           }}
           className={`w-full flex items-center ${
             isOpen ? "justify-start space-x-3" : "justify-center"

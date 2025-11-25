@@ -256,10 +256,17 @@ const PageView = () => {
   // ---------------------------------------------------
   // FIX IMAGE URLS FOR TINYMCE CONTENT
   // ---------------------------------------------------
-  const fixedHTML = (pageData.content || pageData.contentHTML || "").replace(
-    /src="\/uploads/g,
-    `src="${img_url}uploads`
+const fixedHTML = (pageData.content || pageData.contentHTML || "")
+  // Fix upload path
+  .replace(/src="\/uploads/g, `src="${img_url}uploads`)
+
+  // Add fallback image if loading fails
+  .replace(
+    /<img([^>]*)>/g,
+    `<img$1 onerror="this.onerror=null;this.src='/image/fallback-image.webp';" />`
   );
+
+
 
   // ---------------------------------------------------
   // PAGE RENDER

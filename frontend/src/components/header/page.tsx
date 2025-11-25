@@ -3,7 +3,12 @@
 import { useState, useEffect, type ComponentType } from "react";
 import axios from "axios";
 import { img_url, api_url } from "@/utils/apiCall";
-import { PhoneIcon, Bars3Icon, XMarkIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import {
+  PhoneIcon,
+  Bars3Icon,
+  XMarkIcon,
+  EnvelopeIcon,
+} from "@heroicons/react/24/outline";
 import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import Link from "next/link";
 import debounce from "lodash.debounce";
@@ -158,27 +163,48 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
       <div className="bg-[#fdf1ea] border-b-0 border-[#f4b3b1] text-sm">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-10 py-2 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-4 text-[#1f1b3b]">
-            {contactItems.map(({ icon: Icon, label, href }) => (
-              <a
-                key={label}
-                href={href}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium hover:text-[#7b5cd6] transition"
-              >
-                <span className="w-7 h-7 rounded-full bg-white text-[#c25541] flex items-center justify-center shadow-sm">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span>{label}</span>
-              </a>
-            ))}
+            {contactItems.map(({ icon: Icon, label, href }) => {
+              const isPhone = href.startsWith("tel:");
+
+              return isPhone ? (
+                // 🔹 NON-CLICKABLE PHONE
+                <div
+                  key={label}
+                  className="flex items-center gap-2 text-xs sm:text-sm font-medium cursor-default"
+                >
+                  <span className="w-7 h-7 rounded-full bg-white text-[#c25541] flex items-center justify-center shadow-sm">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span>{label}</span>
+                </div>
+              ) : (
+                // 🔹 CLICKABLE EMAIL
+                <a
+                  key={label}
+                  href={href}
+                  className="flex items-center gap-2 text-xs sm:text-sm font-medium hover:text-[#7b5cd6] transition"
+                >
+                  <span className="w-7 h-7 rounded-full bg-white text-[#c25541] flex items-center justify-center shadow-sm">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span>{label}</span>
+                </a>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-3 text-[#c25541]">
-           
             <nav className="hidden md:flex items-center gap-4 text-xs mr-2 font-semibold tracking-wide">
-              <Link href="/aboutUs" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">
+              <Link
+                href="/aboutUs"
+                className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest"
+              >
                 About Company
               </Link>
-              <Link href="/contactUs" className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest">
+              <Link
+                href="/contactUs"
+                className="text-[#7b5cd6] hover:text-[#c25541] transition mr-2 uppercase tracking-widest"
+              >
                 Contact
               </Link>
               <button
@@ -192,9 +218,9 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
               </button>
             </nav>
             <div className="flex items-center gap-2">
-            <span className="hidden lg:block text-xs uppercase tracking-widest">
-              Connect with us
-            </span>
+              <span className="hidden lg:block text-xs uppercase tracking-widest">
+                Connect with us
+              </span>
               {SOCIAL_ORDER.map((network) => {
                 const url = socialLinks[network] || "#";
                 const Icon = SOCIAL_ICON_MAP[network];
@@ -222,7 +248,10 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
         isOpen={isCounsellingOpen}
         onClose={() => setIsCounsellingOpen(false)}
       >
-        <CounsellingForm collegeId="global" onClose={() => setIsCounsellingOpen(false)} />
+        <CounsellingForm
+          collegeId="global"
+          onClose={() => setIsCounsellingOpen(false)}
+        />
       </Modal>
 
       {/* Main Navigation */}

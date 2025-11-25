@@ -216,3 +216,37 @@ exports.getPages = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+exports.deletePageById = async (req, res) => {
+  try {
+    const pageId = req.params.id;
+
+    const page = await Page.findById(pageId);
+
+    if (!page) {
+      return res.status(404).json({ message: "Page not found" });
+    }
+
+    // NEW: Safe check for page.content
+    let imageMatches = [];
+
+    if (page.content && typeof page.content === "string") {
+      imageMatches = [...page.content.matchAll(/src="\/uploads\/([^"]+)"/g)];
+    }
+
+    // Delete matched images
+    imageMatches.forEach(([_, filename]) => {
+      const filePath = path.join(__dirname, "../../uploads", filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+
+    // Delete the page
+    await Page.findByIdAndDelete(pageId);
+
+    res.status(200).json({ message: "Page deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting page:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

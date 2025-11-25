@@ -167,21 +167,23 @@ export default function CollegeDetailsPage() {
 const handleShortlist = async () => {
   console.log("🔍 Checking login:", user?.token);
 
+  // If user not logged in → save redirect + pending shortlist
   if (!user?.token) {
     console.warn("❌ User not logged in — redirecting to login page.");
 
-    const currentUrl = window.location.href;
+    // Save ONLY the path, not full domain (works on local + production)
+    const currentPath = window.location.pathname + window.location.search;
+
     const existingRedirect = sessionStorage.getItem("redirectAfterLogin");
 
-    // ✅ Save redirect URL ONLY if not saved already
     if (!existingRedirect || existingRedirect === "null" || existingRedirect === "") {
-      console.log("📌 Saving redirectAfterLogin:", currentUrl);
-      sessionStorage.setItem("redirectAfterLogin", currentUrl);
+      console.log("📌 Saving redirectAfterLogin:", currentPath);
+      sessionStorage.setItem("redirectAfterLogin", currentPath);
     } else {
       console.log("⚠️ Redirect already exists →", existingRedirect);
     }
 
-    // ✅ Save pending college details
+    // Save pending college info
     const pendingCollege = {
       id: collegeData?._id || collegeData?.id,
       name: collegeData?.name,
@@ -191,10 +193,12 @@ const handleShortlist = async () => {
     console.log("📦 Saving pendingShortlistCollege:", pendingCollege);
     sessionStorage.setItem("pendingShortlistCollege", JSON.stringify(pendingCollege));
 
+    // Redirect to login (auto-adjusts domain)
     window.location.href = "/user/auth/logIn";
     return;
   }
 
+  // User logged in → process shortlist
   console.log("👤 User logged in — processing shortlist…");
 
   const userId = user.id || user._id;
@@ -226,11 +230,14 @@ const handleShortlist = async () => {
 
     if (res.ok) {
       console.log("✅ College shortlisted successfully!");
+
+      // Update locally
       addToShortlist({
         id: collegeData?._id || collegeData?.id || "",
         name: collegeData?.name || "",
         location: collegeData?.location || "",
       });
+
       setAlreadyShortlisted(true);
     } else {
       console.error("❌ Shortlist error:", data.message);
@@ -241,6 +248,7 @@ const handleShortlist = async () => {
     alert("Something went wrong. Please try again.");
   }
 };
+
 
 
 

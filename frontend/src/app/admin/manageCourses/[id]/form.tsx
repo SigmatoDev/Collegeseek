@@ -37,7 +37,8 @@ const COURSE_AUTOFILL_TEMPLATES: Record<
       currency?: string;
       placement_rate?: number;
     };
-}> = {
+  }
+> = {
   "b.tech": {
     name: "B.Tech",
     description:
@@ -72,6 +73,8 @@ const ActualCourseForm = () => {
   const router = useRouter();
   const { id: courseId } = useParams();
   const [courseList, setCourseList] = useState<Category[]>([]);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -80,7 +83,7 @@ const ActualCourseForm = () => {
     focusAreas: "",
     examList: "",
   });
-  const [formErrors, setFormErrors] = useState<string[]>([]);
+  // const [formErrors, setFormErrors] = useState<string[]>([]);
 
   const DURATION_OPTIONS = [
     "1 Year",
@@ -344,34 +347,48 @@ const ActualCourseForm = () => {
   );
 
   const collectValidationErrors = () => {
-    const errors: string[] = [];
+    const errors: Record<string, string> = {};
+
     if (!course.college) {
-      errors.push("Select a college for this course.");
+      errors.college = "Select a college for this course.";
     }
-    if (!course.category) {
-      errors.push("Select a degree.");
+
+    if (
+      !course.category ||
+      typeof course.category !== "string" ||
+      course.category.trim() === ""
+    ) {
+      errors.category = "Select a degree.";
     }
-    if (!course.streams) {
-      errors.push("Choose a stream.");
+
+    if (!course.streams || course.streams.length === 0) {
+      errors.streams = "Choose at least one stream.";
     }
-    if (!course.specialization) {
-      errors.push("Choose a specialization.");
+
+    if (!course.specialization || course.specialization.trim() === "") {
+      errors.specialization = "Choose a specialization.";
     }
+
     if (!course.programMode) {
-      errors.push("Select a program mode.");
+      errors.programMode = "Select a program mode.";
     }
-    if (!course.description?.trim()) {
-      errors.push("Add a short description for the course.");
+
+    if (!course.description || course.description.trim() === "") {
+      errors.description = "Add a short description.";
     }
-    if (!course.duration?.trim()) {
-      errors.push("Provide the course duration.");
+
+    if (!course.duration || course.duration.trim() === "") {
+      errors.duration = "Provide the course duration.";
     }
-    if (!course.eligibility?.trim()) {
-      errors.push("Eligibility details are required.");
+
+    if (!course.eligibility || course.eligibility.trim() === "") {
+      errors.eligibility = "Eligibility details are required.";
     }
+
     if (!course.fees?.amount || Number(course.fees.amount) <= 0) {
-      errors.push("Enter a valid course fee amount.");
+      errors.fees = "Enter a valid course fee amount.";
     }
+
     return errors;
   };
 
@@ -398,77 +415,157 @@ const ActualCourseForm = () => {
     toast.success("Template values applied. Feel free to tweak them.");
   };
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  //  const handleSubmit = async (e: React.FormEvent) => {
 
-  console.log("🔍 SUBMIT TRIGGERED");
+  //   e.preventDefault();
 
-  const validationErrors = collectValidationErrors();
-  if (validationErrors.length) {
-    console.warn("⚠️ Validation Errors:", validationErrors);
-    setFormErrors(validationErrors);
-    return;
-  }
+  //   console.log("🔍 SUBMIT TRIGGERED");
 
-  setFormErrors([]);
-  setLoading(true);
+  //   const validationErrors = collectValidationErrors();
+  //   if (validationErrors.length) {
+  //     console.warn("⚠️ Validation Errors:", validationErrors);
+  //     setFormErrors(validationErrors);
+  //     return;
+  //   }
 
-  try {
-    // Transform course before sending
-    const payload = {
-      ...course,
-      college_id: course.college?._id || course.college,
-      category: course.category?._id || course.category,
-      programMode: course.programMode?._id || course.programMode,
-      specialization: course.specialization?._id || course.specialization,
-      streams: Array.isArray(course.streams)
-        ? course.streams.map((s: any) => (s?._id ? s._id : s))
-        : course.streams,
-      focusAreas: Array.isArray(course.focusAreas)
-        ? course.focusAreas.filter((item: string) => item?.trim())
-        : [],
-      examList: Array.isArray(course.examList)
-        ? course.examList.filter((item: string) => item?.trim())
-        : [],
-    };
+  //   setFormErrors([]);
+  //   setLoading(true);
 
-    // remove nested objects
-    delete (payload as any).college;
+  //   try {
+  //     // Transform course before sending
+  //     const payload = {
+  //       ...course,
+  //       college_id: course.college?._id || course.college,
+  //       category: course.category?._id || course.category,
+  //       programMode: course.programMode?._id || course.programMode,
+  //       specialization: course.specialization?._id || course.specialization,
+  //       streams: Array.isArray(course.streams)
+  //         ? course.streams.map((s: any) => (s?._id ? s._id : s))
+  //         : course.streams,
+  //       focusAreas: Array.isArray(course.focusAreas)
+  //         ? course.focusAreas.filter((item: string) => item?.trim())
+  //         : [],
+  //       examList: Array.isArray(course.examList)
+  //         ? course.examList.filter((item: string) => item?.trim())
+  //         : [],
+  //     };
 
-    const isEditing = courseId && courseId !== "new";
+  //     // remove nested objects
+  //     delete (payload as any).college;
 
-    const url = `${api_url}courses${isEditing ? `/${courseId}` : ""}`;
-    const method = isEditing ? axios.put : axios.post;
+  //     const isEditing = courseId && courseId !== "new";
 
-    console.log("📌 Mode:", isEditing ? "UPDATE (PUT)" : "CREATE (POST)");
-    console.log("🌐 URL:", url);
-    console.log("📦 Payload:", payload);
+  //     const url = `${api_url}courses${isEditing ? `/${courseId}` : ""}`;
+  //     const method = isEditing ? axios.put : axios.post;
 
-    const res = await method(url, payload);
+  //     console.log("📌 Mode:", isEditing ? "UPDATE (PUT)" : "CREATE (POST)");
+  //     console.log("🌐 URL:", url);
+  //     console.log("📦 Payload:", payload);
 
-    console.log("✅ Response:", res);
+  //     const res = await method(url, payload);
 
-    if (res.status >= 200 && res.status < 300) {
-      setFormErrors([]);
-      toast.success(`Course ${isEditing ? "updated" : "added"} successfully!`);
-      router.push("/admin/manageCourses");
-    } else {
-      toast.error("Failed to save course.");
+  //     console.log("✅ Response:", res);
+
+  //     if (res.status >= 200 && res.status < 300) {
+  //       setFormErrors([]);
+  //       toast.success(`Course ${isEditing ? "updated" : "added"} successfully!`);
+  //       router.push("/admin/manageCourses");
+  //     } else {
+  //       toast.error("Failed to save course.");
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Error submitting course:", err);
+
+  //     const message =
+  //       (axios.isAxiosError(err) && err.response?.data?.message) ||
+  //       "Failed to save course. Please verify the details and try again.";
+
+  //     setFormErrors([message]);
+  //     toast.error("Unable to submit course");
+  //   } finally {
+  //     setLoading(false);
+  //     console.log("🔚 Submit Completed");
+  //   }
+  // };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    console.log("🔍 SUBMIT TRIGGERED");
+
+    // -------------------------------
+    // ✅ FIELD-LEVEL VALIDATION
+    // -------------------------------
+    const validationErrors: Record<string, string> = collectValidationErrors();
+
+    if (Object.keys(validationErrors).length > 0) {
+      console.warn("⚠️ Validation Errors:", validationErrors);
+      setFormErrors(validationErrors);
+      return;
     }
-  } catch (err) {
-    console.error("❌ Error submitting course:", err);
 
-    const message =
-      (axios.isAxiosError(err) && err.response?.data?.message) ||
-      "Failed to save course. Please verify the details and try again.";
+    setFormErrors({});
+    setLoading(true);
 
-    setFormErrors([message]);
-    toast.error("Unable to submit course");
-  } finally {
-    setLoading(false);
-    console.log("🔚 Submit Completed");
-  }
-};
+    try {
+      // Transform course before sending
+      const payload = {
+        ...course,
+        college_id: course.college?._id || course.college,
+        category: course.category?._id || course.category,
+        programMode: course.programMode?._id || course.programMode,
+        specialization: course.specialization?._id || course.specialization,
+        streams: Array.isArray(course.streams)
+          ? course.streams.map((s: any) => (s?._id ? s._id : s))
+          : course.streams,
+        focusAreas: Array.isArray(course.focusAreas)
+          ? course.focusAreas.filter((item: string) => item?.trim())
+          : [],
+        examList: Array.isArray(course.examList)
+          ? course.examList.filter((item: string) => item?.trim())
+          : [],
+      };
+
+      // remove nested objects
+      delete (payload as any).college;
+
+      const isEditing = courseId && courseId !== "new";
+
+      const url = `${api_url}courses${isEditing ? `/${courseId}` : ""}`;
+      const method = isEditing ? axios.put : axios.post;
+
+      console.log("📌 Mode:", isEditing ? "UPDATE (PUT)" : "CREATE (POST)");
+      console.log("🌐 URL:", url);
+      console.log("📦 Payload:", payload);
+
+      const res = await method(url, payload);
+
+      console.log("✅ Response:", res);
+
+      if (res.status >= 200 && res.status < 300) {
+        setFormErrors({});
+        toast.success(
+          `Course ${isEditing ? "updated" : "added"} successfully!`
+        );
+        router.push("/admin/manageCourses");
+      } else {
+        toast.error("Failed to save course.");
+      }
+    } catch (err) {
+      console.error("❌ Error submitting course:", err);
+
+      const message =
+        (axios.isAxiosError(err) && err.response?.data?.message) ||
+        "Failed to save course. Please verify the details and try again.";
+
+      // store error as readable field-level safe object
+      setFormErrors({ submit: message });
+
+      toast.error("Unable to submit course");
+    } finally {
+      setLoading(false);
+      console.log("🔚 Submit Completed");
+    }
+  };
 
   const handleProgramModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setCourse((prev: any) => ({ ...prev, programMode: e.target.value }));
@@ -526,11 +623,11 @@ const ActualCourseForm = () => {
         </div>
       </div>
 
-      {formErrors.length > 0 && (
+      {Object.keys(formErrors).length > 0 && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <p className="font-semibold">Please fix the following:</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            {formErrors.map((error, index) => (
+            {Object.values(formErrors).map((error, index) => (
               <li key={`${error}-${index}`}>{error}</li>
             ))}
           </ul>
@@ -603,6 +700,9 @@ const ActualCourseForm = () => {
               </ul>
             </div>
           )}
+          {formErrors.college && (
+            <p className="mt-1 text-xs text-red-600">{formErrors.college}</p>
+          )}
         </div>
 
         <div>
@@ -613,6 +713,7 @@ const ActualCourseForm = () => {
             >
               Degree
             </label>
+
             <button
               type="button"
               onClick={handleAutofillTemplate}
@@ -621,21 +722,27 @@ const ActualCourseForm = () => {
               Auto-fill
             </button>
           </div>
+
           <select
             id="category"
             name="category"
             value={course.category ?? ""}
             onChange={handleChange}
             className="mt-2 w-full rounded border p-2"
-            required
           >
             <option value="">Select Degree</option>
+
             {courseList.map((cat) => (
               <option key={cat._id} value={cat._id}>
                 {cat.name}
               </option>
             ))}
           </select>
+
+          {/* 🔥 FIELD-SPECIFIC ERROR HERE */}
+          {formErrors.category && (
+            <p className="mt-1 text-xs text-red-600">{formErrors.category}</p>
+          )}
         </div>
 
         <div>
@@ -644,8 +751,10 @@ const ActualCourseForm = () => {
             value={course.streams ?? ""}
             onChange={handleStreamsChange}
             label="Streams"
-            required
           />
+          {formErrors.streams && (
+            <p className="text-xs text-red-600">{formErrors.streams}</p>
+          )}
         </div>
 
         <div>
@@ -654,8 +763,13 @@ const ActualCourseForm = () => {
             value={course.specialization ?? ""}
             onChange={handleSpecializationChange}
             label="Specialization"
-            required
           />
+
+          {formErrors.specialization && (
+            <p className="text-xs text-red-600">
+              {formErrors.specialization}
+            </p>
+          )}
         </div>
 
         <div className="md:col-span-2">
@@ -664,135 +778,153 @@ const ActualCourseForm = () => {
             value={course.programMode ?? ""}
             onChange={handleProgramModeChange}
             label="Program Mode"
-            required
           />
+
+          {formErrors.programMode && (
+            <p className="text-xs text-red-600">
+              {formErrors.programMode}
+            </p>
+          )}
         </div>
       </div>
-
       <label
         htmlFor="description"
         className="block text-sm font-semibold text-gray-700"
       >
         Description
       </label>
-        <textarea
-          id="description"
-          name="description"
-          placeholder="Description"
-          value={course.description ?? ""}
-          onChange={handleChange}
-          className="p-2 border rounded col-span-2 w-full mt-[-10px]"
-          rows={3}
-          required
-        />
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="mb-4">
-            <label
-              htmlFor="duration"
-              className="block text-sm font-semibold text-gray-700"
-            >
-              Duration
-            </label>
-            <input
-              id="duration"
-              name="duration"
-              placeholder="Duration (e.g., 4 Years)"
-              value={course.duration ?? ""}
-              onChange={handleChange}
-              className="p-2 border rounded w-full"
-              required
-            />
-            <div className="mt-2 flex gap-2 overflow-x-auto pb-2 text-xs">
-              {DURATION_OPTIONS.map((option) => (
-                <button
-                  type="button"
-                  key={option}
-                  onClick={() =>
-                    setCourse((prev: any) => ({ ...prev, duration: option }))
-                  }
-                  className={`rounded-full border px-3 py-1 ${
-                    course.duration === option
-                      ? "border-blue-500 bg-blue-50 text-blue-600"
-                      : "border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-          </div>
+      <textarea
+        id="description"
+        name="description"
+        placeholder="Description"
+        value={course.description ?? ""}
+        onChange={handleChange}
+        className="p-2 border rounded col-span-2 w-full mt-[-10px]"
+        rows={3}
+      />
 
-          <div className="mb-4">
-            <label
-              htmlFor="eligibility"
-              className="block text-sm font-semibold text-gray-700"
-            >
-              Eligibility
-            </label>
-            <input
-              id="eligibility"
-              name="eligibility"
-              placeholder="Eligibility"
-              value={course.eligibility ?? ""}
-              onChange={handleChange}
-              className="p-2 border rounded w-full"
-              required
-            />
-          </div>
-        </div>
+      {formErrors.description && (
+        <p className="text-xs text-red-600">{formErrors.description}</p>
+      )}
 
-        <div className="flex flex-col">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="mb-4">
           <label
-            htmlFor="brochure_link"
-            className="font-semibold text-sm text-gray-700"
+            htmlFor="duration"
+            className="block text-sm font-semibold text-gray-700"
           >
-            Brochure Link
+            Duration
           </label>
+
           <input
-            id="brochure_link"
-            name="brochure_link"
-            placeholder="Brochure Link"
-            value={course.brochure_link ?? ""}
+            id="duration"
+            name="duration"
+            placeholder="Duration (e.g., 4 Years)"
+            value={course.duration ?? ""}
             onChange={handleChange}
-            className="p-2 border rounded"
+            className="p-2 border rounded w-full"
           />
+
+          {formErrors.duration && (
+            <p className="text-xs text-red-600">{formErrors.duration}</p>
+          )}
+
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-2 text-xs">
+            {DURATION_OPTIONS.map((option) => (
+              <button
+                type="button"
+                key={option}
+                onClick={() =>
+                  setCourse((prev: any) => ({ ...prev, duration: option }))
+                }
+                className={`rounded-full border px-3 py-1 ${
+                  course.duration === option
+                    ? "border-blue-500 bg-blue-50 text-blue-600"
+                    : "border-dashed border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
         </div>
-  
-        <div className="space-y-4">
-          <TagInput
-            label="Focus Areas"
-            placeholder="Add a focus area and press Enter"
-            field="focusAreas"
-            values={course.focusAreas || []}
-            inputValue={tagInputs.focusAreas}
-            onInputChange={handleTagInputChange}
-            onAdd={handleAddTag}
-            onRemove={handleRemoveTag}
-            onKeyDown={handleTagKeyDown}
-            suggestions={FOCUS_AREA_SUGGESTIONS}
-            onSuggestionClick={handleSuggestedFocusClick}
-            suggestionsSingleRow
-            variant="purple"
-            valuesSingleRow
+        <div className="mb-4">
+          <label
+            htmlFor="eligibility"
+            className="block text-sm font-semibold text-gray-700"
+          >
+            Eligibility
+          </label>
+
+          <input
+            id="eligibility"
+            name="eligibility"
+            placeholder="Eligibility"
+            value={course.eligibility ?? ""}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
           />
-          <TagInput
-            label="Exam List"
-            placeholder="Add entrance exams"
-            field="examList"
-            values={course.examList || []}
-            inputValue={tagInputs.examList}
-            onInputChange={handleTagInputChange}
-            onAdd={handleAddTag}
-            onRemove={handleRemoveTag}
-            onKeyDown={handleTagKeyDown}
-            suggestions={EXAM_SUGGESTIONS}
-            onSuggestionClick={handleSuggestedExamClick}
-            suggestionsSingleRow
-            variant="teal"
-            valuesSingleRow
-          />
+
+          {formErrors.eligibility && (
+            <p className="mt-1 text-xs text-red-600">
+              {formErrors.eligibility}
+            </p>
+          )}
         </div>
+      </div>
+
+      <div className="flex flex-col">
+        <label
+          htmlFor="brochure_link"
+          className="font-semibold text-sm text-gray-700"
+        >
+          Brochure Link
+        </label>
+        <input
+          id="brochure_link"
+          name="brochure_link"
+          placeholder="Brochure Link"
+          value={course.brochure_link ?? ""}
+          onChange={handleChange}
+          className="p-2 border rounded"
+        />
+      </div>
+
+      <div className="space-y-4">
+        <TagInput
+          label="Focus Areas"
+          placeholder="Add a focus area and press Enter"
+          field="focusAreas"
+          values={course.focusAreas || []}
+          inputValue={tagInputs.focusAreas}
+          onInputChange={handleTagInputChange}
+          onAdd={handleAddTag}
+          onRemove={handleRemoveTag}
+          onKeyDown={handleTagKeyDown}
+          suggestions={FOCUS_AREA_SUGGESTIONS}
+          onSuggestionClick={handleSuggestedFocusClick}
+          suggestionsSingleRow
+          variant="purple"
+          valuesSingleRow
+        />
+        <TagInput
+          label="Exam List"
+          placeholder="Add entrance exams"
+          field="examList"
+          values={course.examList || []}
+          inputValue={tagInputs.examList}
+          onInputChange={handleTagInputChange}
+          onAdd={handleAddTag}
+          onRemove={handleRemoveTag}
+          onKeyDown={handleTagKeyDown}
+          suggestions={EXAM_SUGGESTIONS}
+          onSuggestionClick={handleSuggestedExamClick}
+          suggestionsSingleRow
+          variant="teal"
+          valuesSingleRow
+        />
+      </div>
 
       <Section title="Course Fees" cols={3}>
         <div className="flex flex-col">
@@ -967,7 +1099,6 @@ const ActualCourseForm = () => {
           </div>
         ))}
       </Section>
-
     </form>
   );
 };

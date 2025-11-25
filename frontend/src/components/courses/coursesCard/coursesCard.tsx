@@ -144,7 +144,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           href={collegeFilterHref}
         />
         <CourseChip
-          icon={<Layers className="h-4 w-4 text-emerald-600" />}
+          icon={<Layers className="h-4 w-4 text-emerald-600" />}  
           label="Stream"
           value={primaryStream}
           variant="green"

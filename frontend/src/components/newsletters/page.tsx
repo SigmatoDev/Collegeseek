@@ -104,6 +104,8 @@ export default function CallbackForm() {
             onChange={handleChange}
             inputMode="numeric"
             pattern="[0-9]*"
+            maxLength={10}
+            minLength={10}
             onKeyDown={(e) => {
               if (
                 !/[0-9]/.test(e.key) &&
@@ -129,6 +131,7 @@ export default function CallbackForm() {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
+            pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
             required
           />

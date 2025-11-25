@@ -7,7 +7,7 @@ const Header = () => {
   const handleLogout = () => {
     useAdminStore.getState().logout(); // Clear Zustand store
     sessionStorage.removeItem("admin_store"); // Optional extra clear
-    window.location.href = "/admin/auth/logIn"; // Redirect to login page
+    window.location.href = "/cs-admin"; // Redirect to login page
   };
 
   return (

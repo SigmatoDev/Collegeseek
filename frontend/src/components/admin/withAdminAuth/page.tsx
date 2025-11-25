@@ -15,10 +15,10 @@ const withAdminAuth = <P extends { children: React.ReactNode }>(
         const state = sessionData ? JSON.parse(sessionData).state : null;
 
         if (!state?.isLoggedIn || !state?.admin) {
-          router.push("/admin/auth/logIn");
+          router.push("/cs-admin");
         }
       } catch {
-        router.push("/admin/auth/logIn");
+        router.push("/cs-admin");
       }
     }, [router]);
 

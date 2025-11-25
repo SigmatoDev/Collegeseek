@@ -1,5 +1,5 @@
 const express = require("express");
-const { createPages, getPageById, getPageBySlug, getPages } = require("../../controllers/admin/pagesController");
+const { createPages, getPageById, getPageBySlug, getPages, deletePageById } = require("../../controllers/admin/pagesController");
 const { updatePageById } = require("../../controllers/admin/pagesUpdateContoller");
 const router = express.Router();
 router.post("/create/pages", createPages); // no multer needed
@@ -7,6 +7,8 @@ router.get("/get/pages", getPages);
 router.get("/pages/by/id/:id", getPageById);
 router.get('/pages/by/slug/:slug', getPageBySlug);
 router.put("/pages/update/:id", updatePageById);
+router.delete("/pages/delete/:id", deletePageById);
+
 module.exports = router;
 // Route to create a page
 // router.post("/pages", createPage);

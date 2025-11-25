@@ -5,6 +5,13 @@ import { useEffect, useState } from "react";
 import EnrollmentModal from "./model/page";
 import EnrollmentForm from "./enrollForm/page";
 import Loader from "@/components/loader/loader";
+import {
+  AcademicCapIcon,
+  CalendarDaysIcon,
+  BookOpenIcon,
+  CurrencyRupeeIcon,
+  DocumentArrowDownIcon,
+} from "@heroicons/react/24/outline";
 
 interface Course {
   _id: string;
@@ -66,6 +73,7 @@ export default function CollegeCourses({ college_id }: Props) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(6); // 👈 NEW
 
   useEffect(() => {
     if (!college_id) {
@@ -137,7 +145,7 @@ export default function CollegeCourses({ college_id }: Props) {
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {courses.map((course) => (
+        {courses.slice(0, visibleCount).map((course) => (
           <div
             key={course._id}
             className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
@@ -153,22 +161,24 @@ export default function CollegeCourses({ college_id }: Props) {
               {course.description}
             </p>
 
-            <div className="mt-4 space-y-2 text-sm sm:text-base text-gray-700">
-              <p>
-                <strong>📅 Duration:</strong> {course.duration} |{" "}
-                <strong>📖 Program Mode:</strong> {course.programMode?.name}
+            <div className="mt-4 space-y-3 text-sm sm:text-base text-gray-700">
+              <p className="flex items-center gap-2">
+                <CalendarDaysIcon className="w-5 h-5 text-[#403A83]" />
+                <strong>Duration:</strong> {course.duration}
+                <span className="mx-2">|</span>
+                <BookOpenIcon className="w-5 h-5 text-[#403A83]" />
+                <strong>Program Mode:</strong> {course.programMode?.name}
               </p>
 
-              <p>
-                <strong>🎓 Eligibility:</strong> {course.eligibility}
+              <p className="flex items-center gap-2">
+                <AcademicCapIcon className="w-5 h-5 text-[#403A83]" />
+                <strong>Eligibility:</strong> {course.eligibility}
               </p>
-              {/* <p>
-                <strong>📝 Entrance Exam:</strong> {course.entrance_exam}
-              </p> */}
 
               {course.fees && (
-                <p className="font-semibold text-indigo-700">
-                  💰 Fees: ₹{course.fees.amount.toLocaleString()}{" "}
+                <p className="flex items-center gap-2 font-semibold text-indigo-700">
+                  <CurrencyRupeeIcon className="w-5 h-5" />
+                  Fees: ₹{course.fees.amount.toLocaleString()}{" "}
                   {course.fees.currency} ({course.fees.year})
                 </p>
               )}
@@ -190,14 +200,36 @@ export default function CollegeCourses({ college_id }: Props) {
                     "noopener,noreferrer"
                   )
                 }
-                className="px-5 py-2 bg-transparent border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition duration-200 text-center w-full sm:w-auto"
+                className="px-5 py-2 bg-transparent border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition duration-200 text-center w-full sm:w-auto flex items-center justify-center gap-2"
               >
+                <DocumentArrowDownIcon className="w-5 h-5" />
                 Download Brochure
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Show More / Show Less */}
+      {courses.length > 6 && (
+        <div className="mt-10 flex justify-end">
+          {visibleCount < courses.length ? (
+            <button
+              onClick={() => setVisibleCount(courses.length)}
+              className="px-6 py-2 bg-[#38347C] text-white rounded-full font-medium shadow-md hover:shadow-lg hover:bg-[#2f2b6a] transition-all duration-300"
+            >
+              Show More →
+            </button>
+          ) : (
+            <button
+              onClick={() => setVisibleCount(9)}
+              className="px-6 py-2 bg-gray-300 text-black rounded-full font-medium shadow-md hover:shadow-lg hover:bg-gray-400 transition-all duration-300"
+            >
+              Show Less ↑
+            </button>
+          )}
+        </div>
+      )}
 
       {isModalOpen && (
         <EnrollmentModal isOpen={true} onClose={handleCloseModal}>

@@ -310,9 +310,12 @@ function EditPageComponent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10 space-y-8 bg-gray-50 rounded-lg shadow-md">
-      <h1 className="text-4xl font-bold text-gray-800">Edit Page</h1>
+  <div className="max-w-7xl mx-auto px-6 py-10 space-y-8 bg-gray-50 rounded-lg shadow-md">
+    <h1 className="text-4xl font-bold text-gray-800">Edit Page</h1>
 
+    {/* Title */}
+    <div className="flex flex-col space-y-1">
+      <label className="text-gray-800 font-medium">Page Title</label>
       <input
         type="text"
         value={title}
@@ -320,86 +323,72 @@ function EditPageComponent() {
         placeholder="Enter page title"
         className="w-full p-4 border border-gray-300 rounded-md bg-white"
       />
+    </div>
 
+    {/* Description */}
+    <div className="flex flex-col space-y-1">
+      <label className="text-gray-800 font-medium">Page Description</label>
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Enter page description"
         className="w-full p-4 border border-gray-300 rounded-md bg-white"
       />
-
-      <div className="flex flex-col space-y-1">
-        <label className="text-gray-800 font-medium">Page Content</label>
-
-        {dynamicApiKey === null ? (
-          <p className="text-gray-500">Loading Editor...</p>
-        ) : (
-          <Editor
-            apiKey={dynamicApiKey || undefined}
-            value={content}
-            onEditorChange={(value) => {
-              console.log("✏️ Editor Updated:", value);
-              setContent(value);
-            }}
-            init={{
-              height: 500,
-              menubar: true,
-              plugins:
-                "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
-              toolbar:
-                "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
-                "align lineheight | numlist bullist indent outdent | " +
-                "link image media table | emoticons charmap | removeformat",
-
-              /** ==========================================================
-               *  IMAGE UPLOAD HANDLER (Works same as your existing backend)
-               * ========================================================== */
-               images_upload_handler: async (blobInfo: { blob: () => Blob }) => {
-                console.log("Uploading image...");
-                console.log("Blob Info:", blobInfo);
-                console.log("Blob MIME Type:", blobInfo.blob().type);
-
-                return new Promise((resolve, reject) => {
-                  try {
-                    const reader = new FileReader();
-
-                    reader.onloadend = () => {
-                      const base64data = reader.result as string;
-
-                      console.log(
-                        "Base64 Image Generated:",
-                        base64data.substring(0, 60) + "..."
-                      );
-
-                      resolve(base64data);
-                    };
-
-                    reader.onerror = (err) => {
-                      console.error("FileReader error:", err);
-                      reject("FileReader error");
-                    };
-
-                    reader.readAsDataURL(blobInfo.blob());
-                  } catch (error) {
-                    console.error("Upload handler error:", error);
-                    reject("Image processing error");
-                  }
-                });
-              }
-            }}
-          />
-        )}
-      </div>
-
-      <button
-        disabled={loading}
-        onClick={handleUpdate}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg disabled:opacity-50"
-      >
-        {loading ? "Updating..." : "Update Page"}
-      </button>
     </div>
-  );
+
+    {/* Content Editor */}
+    <div className="flex flex-col space-y-1">
+      <label className="text-gray-800 font-medium">Page Content</label>
+
+      {dynamicApiKey === null ? (
+        <p className="text-gray-500">Loading Editor...</p>
+      ) : (
+        <Editor
+          apiKey={dynamicApiKey || undefined}
+          value={content}
+          onEditorChange={(value) => {
+            console.log("✏️ Editor Updated:", value);
+            setContent(value);
+          }}
+          init={{
+            height: 500,
+            menubar: true,
+            plugins:
+              "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
+            toolbar:
+              "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
+              "align lineheight | numlist bullist indent outdent | " +
+              "link image media table | emoticons charmap | removeformat",
+
+            images_upload_handler: async (blobInfo: { blob: () => Blob; }) => {
+              console.log("Uploading image...");
+              return new Promise((resolve, reject) => {
+                try {
+                  const reader = new FileReader();
+                  reader.onloadend = () => resolve(reader.result as string);
+                  reader.onerror = () => reject("FileReader error");
+                  reader.readAsDataURL(blobInfo.blob());
+                } catch (err) {
+                  reject("Image processing error");
+                }
+              });
+            },
+          }}
+        />
+      )}
+    </div>
+
+    {/* Submit Button */}
+    <button
+      disabled={loading}
+      onClick={handleUpdate}
+      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg disabled:opacity-50"
+    >
+      {loading ? "Updating..." : "Update Page"}
+    </button>
+  </div>
+);
+
 }
 
 // Prevent hydration issues by disabling SSR

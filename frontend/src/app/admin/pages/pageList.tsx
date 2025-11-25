@@ -9,8 +9,10 @@ import {
   PencilSquareIcon,
   PlusCircleIcon,
   ClipboardDocumentIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "lucide-react";
+import { motion } from "framer-motion"; // ⭐ Added for animation
 
 interface Page {
   _id: string;
@@ -25,52 +27,72 @@ const AdminPages = () => {
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState<string | null>(null);
 
-  // Pagination states
+  // Pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [pagesPerPage] = useState<number>(10); // Or any number you prefer
+  const [pagesPerPage] = useState<number>(10);
+
+  // ⭐ Delete Confirmation Modal State
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   const router = useRouter();
 
-  const fetchPages = async (page: number = 1) => {
-    setLoading(true);
-    setError(null);
+ const fetchPages = async (page: number = 1) => {
+  setLoading(true);
+  setError(null);
 
-    try {
-      const { data } = await axios.get(
-        `${api_url}get/Pages?page=${page}&limit=${pagesPerPage}`
-      );
+  try {
+    const { data } = await axios.get(
+      `${api_url}get/Pages?page=${page}&limit=${pagesPerPage}`
+    );
 
-      // data format: { totalPages, currentPage, pagesPerPage, pages: [...] }
-      if (!Array.isArray(data.pages)) {
-        throw new Error("Unexpected API response format: expected an array.");
-      }
-
-      setPages(data.pages);
-      setCurrentPage(data.currentPage);
-      setTotalPages(data.totalPages);
-    } catch (err: any) {
-      console.error("Error fetching pages:", err);
-      setError(err.response?.data?.message || "Failed to load pages.");
-    } finally {
-      setLoading(false);
+    if (!Array.isArray(data.pages)) {
+      throw new Error("Unexpected API response format: expected an array.");
     }
-  };
+
+    // ⭐ Make latest added pages appear on top
+    const sortedPages = [...data.pages].reverse();
+
+    setPages(sortedPages);
+    setCurrentPage(data.currentPage);
+    setTotalPages(data.totalPages);
+  } catch (err: any) {
+    console.error("Error fetching pages:", err);
+    setError(err.response?.data?.message || "Failed to load pages.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchPages(currentPage);
   }, [currentPage]);
 
-  const handleDelete = async (pageId: string) => {
-    if (!window.confirm("Are you sure you want to delete this page?")) return;
+  // ⭐ Open delete modal
+  const openDeleteModal = (id: string) => {
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  // ⭐ Updated handleDelete
+  const handleDelete = async () => {
+    if (!deleteId) return;
 
     try {
-      await axios.delete(`${api_url}deletePage/${pageId}`);
+      const res = await axios.delete(`${api_url}pages/delete/${deleteId}`);
+
       toast.success("Page deleted successfully!");
       fetchPages(currentPage);
-    } catch (err) {
-      console.error("Error deleting page:", err);
-      toast.error("Error deleting page. Please try again.");
+    } catch (err: any) {
+      toast.error(
+        err.response?.data?.message ||
+          "Error deleting page. Please check console."
+      );
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteId(null);
     }
   };
 
@@ -94,7 +116,7 @@ const AdminPages = () => {
       <div className="flex items-center justify-between gap-4 mb-6">
         <button
           onClick={() => router.push("/admin/pages/new")}
-          className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200"
+          className="flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-200"
         >
           <PlusCircleIcon className="w-6 h-6 mr-2" />
           <span className="font-semibold">Add Page</span>
@@ -121,13 +143,13 @@ const AdminPages = () => {
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {page.title}
                     </td>
+
+                    {/* SLUG */}
                     <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-2">
                       <a
                         href={`/${page.slug}`}
                         target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition duration-200"
-                        title={`Go to ${page.title} page`}
+                        className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition"
                       >
                         {page.slug}
                       </a>
@@ -136,43 +158,47 @@ const AdminPages = () => {
                         onClick={() => handleCopySlug(page.slug)}
                         onMouseEnter={() => setIsHovered(page.slug)}
                         onMouseLeave={() => setIsHovered(null)}
-                        className="relative flex items-center justify-center gap-2 text-blue-500 hover:text-blue-700 ml-2 rounded-full p-2 transition-all duration-300 transform hover:scale-105"
-                        aria-label={
-                          copiedSlug === page.slug ? "Slug Copied" : "Copy Slug"
-                        }
+                        className="relative flex items-center p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
                       >
                         {copiedSlug === page.slug ? (
-                          <CheckIcon className="w-6 h-6 text-green-500 animate-pulse" />
+                          <CheckIcon className="w-5 h-5 text-green-500" />
                         ) : (
-                          <ClipboardDocumentIcon className="w-6 h-6 text-blue-500" />
+                          <ClipboardDocumentIcon className="w-5 h-5 text-blue-500" />
                         )}
 
                         <span
-                          className={`absolute top-[-40px] left-1/2 transform -translate-x-1/2 text-sm text-white font-semibold p-2 rounded-md bg-[#000000] shadow-lg opacity-0 transition-opacity duration-300 ${
+                          className={`absolute top-[-38px] left-1/2 transform -translate-x-1/2 text-xs text-white font-semibold p-2 rounded bg-black shadow opacity-0 transition ${
                             copiedSlug === page.slug || isHovered === page.slug
-                              ? "opacity-100 translate-y-2"
+                              ? "opacity-100"
                               : ""
                           }`}
                         >
                           {copiedSlug === page.slug ? "Copied!" : "Copy"}
-                          <span
-                            className={`absolute left-1/2 transform -translate-x-1/2 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-[#000000]`}
-                          ></span>
+                          <span className="absolute left-1/2 transform -translate-x-1/2 top-full border-l-8 border-r-8 border-t-8 border-transparent border-t-black" />
                         </span>
                       </button>
                     </td>
+
+                    {/* ACTIONS */}
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={() =>
                             router.push(`/admin/pages/edit/${page._id}`)
                           }
-                          className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-600 transition duration-200"
+                          className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600 transition"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
-                          <span className="text-sm font-medium">Edit</span>
+                          <span>Edit</span>
                         </button>
-                        {/* You can add a delete button here if needed */}
+
+                        <button
+                          onClick={() => openDeleteModal(page._id)} // ⭐ Updated
+                          className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-600 transition"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                          <span>Delete</span>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -187,43 +213,20 @@ const AdminPages = () => {
             </tbody>
           </table>
 
-          {/* Pagination Controls */}
+          {/* PAGINATION */}
           <div className="flex justify-between items-center p-4 border-t bg-gray-50">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 ${
                 currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               Previous
             </button>
 
-            <span className="flex items-center space-x-2 text-sm text-gray-700">
+            <span className="text-sm text-gray-700">
               Page {currentPage} of {totalPages}
-              <span className="p-2">/ Go to page:</span>
-              <input
-                type="number"
-                min={1}
-                max={totalPages}
-                placeholder="Page #"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const pageNum = Number(
-                      (e.target as HTMLInputElement).value
-                    );
-                    if (
-                      !isNaN(pageNum) &&
-                      pageNum >= 1 &&
-                      pageNum <= totalPages
-                    ) {
-                      setCurrentPage(pageNum);
-                      (e.target as HTMLInputElement).value = ""; // clear input after jump
-                    }
-                  }
-                }}
-                className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm ml-2"
-              />
             </span>
 
             <button
@@ -231,7 +234,7 @@ const AdminPages = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition ${
+              className={`px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 ${
                 currentPage === totalPages
                   ? "opacity-50 cursor-not-allowed"
                   : ""
@@ -240,6 +243,41 @@ const AdminPages = () => {
               Next
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ⭐ Custom Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white p-6 rounded-lg w-[90%] max-w-sm shadow-xl"
+          >
+            <h2 className="text-xl font-semibold text-gray-800">
+              Confirm Delete
+            </h2>
+
+            <p className="text-gray-600 mt-2">
+              Are you sure you want to delete this page? This action cannot be undone.
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

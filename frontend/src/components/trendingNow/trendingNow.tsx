@@ -57,12 +57,29 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { api_url } from "@/utils/apiCall";
-import { Loader, TrendingUp, Sparkles } from "lucide-react";
+import { Loader } from "lucide-react";
 import Link from "next/link";
 
 interface TrendingEntry {
   name: string;
   link?: string;
+}
+
+// 🔥 Extract clean exam key
+function extractExamKey(name: string): string {
+  if (!name) return "";
+
+  // 1) Extract from parentheses: "(CAT) Exam..." → "CAT"
+  const paren = name.match(/\(([^)]+)\)/);
+  if (paren && paren[1]) return paren[1].trim();
+
+  // 2) First ALL CAPS word: "CAT 2025" → "CAT" , "JEE Main" → "JEE"
+  const caps = name.match(/\b([A-Z]{2,})\b/);
+  if (caps && caps[1]) return caps[1];
+
+  // 3) Fallback: first clean word
+  const first = name.split(/\s+/)[0].replace(/[^a-zA-Z0-9]/g, "");
+  return first || name;
 }
 
 const TrendingNow = () => {
@@ -118,19 +135,15 @@ const TrendingNow = () => {
       </div>
 
       <div className="relative mx-auto flex max-w-8xl flex-col items-center text-center">
-        
-
-      
-
         <div className="group relative w-full overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
           <div className="pointer-events-none absolute left-0 top-0 h-full w-32 bg-gradient-to-r from-[#fef9f6] to-transparent" />
           <div className="pointer-events-none absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-[#fbf6ff] to-transparent" />
 
           <div className="whitespace-nowrap animate-marquee group-hover:pause flex w-max gap-6 px-10 py-6 text-base">
             {repeatedExams.map((exam, index) => {
-              const fallbackHref = `/college?streams=${encodeURIComponent(
-                exam.name
-              )}`;
+              const examParam = extractExamKey(exam.name);   // ⭐ clean exam code
+              const fallbackHref = `/college?page=1&exams=${encodeURIComponent(examParam)}`;
+
               const href = exam.link?.trim() ? exam.link : fallbackHref;
               const isExternal = /^https?:\/\//i.test(href);
 
@@ -141,7 +154,6 @@ const TrendingNow = () => {
                   target={isExternal ? "_blank" : undefined}
                   rel={isExternal ? "noopener noreferrer" : undefined}
                   className="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/90 px-6 py-3 text-base font-semibold text-gray-900 shadow-[0_12px_30px_rgba(210,92,64,0.18)] transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_15px_45px_rgba(210,92,64,0.28)]"
-                  aria-label={`Explore ${exam.name}`}
                 >
                   <span
                     className={`h-2.5 w-2.5 rounded-full ${
@@ -155,6 +167,7 @@ const TrendingNow = () => {
                 </Link>
               );
             })}
+
             {exams.length === 0 && (
               <span className="text-gray-500">No trends available right now.</span>
             )}
@@ -166,3 +179,4 @@ const TrendingNow = () => {
 };
 
 export default TrendingNow;
+

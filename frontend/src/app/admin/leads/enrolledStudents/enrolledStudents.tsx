@@ -179,7 +179,7 @@ const AdminEnrollments = () => {
                         {new Date(enrollment.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-3 flex space-x-2">
-                        <button
+                        {/* <button
                           onClick={() =>
                             router.push(
                               `/admin/leads/enrolledStudents/${enrollment._id}`
@@ -189,7 +189,7 @@ const AdminEnrollments = () => {
                         >
                           <PencilSquareIcon className="h-5 w-5" />
                           <span>Edit</span>
-                        </button>
+                        </button> */}
                         <button
                           onClick={() => handleDelete(enrollment._id)}
                           className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"

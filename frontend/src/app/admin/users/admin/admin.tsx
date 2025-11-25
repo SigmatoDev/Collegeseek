@@ -26,7 +26,7 @@ const AdminUsers = () => {
 
         if (!token) {
           toast.error("Session expired. Redirecting to login...");
-          router.replace("/admin/auth/login");
+          router.replace("/cs-admin");
           return;
         }
 

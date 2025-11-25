@@ -197,16 +197,47 @@ export default function CategoryGrid() {
     return () => controller.abort();
   }, [selectedItem, activeTab]);
 
-  const buildHref = (item: CategoryItem) => {
-    const encoded = formatQuery(activeTab === "Exams" ? toTitleCase(item.name) : item.name);
-    if (activeTab === "Exams") {
-      return `/college?exams=${encoded}`;
-    }
-    if (activeTab === "Colleges") {
-      return `/college?streams=${encoded}`;
-    }
-    return `/college?categories=${encoded}`;
-  };
+const SMALL_WORDS = new Set([
+  "a","an","and","as","at","but","by","for","from","in","into","nor","of","on","or","over","the","to","up","with"
+]);
+
+const toTitleCaseSmart = (str: string) => {
+  const parts = str.trim().split(/\s+/);
+  return parts
+    .map((word, idx) => {
+      const lower = word.toLowerCase();
+      if (idx === 0) return lower.charAt(0).toUpperCase() + lower.slice(1); // always capitalize first word
+      if (SMALL_WORDS.has(lower)) return lower; // keep small words lowercase
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+};
+
+const encodePlus = (s: string) => encodeURIComponent(s).replace(/%20/g, "+");
+
+const buildHref = (item: CategoryItem) => {
+  // Exams: already handled elsewhere (uppercase + page=1 — keep as you had)
+  if (activeTab === "Exams") {
+    const normalized = item.name.trim().toUpperCase();
+    const encoded = encodePlus(normalized);
+    return `/college?page=1&exams=${encoded}`;
+  }
+
+  // Categories: Title-case each main word (smart), spaces -> '+', include page=1
+  if (activeTab === "Courses") {
+    const normalized = toTitleCaseSmart(item.name);
+    const encoded = encodePlus(normalized);
+    return `/college?page=1&categories=${encoded}`;
+  }
+
+  // Colleges (Streams): keep existing behaviour (Title Case single-word style)
+  const normalized = toTitleCase(item.name.trim());
+  const encoded = formatQuery(normalized);
+  return `/college?streams=${encoded}`;
+};
+
+
+
 
   const buildCollegePillHref = (college: { name: string; slug?: string }) => {
     if (college.slug) {

@@ -65,6 +65,8 @@ const ActualCollegeForm = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState<any>({});
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [galleryPreview, setGalleryPreview] = useState<string[]>([]);
   const [states, setStates] = useState<{ name: string; isoCode: string }[]>([]);
@@ -316,6 +318,86 @@ const ActualCollegeForm = () => {
     setLoading(true);
     setError("");
 
+    // ---------------------------------------
+    // 🔥 FIELD-LEVEL VALIDATION (UPDATED)
+    // ---------------------------------------
+    const newErrors: any = {};
+
+    // Required basic fields
+    if (!collegeData.name?.trim()) newErrors.name = "Name is required";
+    if (!collegeData.description?.trim())
+      newErrors.description = "Description is required";
+    if (!collegeData.state?.trim()) newErrors.state = "State is required";
+    if (!collegeData.city?.trim()) newErrors.city = "City is required";
+    if (!collegeData.affiliatedby?.trim())
+      newErrors.affiliatedby = "Affiliated by is required";
+    if (!collegeData.ownership?.trim())
+      newErrors.ownership = "Ownership is required";
+
+    // Multi-select required fields
+    if (!collegeData.stream || collegeData.stream.length === 0)
+      newErrors.stream = "Stream is required";
+
+    if (!collegeData.examExpected || collegeData.examExpected.length === 0)
+      newErrors.examExpected = "Exam Expected is required";
+
+    if (!collegeData.approvel || collegeData.approvel.length === 0)
+      newErrors.approvel = "Approval is required";
+
+    // ---------------------------
+    // 🔥 NEW FIELD VALIDATIONS
+    // ---------------------------
+
+    // Website
+    if (!collegeData.website?.trim()) newErrors.website = "Website is required";
+
+    // Contact Email
+    if (!collegeData.contactEmail?.trim())
+      newErrors.contactEmail = "Contact email is required";
+
+    // Avg Package
+    if (!collegeData.avgPackage?.trim())
+      newErrors.avgPackage = "Average package is required";
+
+    // Location
+    if (!collegeData.location?.trim())
+      newErrors.location = "Location is required";
+    // Address  ✅ NEW REQUIRED FIELD
+    if (!collegeData.address?.trim()) newErrors.address = "Address is required";
+
+    // Rank
+    if (!collegeData.rank?.toString().trim())
+      newErrors.rank = "Rank is required";
+
+    // Fees
+    if (!collegeData.fees?.toString().trim())
+      newErrors.fees = "Fees are required";
+
+    if (!collegeData.about?.trim())
+      newErrors.about = "About section is required";
+
+    // Contact Numbers
+    if (
+      !collegeData.contactNumbers ||
+      collegeData.contactNumbers.length === 0 ||
+      !collegeData.contactNumbers[0].number?.trim()
+    ) {
+      newErrors.contactNumbers = "At least one contact number is required";
+    }
+
+    // If any errors → stop submit
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setLoading(false);
+      return;
+    }
+
+    // Clear errors if valid
+    setErrors({});
+
+    // ---------------------------------------
+    // 📦 FORM DATA (AS IS)
+    // ---------------------------------------
     const formData = new FormData();
     formData.append("name", collegeData.name);
     formData.append("description", collegeData.description);
@@ -338,14 +420,17 @@ const ActualCollegeForm = () => {
       formData.append("established", String(collegeData.established));
     if (collegeData.about) formData.append("about", collegeData.about);
     if (collegeData.website) formData.append("website", collegeData.website);
+
     if (collegeData.contactNumbers && collegeData.contactNumbers.length > 0) {
       formData.append(
         "contactNumbers",
         JSON.stringify(collegeData.contactNumbers)
       );
     }
+
     if (collegeData.contactEmail)
       formData.append("contactEmail", collegeData.contactEmail);
+
     if (typeof collegeData.featured === "boolean") {
       formData.append("featured", collegeData.featured ? "true" : "false");
     }
@@ -364,6 +449,9 @@ const ActualCollegeForm = () => {
       });
     }
 
+    // ---------------------------------------
+    // 📡 API REQUEST (AS IS)
+    // ---------------------------------------
     try {
       const url =
         collegeId && collegeId !== "new"
@@ -389,24 +477,19 @@ const ActualCollegeForm = () => {
       const backendError = err.response?.data;
 
       if (backendError?.missingFields?.length > 0) {
-        // 🧠 Specific missing field case
         const missingList = backendError.missingFields.join(", ");
         toast.error(`Missing required fields: ${missingList}`);
         setError(`Missing required fields: ${missingList}`);
       } else if (backendError?.details) {
-        // 🧩 Validation or detailed backend errors
         toast.error(backendError.details);
         setError(backendError.details);
       } else if (backendError?.error) {
-        // 🧩 General backend error
         toast.error(backendError.error);
         setError(backendError.error);
       } else if (backendError?.message) {
-        // 🧩 Message key fallback
         toast.error(backendError.message);
         setError(backendError.message);
       } else {
-        // ❌ Generic fallback
         toast.error("Failed to save college. Please check your input.");
         setError("Failed to save college. Please check your input.");
       }
@@ -477,19 +560,22 @@ const ActualCollegeForm = () => {
 
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(fieldLabels).map(([field, label]) => (
-              <div key={field} className="flex flex-col">
+              <div key={field} className="flex flex-col mb-4">
                 <label className="text-gray-700 font-medium">
                   {label} <sup className="text-red-500">*</sup>
                 </label>
 
-                {field === "contactNumbers" && (
+                {/* ----------------------------------------------- */}
+                {/* CONTACT NUMBERS FIELD  */}
+                {/* ----------------------------------------------- */}
+                {field === "contactNumbers" ? (
                   <>
                     {(collegeData.contactNumbers?.length
                       ? collegeData.contactNumbers
                       : [{ type: "Mobile", number: "" }]
                     ).map((contact, index) => (
                       <div key={index} className="flex items-center gap-2 mb-2">
-                        {/* Type selector */}
+                        {/* TYPE SELECT */}
                         <select
                           value={contact.type}
                           onChange={(e) => {
@@ -514,11 +600,21 @@ const ActualCollegeForm = () => {
                           <option value="Landline">Landline</option>
                         </select>
 
-                        {/* Number input */}
+                        {/* NUMBER INPUT */}
                         <input
                           type="text"
                           value={contact.number || ""}
                           onChange={(e) => {
+                            let value = e.target.value;
+
+                            // ✅ Allow only digits for Mobile
+                            if (contact.type === "Mobile") {
+                              value = value.replace(/\D/g, ""); // remove non-digits
+                              if (value.length > 10) return; // limit to 10 digits
+                            }
+
+                            // (Landline can take any input)
+
                             const updated = [
                               ...(collegeData.contactNumbers || []),
                             ];
@@ -526,7 +622,8 @@ const ActualCollegeForm = () => {
                               type: "Mobile",
                               number: "",
                             };
-                            updated[index].number = e.target.value;
+                            updated[index].number = value;
+
                             setCollegeData((prev) => ({
                               ...prev,
                               contactNumbers: updated,
@@ -537,20 +634,23 @@ const ActualCollegeForm = () => {
                               ? "e.g., 9876543210"
                               : "e.g., 011-23456789"
                           }
-                          className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                          className={`flex-1 p-3 border rounded-xl focus:ring-2 outline-none ${
+                            errors.contactNumbers
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
                         />
 
+                        {/* DELETE + ADD */}
                         <div className="flex flex-col gap-1">
-                          {/* Remove button */}
                           <button
                             type="button"
                             onClick={() => setModalIndex(index)}
-                            className="px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
+                            className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                           >
                             <TrashIcon className="w-4 h-4" />
                           </button>
 
-                          {/* Add button only on last row */}
                           {index ===
                             (collegeData.contactNumbers?.length || 0) - 1 && (
                             <button
@@ -564,27 +664,13 @@ const ActualCollegeForm = () => {
                                   ],
                                 }))
                               }
-                              className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors flex items-center gap-1"
+                              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                             >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 4v16m8-8H4"
-                                />
-                              </svg>
+                              +
                             </button>
                           )}
                         </div>
 
-                        {/* Confirmation Modal */}
                         <ConfirmModal
                           isOpen={modalIndex === index}
                           onClose={() => setModalIndex(null)}
@@ -601,32 +687,50 @@ const ActualCollegeForm = () => {
                         />
                       </div>
                     ))}
-                  </>
-                )}
 
-                {field !== "contactNumbers" && (
-                  <input
-                    type={
-                      field === "website"
-                        ? "url"
-                        : field === "contactEmail"
-                        ? "email"
-                        : "text"
-                    }
-                    name={field}
-                    value={
-                      typeof collegeData[field as keyof typeof collegeData] ===
-                      "string"
-                        ? (collegeData[
-                            field as keyof typeof collegeData
-                          ] as string)
-                        : ""
-                    }
-                    onChange={handleChange}
-                    required
-                    maxLength={field === "name" ? 170 : undefined}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+                    {errors.contactNumbers && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.contactNumbers}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* ----------------------------------------------- */}
+                    {/* NORMAL INPUT FIELDS  */}
+                    {/* ----------------------------------------------- */}
+                    <input
+                      type={
+                        field === "website"
+                          ? "text" // ✅ FIXED (was: url)
+                          : field === "contactEmail"
+                          ? "email"
+                          : "text"
+                      }
+                      inputMode={field === "website" ? "url" : undefined} // ✅ Added
+                      name={field}
+                      value={
+                        typeof collegeData[
+                          field as keyof typeof collegeData
+                        ] === "string"
+                          ? (collegeData[
+                              field as keyof typeof collegeData
+                            ] as string)
+                          : ""
+                      }
+                      onChange={handleChange}
+                      className={`w-full p-3 border rounded-xl focus:ring-2 outline-none ${
+                        errors[field] ? "border-red-500" : "border-gray-300"
+                      }`}
+                      maxLength={field === "name" ? 170 : undefined}
+                    />
+
+                    {errors[field] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[field]}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             ))}
@@ -665,6 +769,9 @@ const ActualCollegeForm = () => {
                     }),
                   }}
                 />
+                {errors.state && (
+                  <p className="text-red-500 text-sm mt-1">{errors.state}</p>
+                )}
               </div>
 
               {/* City Dropdown */}
@@ -701,6 +808,9 @@ const ActualCollegeForm = () => {
                     }),
                   }}
                 />
+                {errors.city && (
+                  <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                )}
               </div>
             </div>
           </div>
@@ -720,6 +830,9 @@ const ActualCollegeForm = () => {
                   }));
                 }}
               />
+              {errors.stream && (
+                <p className="text-red-500 text-sm mt-1">{errors.stream}</p>
+              )}
             </div>
             <div className="w-full max-w-[800px]">
               <label className="text-gray-800 font-medium">
@@ -738,6 +851,9 @@ const ActualCollegeForm = () => {
                   }));
                 }}
               />
+              {errors.approvel && (
+                <p className="text-red-500 text-sm mt-1">{errors.approvel}</p>
+              )}
             </div>
           </div>
 
@@ -758,6 +874,9 @@ const ActualCollegeForm = () => {
                 }));
               }}
             />
+            {errors.examExpected && (
+              <p className="text-red-500 text-sm mt-1">{errors.examExpected}</p>
+            )}
           </div>
           <div className="flex space-x-6 items-center">
             <div className="w-full max-w-[800px]">
@@ -767,6 +886,11 @@ const ActualCollegeForm = () => {
                 onChange={handleSelectChange}
                 label="Affiliated By"
               />
+              {errors.affiliatedby && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.affiliatedby}
+                </p>
+              )}
             </div>
             <div className="w-full max-w-[800px]">
               <OwnershipDropdown
@@ -775,6 +899,9 @@ const ActualCollegeForm = () => {
                 onChange={handleSelectChange}
                 label="Ownership"
               />
+              {errors.ownership && (
+                <p className="text-red-500 text-sm mt-1">{errors.ownership}</p>
+              )}
             </div>
           </div>
 
@@ -784,9 +911,11 @@ const ActualCollegeForm = () => {
               name="address"
               value={collegeData.address}
               onChange={handleChange}
-              required
               className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 h-28 resize-none"
             />
+            {errors.address && (
+              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+            )}
           </div>
 
           <div className="flex flex-col">
@@ -817,14 +946,19 @@ const ActualCollegeForm = () => {
             ].map(({ key, label }) => (
               <div key={key} className="flex flex-col">
                 <label className="text-gray-700 font-medium">{label}</label>
+
                 <input
                   type="number"
                   name={key}
                   value={collegeData[key as keyof typeof collegeData] as string}
                   onChange={handleChange}
-                  required
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                 />
+
+                {/* 🔥 ERROR Display */}
+                {errors[key] && (
+                  <p className="text-red-500 text-sm mt-1">{errors[key]}</p>
+                )}
               </div>
             ))}
           </div>
@@ -927,6 +1061,9 @@ const ActualCollegeForm = () => {
               handleEditorChange(content); // content is the typed HTML
             }}
           />
+           {errors.description && (
+              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+            )}
 
           {/* About Field */}
           <div className="flex flex-col space-y-1">
@@ -943,6 +1080,9 @@ const ActualCollegeForm = () => {
               onEditorChange={handleeditorChange}
               textareaName="about"
             />
+              {errors.about && (
+              <p className="text-red-500 text-sm mt-1">{errors.about}</p>
+            )}
           </div>
 
           {/* Image Upload */}
