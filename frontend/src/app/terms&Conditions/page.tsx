@@ -1,78 +1,88 @@
-// app/terms-and-conditions/page.tsx
-import Footer from '@/components/footer/page';
-import Header from '@/components/header/page';
-import CallbackForm from '@/components/newsletters/page';
-import React from 'react';
+"use client";
+
+import Footer from "@/components/footer/page";
+import Header from "@/components/header/page";
+import CallbackForm from "@/components/newsletters/page";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { api_url } from "@/utils/apiCall";
+
+interface TermType {
+  _id: string;
+  title: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const TermsAndConditions = () => {
+  const [terms, setTerms] = useState<TermType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchTerms = async () => {
+    try {
+      const { data } = await axios.get(`${api_url}terms`);
+      setTerms(data);
+    } catch (err) {
+      setError("Failed to load Terms & Conditions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTerms();
+  }, []);
+
   return (
     <>
       <Header />
-      <main className="max-w-6xl mx-auto px-6 py-16 text-gray-800 leading-relaxed">
-        <h1 className="text-5xl font-bold text-center mb-12">Terms & Conditions</h1>
 
-        <section className="space-y-10">
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">1. Acceptance of Terms</h2>
-            <p>
-              By accessing this website, you confirm that you have read, understood, and agreed to be bound by these terms. If you do not agree, you must not use our services.
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+        <main className="flex-1 flex justify-center items-start py-16 px-4">
+          <div className="w-full max-w-4xl">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-10 text-gray-900 tracking-tight">
+              Terms & Conditions
+            </h1>
+
+            <div className="bg-white/80 backdrop-blur-md shadow-2xl rounded-2xl border border-gray-200 p-8 md:p-10 h-[65vh] overflow-y-auto space-y-10 transition-all duration-300">
+              {loading && <p className="text-center text-gray-700">Loading...</p>}
+
+              {error && (
+                <p className="text-center text-red-500 font-medium">{error}</p>
+              )}
+
+              {!loading &&
+                !error &&
+                terms.map((item, index) => (
+                  <section key={item._id}>
+                    <h2 className="text-2xl font-semibold mb-3 text-gray-900">
+                      {index + 1}. {item.title}
+                    </h2>
+
+                    <p
+                      className="text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: item.content }}
+                    ></p>
+
+                    <hr className="border-gray-200 mt-6" />
+                  </section>
+                ))}
+
+              {!loading && terms.length === 0 && !error && (
+                <p className="text-center text-gray-600">
+                  No Terms & Conditions found.
+                </p>
+              )}
+            </div>
           </div>
+        </main>
 
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">2. Modification of Terms</h2>
-            <p>
-              We may update these terms at any time. Continued use of the website after such changes constitutes your acceptance of the new terms.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">3. User Conduct</h2>
-            <p>
-              You agree to use this site only for lawful purposes and in a way that does not infringe upon the rights or restrict the use of this site by any third party.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">4. Intellectual Property</h2>
-            <p>
-              All content—including logos, text, graphics, and software—is the intellectual property of the company. Unauthorized use may violate copyright laws.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">5. Limitations of Liability</h2>
-            <p>
-              We are not liable for any indirect, incidental, or consequential damages arising from your use of the site or services.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">6. Termination</h2>
-            <p>
-              We reserve the right to suspend or terminate your access to the site at our discretion, without notice, for any reason including breach of these terms.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">7. Governing Law</h2>
-            <p>
-              These terms shall be governed by and construed in accordance with the laws of your country of residence, without regard to its conflict of law provisions.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">8. Contact Us</h2>
-            <p>
-              If you have any questions regarding these terms, please reach out to us at{' '}
-              <a href="mailto:support@example.com" className="text-blue-600 underline">support@example.com</a>.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      <CallbackForm />
-      <Footer />
+        <CallbackForm />
+        <Footer />
+      </div>
     </>
   );
 };

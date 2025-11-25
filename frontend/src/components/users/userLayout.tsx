@@ -38,9 +38,9 @@ const UserLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 bg-white shadow-sm rounded-xl p-0">
-            {children}
-          </div>
+          <div className="flex-1 bg-white shadow-sm rounded-xl p-0 h-[calc(100vh-0px)] overflow-y-auto">
+    {children}
+  </div>
         </div>
       </div>
 

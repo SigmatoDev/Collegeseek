@@ -60,11 +60,10 @@ export default function BlogList() {
             const baseURL = api_url.replace("/api", "");
 
             const resolvedImage =
-              imageFallbacks[index] ||
-              (typeof blog.image === "string" && blog.image.trim()
-                ? `${baseURL}${blog.image.replace(/^\/+/, "")}`
-                : fallbackImages[index % fallbackImages.length]);
-
+              imageFallbacks[index] || // use fallback only if broken earlier
+              (blog.image && blog.image.trim()
+                ? `${baseURL}${blog.image.replace(/^\/+/, "")}` // use real blog image
+                : fallbackImages[index % fallbackImages.length]); // fallback if blog image missing
 
             return (
               <article
@@ -78,17 +77,13 @@ export default function BlogList() {
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover"
-                    onLoad={() => {
-                     
-                    }}
                     onError={() => {
                       const nextFallback =
-                        fallbackImages[(index + 1) % fallbackImages.length];
-
+                        fallbackImages[index % fallbackImages.length];
 
                       setImageFallbacks((prev) => ({
                         ...prev,
-                        [index]: nextFallback,
+                        [index]: nextFallback, // store fallback only if blog image breaks
                       }));
                     }}
                   />

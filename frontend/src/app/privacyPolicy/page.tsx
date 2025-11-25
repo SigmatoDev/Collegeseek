@@ -1,85 +1,88 @@
-// app/privacy-policy/page.tsx
-import Footer from '@/components/footer/page';
-import Header from '@/components/header/page';
-import CallbackForm from '@/components/newsletters/page';
-import React from 'react';
+"use client";
+
+import Footer from "@/components/footer/page";
+import Header from "@/components/header/page";
+import CallbackForm from "@/components/newsletters/page";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { api_url } from "@/utils/apiCall";
+
+interface PolicyType {
+  _id: string;
+  title: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const PrivacyPolicy = () => {
+  const [policies, setPolicies] = useState<PolicyType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchPrivacyPolicy = async () => {
+    try {
+      const { data } = await axios.get(`${api_url}privacy-policy`);
+      setPolicies(data);
+    } catch (err) {
+      setError("Failed to load Privacy Policy.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrivacyPolicy();
+  }, []);
+
   return (
     <>
       <Header />
-      <main className="max-w-6xl mx-auto px-6 py-16 text-gray-800 leading-relaxed">
-        <h1 className="text-5xl font-bold text-center mb-12">Privacy Policy</h1>
 
-        <section className="space-y-10">
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">1. Introduction</h2>
-            <p>
-              This Privacy Policy outlines how we collect, use, and protect your personal information when you visit our website or use our services.
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+        <main className="flex-1 flex justify-center items-start py-16 px-4">
+          <div className="w-full max-w-4xl">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-10 text-gray-900 tracking-tight">
+              Privacy Policy
+            </h1>
+
+            <div className="bg-white/80 backdrop-blur-md shadow-2xl rounded-2xl border border-gray-200 p-8 md:p-10 h-[65vh] overflow-y-auto space-y-10 transition-all duration-300">
+              {loading && <p className="text-center text-gray-700">Loading...</p>}
+
+              {error && (
+                <p className="text-center text-red-500 font-medium">{error}</p>
+              )}
+
+              {!loading &&
+                !error &&
+                policies.map((item, index) => (
+                  <section key={item._id}>
+                    <h2 className="text-2xl font-semibold mb-3 text-gray-900">
+                      {index + 1}. {item.title}
+                    </h2>
+
+                    <p
+                      className="text-gray-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: item.content }}
+                    ></p>
+
+                    <hr className="border-gray-200 mt-6" />
+                  </section>
+                ))}
+
+              {!loading && policies.length === 0 && !error && (
+                <p className="text-center text-gray-600">
+                  No Privacy Policy content found.
+                </p>
+              )}
+            </div>
           </div>
+        </main>
 
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">2. Information We Collect</h2>
-            <p>
-              We may collect information such as your name, email address, IP address, and usage data through forms and cookies to improve your experience.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">3. How We Use Your Information</h2>
-            <p>
-              Your information helps us personalize your experience, send updates, improve our website, and ensure security.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">4. Data Protection</h2>
-            <p>
-              We implement a variety of security measures to maintain the safety of your personal information and prevent unauthorized access.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">5. Sharing Your Data</h2>
-            <p>
-              We do not sell, trade, or otherwise transfer your information to outside parties, except as required by law or trusted partners assisting in operations.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">6. Cookies</h2>
-            <p>
-              Our site may use cookies to enhance user experience and track visits. You can control cookie settings through your browser preferences.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">7. Your Rights</h2>
-            <p>
-              You have the right to access, update, or delete your personal data. Contact us if you wish to exercise any of these rights.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">8. Changes to This Policy</h2>
-            <p>
-              We may update this Privacy Policy periodically. The revised policy will be posted on this page with a new effective date.
-            </p>
-          </div>
-
-          <div>
-            <h2 className="text-3xl font-semibold mb-2">9. Contact Us</h2>
-            <p>
-              For any questions regarding this Privacy Policy, please email us at{' '}
-              <a href="mailto:support@example.com" className="text-blue-600 underline">support@example.com</a>.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      <CallbackForm />
-      <Footer />
+        <CallbackForm />
+        <Footer />
+      </div>
     </>
   );
 };
