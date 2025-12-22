@@ -24,6 +24,7 @@ import {
   Plug,
   Monitor,
   LogOut,
+  Filter,
 } from "lucide-react";
 import {
   BookOpenIcon,
@@ -68,17 +69,42 @@ const Sidebar = () => {
   };
 
   const menuItems: SidebarLinkProps[] = [
-    { href: "/admin/dashboard", icon: <Home size={20} />, text: "Dashboard", isOpen },
+    {
+      href: "/admin/dashboard",
+      icon: <Home size={20} />,
+      text: "Dashboard",
+      isOpen,
+    },
     {
       href: "#",
       icon: <Briefcase size={20} />,
       text: "Leads",
       isOpen,
       subMenu: [
-        { href: "/admin/leads/newletter", icon: <FileText size={18} />, text: "Newsletter", isOpen },
-        { href: "/admin/leads/getFreeCounselling", icon: <ChatBubbleLeftIcon className="h-5 w-5" />, text: "Counseling", isOpen },
-        { href: "/admin/leads/enrolledStudents", icon: <UserGroupIcon className="h-5 w-5" />, text: "Enrolled students", isOpen },
-        { href: "/admin/leads/contactUs", icon: <PhoneIcon size={18} />, text: "Contact Us", isOpen },
+        {
+          href: "/admin/leads/newletter",
+          icon: <FileText size={18} />,
+          text: "Newsletter",
+          isOpen,
+        },
+        {
+          href: "/admin/leads/getFreeCounselling",
+          icon: <ChatBubbleLeftIcon className="h-5 w-5" />,
+          text: "Counseling",
+          isOpen,
+        },
+        {
+          href: "/admin/leads/enrolledStudents",
+          icon: <UserGroupIcon className="h-5 w-5" />,
+          text: "Enrolled students",
+          isOpen,
+        },
+        {
+          href: "/admin/leads/contactUs",
+          icon: <PhoneIcon size={18} />,
+          text: "Contact Us",
+          isOpen,
+        },
       ],
     },
     {
@@ -87,37 +113,91 @@ const Sidebar = () => {
       text: "Colleges",
       isOpen,
       subMenu: [
-        { href: "/admin/manageColleges", icon: <School size={18} />, text: "Manage Colleges", isOpen },
-        { href: "/admin/addBrochure", icon: <DocumentIcon className="h-5 w-5" />, text: "Add Brochure", isOpen },
+        {
+          href: "/admin/manageColleges",
+          icon: <School size={18} />,
+          text: "Manage Colleges",
+          isOpen,
+        },
+        {
+          href: "/admin/addBrochure",
+          icon: <DocumentIcon className="h-5 w-5" />,
+          text: "Add Brochure",
+          isOpen,
+        },
       ],
     },
-    { href: "/admin/manageCourses", icon: <GraduationCap size={20} />, text: "Courses", isOpen },
+    {
+      href: "/admin/manageCourses",
+      icon: <GraduationCap size={20} />,
+      text: "Courses",
+      isOpen,
+    },
     {
       href: "#",
       icon: <Grid size={20} />,
       text: "MenuBuilder",
       isOpen,
-      subMenu: [{ href: "/admin/menuBuilder", icon: <Book size={18} />, text: "CourseMenu", isOpen }],
+      subMenu: [
+        {
+          href: "/admin/menuBuilder",
+          icon: <Book size={18} />,
+          text: "CourseMenu",
+          isOpen,
+        },
+        {
+          href: "/admin/categoryFilter",
+          icon: <Filter size={18} />, // You can choose another icon if you want
+          text: "CategoryFilter",
+          isOpen,
+        },
+      ],
     },
+
     {
       href: "#",
       icon: <BookOpenIcon className="h-5 w-5" />,
       text: "Content",
       isOpen,
       subMenu: [
-        { href: "/admin/pages", icon: <FileText size={18} />, text: "Pages", isOpen },
-        { href: "/admin/trendingNow", icon: <Plug size={18} />, text: "Trending Now", isOpen },
+        {
+          href: "/admin/pages",
+          icon: <FileText size={18} />,
+          text: "Pages",
+          isOpen,
+        },
+        {
+          href: "/admin/trendingNow",
+          icon: <Plug size={18} />,
+          text: "Trending Now",
+          isOpen,
+        },
       ],
     },
-    { href: "/admin/blogs", icon: <FileText size={20} />, text: "Blogs & News", isOpen },
+    {
+      href: "/admin/blogs",
+      icon: <FileText size={20} />,
+      text: "Blogs & News",
+      isOpen,
+    },
     {
       href: "#",
       icon: <Users size={20} />,
       text: "Users",
       isOpen,
       subMenu: [
-        { href: "/admin/users/admin", icon: <ShieldCheck size={18} />, text: "Admin", isOpen },
-        { href: "/admin/users/users", icon: <User size={18} />, text: "User", isOpen },
+        {
+          href: "/admin/users/admin",
+          icon: <ShieldCheck size={18} />,
+          text: "Admin",
+          isOpen,
+        },
+        {
+          href: "/admin/users/users",
+          icon: <User size={18} />,
+          text: "User",
+          isOpen,
+        },
       ],
     },
     {
@@ -126,19 +206,84 @@ const Sidebar = () => {
       text: "Settings",
       isOpen,
       subMenu: [
-        { href: "/admin/settings", icon: <Settings size={18} />, text: "General Settings", isOpen },
-        { href: "/admin/courseList", icon: <BookOpenIcon className="h-5 w-5" />, text: "Courses List", isOpen },
-        { href: "/admin/approvels", icon: <CheckCircle size={18} />, text: "Approval List", isOpen },
-        { href: "/admin/affiliatedBy", icon: <Book size={18} />, text: "Affiliated By List", isOpen },
-        { href: "/admin/ownership", icon: <UserGroupIcon className="h-5 w-5" />, text: "Ownership", isOpen },
-        { href: "/admin/streams", icon: <Grid size={18} />, text: "Streams", isOpen },
-        { href: "/admin/programMode", icon: <School size={18} />, text: "Program Mode", isOpen },
-        { href: "/admin/examExpected", icon: <BookOpenIcon className="h-5 w-5" />, text: "Exam Expected", isOpen },
-        { href: "/admin/ads", icon: <Monitor size={18} />, text: "Advertisement", isOpen },
-        { href: "/admin/specialization", icon: <Grid size={18} />, text: "Specialization", isOpen },
-        { href: "/admin/termsandconditions", icon: <FileText size={18} />, text: "Terms & Conditions", isOpen },
-        { href: "/admin/privacyPolicy", icon: <FileText size={18} />, text: "Privacy Policy", isOpen },
-        { href: "/admin/meta", icon: <FileText size={18} />, text: "Meta", isOpen }, // ✅ New Meta submenu
+        {
+          href: "/admin/settings",
+          icon: <Settings size={18} />,
+          text: "General Settings",
+          isOpen,
+        },
+        {
+          href: "/admin/courseList",
+          icon: <BookOpenIcon className="h-5 w-5" />,
+          text: "Courses List",
+          isOpen,
+        },
+        {
+          href: "/admin/approvels",
+          icon: <CheckCircle size={18} />,
+          text: "Approval List",
+          isOpen,
+        },
+        {
+          href: "/admin/affiliatedBy",
+          icon: <Book size={18} />,
+          text: "Affiliated By List",
+          isOpen,
+        },
+        {
+          href: "/admin/ownership",
+          icon: <UserGroupIcon className="h-5 w-5" />,
+          text: "Ownership",
+          isOpen,
+        },
+        {
+          href: "/admin/streams",
+          icon: <Grid size={18} />,
+          text: "Streams",
+          isOpen,
+        },
+        {
+          href: "/admin/programMode",
+          icon: <School size={18} />,
+          text: "Program Mode",
+          isOpen,
+        },
+        {
+          href: "/admin/examExpected",
+          icon: <BookOpenIcon className="h-5 w-5" />,
+          text: "Exam Expected",
+          isOpen,
+        },
+        {
+          href: "/admin/ads",
+          icon: <Monitor size={18} />,
+          text: "Advertisement",
+          isOpen,
+        },
+        {
+          href: "/admin/specialization",
+          icon: <Grid size={18} />,
+          text: "Specialization",
+          isOpen,
+        },
+        {
+          href: "/admin/termsandconditions",
+          icon: <FileText size={18} />,
+          text: "Terms & Conditions",
+          isOpen,
+        },
+        {
+          href: "/admin/privacyPolicy",
+          icon: <FileText size={18} />,
+          text: "Privacy Policy",
+          isOpen,
+        },
+        {
+          href: "/admin/meta",
+          icon: <FileText size={18} />,
+          text: "Meta",
+          isOpen,
+        }, // ✅ New Meta submenu
       ],
     },
   ];
@@ -154,9 +299,15 @@ const Sidebar = () => {
         {isOpen && (
           <div className="flex items-center space-x-2">
             {logo ? (
-              <img src={logo} alt="Logo" className="h-12 w-auto object-contain" />
+              <img
+                src={logo}
+                alt="Logo"
+                className="h-12 w-auto object-contain"
+              />
             ) : (
-              <span className="text-sm font-semibold text-[#0a0536]">Admin Panel</span>
+              <span className="text-sm font-semibold text-[#0a0536]">
+                Admin Panel
+              </span>
             )}
           </div>
         )}
@@ -165,7 +316,11 @@ const Sidebar = () => {
           className="text-[#0a0536] text-xl p-2 rounded-full hover:bg-gray-100 transition"
           aria-label="Toggle sidebar"
         >
-          {isOpen ? <ArrowLeftCircle size={22} /> : <ArrowRightCircle size={22} />}
+          {isOpen ? (
+            <ArrowLeftCircle size={22} />
+          ) : (
+            <ArrowRightCircle size={22} />
+          )}
         </button>
       </div>
 
@@ -184,19 +339,36 @@ const Sidebar = () => {
                     {isOpen && <span className="text-sm">{text}</span>}
                   </div>
                   {isOpen && (
-                    <ChevronRight size={18} className={`transition-transform ${activeMenu === text ? "rotate-90" : ""}`} />
+                    <ChevronRight
+                      size={18}
+                      className={`transition-transform ${
+                        activeMenu === text ? "rotate-90" : ""
+                      }`}
+                    />
                   )}
                 </button>
                 {activeMenu === text && (
                   <div className="pl-8 mt-1 space-y-1">
                     {subMenu.map(({ href, icon, text }) => (
-                      <SidebarLink key={href} href={href} icon={icon} text={text} isOpen={isOpen} />
+                      <SidebarLink
+                        key={href}
+                        href={href}
+                        icon={icon}
+                        text={text}
+                        isOpen={isOpen}
+                      />
                     ))}
                   </div>
                 )}
               </>
             ) : (
-              <SidebarLink key={href} href={href} icon={icon} text={text} isOpen={isOpen} />
+              <SidebarLink
+                key={href}
+                href={href}
+                icon={icon}
+                text={text}
+                isOpen={isOpen}
+              />
             )}
           </div>
         ))}
@@ -217,7 +389,9 @@ const Sidebar = () => {
           <LogOut size={18} />
           {isOpen && <span>Logout</span>}
         </button>
-        <p className="text-center text-gray-300 text-xs">© 2025 Collegeseek.in</p>
+        <p className="text-center text-gray-300 text-xs">
+          © 2025 Collegeseek.in
+        </p>
       </div>
     </div>
   );

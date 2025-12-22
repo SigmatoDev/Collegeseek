@@ -84,48 +84,56 @@ export default function UploadForm() {
     setCollegeId(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!collegeId) {
-      alert("Please select a college.");
-      return;
+  console.log("🟡 Submit started");
+  console.log("File ID:", fileId);
+  console.log("Selected file:", file);
+  console.log("College ID:", collegeId);
+
+  const formData = new FormData();
+  if (file) {
+    formData.append("file", file);
+    console.log("📎 File appended:", file.name, file.size);
+  }
+  formData.append("college_id", collegeId);
+
+  setLoading(true);
+
+  try {
+    let response;
+
+    if (existingFile && fileId) {
+      console.log("🟠 Updating file...");
+      response = await axios.put(
+        `${api_url}brochure-update/${fileId}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+    } else {
+      console.log("🟢 Creating new file...");
+      response = await axios.post(
+        `${api_url}brochure-post`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
     }
 
-    const formData = new FormData();
-    if (file) {
-      formData.append("file", file);
-    }
-    formData.append("college_id", collegeId);
+    console.log("✅ Response:", response.data);
+    alert(response.data.message);
+    router.push("/admin/addBrochure");
+  } catch (error: any) {
+    console.error("❌ Upload failed");
+    console.error("Status:", error?.response?.status);
+    console.error("Data:", error?.response?.data);
+    console.error(error);
+    alert("File upload/update failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
-    setLoading(true);
-
-    try {
-      let response;
-      if (existingFile && fileId) {
-        response = await axios.put(`${api_url}brochure/${fileId}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      } else {
-        response = await axios.post(`${api_url}brochure`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      }
-
-      alert(response.data.message);
-
-      setFile(null);
-      setCollegeId("");
-      setExistingFile(null);
-
-      router.push("/admin/addBrochure");
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert("File upload/update failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCancel = () => {
     // Clear form

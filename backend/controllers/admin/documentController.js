@@ -4,6 +4,7 @@ const mongoose = require('mongoose'); // Add this import statement
 const fs = require("fs");
 const path = require("path");
 const College = require("../../models/admin/collegemodel");
+const compressPdf = require("../../utils/compressPdf");
 const Upload = require("../../models/admin/documentModel");
 
 const router = express.Router();
@@ -106,6 +107,9 @@ const getUploadFileById = async (req, res) => {
 const createUploadFile = async (req, res) => {
   upload.single("file")(req, res, async (err) => {
     if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ message: "Max upload size is 10MB" });
+      }
       return res.status(400).json({ message: err.message });
     }
 
@@ -114,28 +118,35 @@ const createUploadFile = async (req, res) => {
     }
 
     try {
-      const { college_id } = req.body;
+      let finalFilePath = req.file.path;
+      let finalFileName = req.file.filename;
 
-      // Validate college existence
-      const college = await College.findById(college_id);
-      if (!college) return res.status(404).json({ message: "College not found" });
+      // ✅ Compress ONLY PDF
+      if (req.file.mimetype === "application/pdf") {
+        const compressedPath = await compressPdf(req.file.path);
 
-      // Save file details in DB
-      const newUpload = new Upload({
-        fileName: req.file.filename,
-        filePath: `/uploads/documents/${req.file.filename}`,
-        college_id: college_id,
+        // Remove original file
+        fs.unlinkSync(req.file.path);
+
+        finalFilePath = compressedPath;
+        finalFileName = path.basename(compressedPath);
+      }
+
+      const uploadDoc = new Upload({
+        fileName: finalFileName,
+        filePath: `/uploads/documents/${finalFileName}`,
+        college_id: req.body.college_id,
       });
 
-      await newUpload.save();
+      await uploadDoc.save();
 
       res.status(201).json({
-        message: "File uploaded successfully",
-        upload: newUpload,
+        message: "File uploaded & compressed successfully",
+        upload: uploadDoc,
       });
     } catch (error) {
-      console.error("Error uploading file:", error);
-      res.status(500).json({ message: "File upload failed" });
+      console.error(error);
+      res.status(500).json({ message: "Upload failed" });
     }
   });
 };
@@ -143,26 +154,106 @@ const createUploadFile = async (req, res) => {
 // @desc Update file details (not the file itself)
 // @route PUT /api/uploads/documents/:id
 // @access Public
-const updateUploadFile = async (req, res) => {
-  try {
-    const { college_id } = req.body;
 
-    // Validate college existence if updating college_id
-    if (college_id) {
-      const college = await College.findById(college_id);
-      if (!college) return res.status(404).json({ message: "College not found" });
+const updateUploadFile = async (req, res) => {
+  console.log("🟡 UPDATE upload API hit");
+
+  upload.single("file")(req, res, async (err) => {
+    if (err) {
+      console.error("❌ Multer error:", err);
+
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({ message: "Max file size exceeded" });
+      }
+      return res.status(400).json({ message: err.message });
     }
 
-    const updatedFile = await Upload.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    try {
+      const { id } = req.params;
+      const { college_id } = req.body;
 
-    if (!updatedFile) return res.status(404).json({ message: "File not found" });
+      console.log("📌 File ID:", id);
+      console.log("📌 College ID:", college_id);
+      console.log("📌 New file received:", req.file ? req.file.filename : "NO");
 
-    res.status(200).json(updatedFile);
-  } catch (error) {
-    console.error("Error updating file:", error);
-    res.status(500).json({ message: "Failed to update file" });
-  }
+      // 🔍 Find existing file
+      const existingFile = await Upload.findById(id);
+      if (!existingFile) {
+        console.warn("⚠️ File not found in DB");
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      console.log("✅ Existing file found:", existingFile.fileName);
+
+      // 🏫 Validate college if changed
+      if (college_id) {
+        console.log("🔍 Validating college...");
+        const college = await College.findById(college_id);
+        if (!college) {
+          console.warn("⚠️ College not found");
+          return res.status(404).json({ message: "College not found" });
+        }
+        existingFile.college_id = college_id;
+        console.log("✅ College updated");
+      }
+
+      // 📎 If new file uploaded
+      if (req.file) {
+        console.log("📎 Processing new file upload...");
+
+        // 🗑 Delete old file
+        if (existingFile.filePath) {
+          const oldPath = path.join(
+            __dirname,
+            "../../public",
+            existingFile.filePath
+          );
+
+          console.log("🗑 Deleting old file:", oldPath);
+
+          if (fs.existsSync(oldPath)) {
+            fs.unlinkSync(oldPath);
+            console.log("✅ Old file deleted");
+          } else {
+            console.warn("⚠️ Old file not found on disk");
+          }
+        }
+
+        let finalPath = req.file.path;
+        let finalName = req.file.filename;
+
+        // 📉 Compress PDF
+        if (req.file.mimetype === "application/pdf") {
+          console.log("📉 Compressing PDF...");
+          const compressedPath = await compressPdf(req.file.path);
+
+          fs.unlinkSync(req.file.path);
+          finalPath = compressedPath;
+          finalName = path.basename(compressedPath);
+
+          console.log("✅ PDF compressed:", finalName);
+        }
+
+        existingFile.fileName = finalName;
+        existingFile.filePath = `/uploads/documents/${finalName}`;
+      }
+
+      await existingFile.save();
+
+      console.log("🎉 File update successful");
+
+      res.status(200).json({
+        message: "File updated successfully",
+        upload: existingFile,
+      });
+    } catch (error) {
+      console.error("🔥 Update error:", error);
+      res.status(500).json({ message: "Failed to update file" });
+    }
+  });
 };
+
+
 
 // @desc Delete an uploaded file
 // @route DELETE /api/uploads/documents/:id

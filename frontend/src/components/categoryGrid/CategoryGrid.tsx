@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { api_url, img_url } from '@/utils/apiCall';
-import { useEffect, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import Link from "next/link";
+import { api_url, img_url } from "@/utils/apiCall";
+import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 
-const tabs = ['Colleges', 'Exams', 'Courses'];
+const tabs = ["Streams", "Exams", "Courses"];
 
 type CategoryItem = {
   name: string;
   count: number;
   icon: string;
-  colleges?: string[]; // Add optional colleges property
+  type: "streams" | "exams" | "courses"; // ✅ must include type
 };
 
 type CategoryData = {
@@ -29,69 +29,25 @@ const ICON_SWATCHES = [
 ];
 
 export default function CategoryGrid() {
-  const [activeTab, setActiveTab] = useState<'Colleges' | 'Exams' | 'Courses'>('Colleges');
+  const [activeTab, setActiveTab] = useState<"Streams" | "Exams" | "Courses">(
+    "Streams"
+  );
+
   const [data, setData] = useState<CategoryData>({
     Streams: [],
     Exams: [],
     Courses: [],
   });
 
-  const [tabCounts, setTabCounts] = useState<{ [key: string]: number }>({
-    Colleges: 0,
+  const tabs = ["Streams", "Exams", "Courses"] as const;
+
+  type TabKey = (typeof tabs)[number];
+
+  const [tabCounts, setTabCounts] = useState<Record<TabKey, number>>({
+    Streams: 0,
     Exams: 0,
     Courses: 0,
   });
-
-  const tabKeyMap: { [label: string]: keyof CategoryData } = {
-    Colleges: 'Streams',
-    Exams: 'Exams',
-    Courses: 'Courses',
-  };
-
-  const getCountLabel = (tab: typeof activeTab) => {
-    switch (tab) {
-      case 'Colleges':
-      case 'Exams':
-        return 'colleges';
-      case 'Courses':
-        return 'courses';
-      default:
-        return '';
-    }
-  };
-
-  useEffect(() => {
-    const fetchCategoryData = async () => {
-      try {
-        const url = `${api_url}categories`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Status: ${response.status}`);
-        const contentType = response.headers.get('content-type');
-        if (!contentType?.includes('application/json')) {
-          const rawText = await response.text();
-          console.error('Expected JSON but received:', rawText);
-          throw new Error('Invalid response format');
-        }
-        const result: CategoryData = await response.json();
-        setData(result);
-
-        setTabCounts({
-          Colleges: result.Streams.reduce((acc, item) => acc + item.count, 0),
-          Exams: result.Exams.reduce((acc, item) => acc + item.count, 0),
-          Courses: result.Courses.reduce((acc, item) => acc + item.count, 0),
-        });
-      } catch (error) {
-        console.error('Failed to fetch category data:', error);
-      }
-    };
-
-    fetchCategoryData();
-  }, []);
-
-  const formatQuery = (str: string) => encodeURIComponent(str).replace(/%20/g, '+');
-
-  const toTitleCase = (str: string) =>
-    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
   const [selectedItem, setSelectedItem] = useState<CategoryItem | null>(null);
   const [relatedColleges, setRelatedColleges] = useState<
@@ -99,97 +55,143 @@ export default function CategoryGrid() {
   >([]);
   const [collegesLoading, setCollegesLoading] = useState(false);
 
+  const tabKeyMap: { [key: string]: keyof CategoryData } = {
+    Streams: "Streams",
+    Exams: "Exams",
+    Courses: "Courses",
+  };
+
+  const getCountLabel = (tab: typeof activeTab) =>
+    tab === "Courses" ? "courses" : "colleges";
+
+  // ---------------------------------
+  // ✅ Fetch categories (fixed)
+  // ---------------------------------
+useEffect(() => {
+  const fetchCategoryData = async () => {
+    try {
+      console.log("Fetching categories from API:", `${api_url}getCategoriesFilter`);
+
+      const response = await fetch(`${api_url}getCategoriesFilter`);
+
+      // Log the raw response object
+      console.log("Raw fetch response:", response);
+
+      if (!response.ok) {
+        console.error("Fetch failed with status:", response.status, response.statusText);
+        throw new Error("Failed fetching categories");
+      }
+
+      // Clone the response to log full text
+      const responseText = await response.clone().text();
+      console.log("Raw response text:", responseText);
+
+      const list: CategoryItem[] = await response.json();
+      console.log("Parsed JSON list from backend:", list);
+
+      // Group by type and ensure counts are numbers
+      const grouped: CategoryData = {
+        Streams: list
+          .filter(c => c.type === "streams")
+          .map(c => ({ ...c, count: Number(c.count || 0) })),
+        Exams: list
+          .filter(c => c.type === "exams")
+          .map(c => ({ ...c, count: Number(c.count || 0) })),
+        Courses: list
+          .filter(c => c.type === "courses")
+          .map(c => ({ ...c, count: Number(c.count || 0) })),
+      };
+
+      console.log(
+        "Grouped Courses with numeric counts:",
+        grouped.Courses.map(c => ({ name: c.name, count: c.count }))
+      );
+      console.log(
+        "Total Courses count:",
+        grouped.Courses.reduce((acc, i) => acc + i.count, 0)
+      );
+
+      setData(grouped);
+
+      setTabCounts({
+        Streams: grouped.Streams.reduce((acc, i) => acc + i.count, 0),
+        Exams: grouped.Exams.reduce((acc, i) => acc + i.count, 0),
+        Courses: grouped.Courses.reduce((acc, i) => acc + i.count, 0),
+      });
+
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    }
+  };
+
+  fetchCategoryData();
+}, []);
+
+
+
+
+
+
+  // ---------------------------------
+  // Auto-select first item on tab change
+  // ---------------------------------
   useEffect(() => {
     const list = data[tabKeyMap[activeTab]];
-    if (list && list.length > 0) {
-      setSelectedItem(list[0]);
-    } else {
-      setSelectedItem(null);
-    }
+    setSelectedItem(list.length > 0 ? list[0] : null);
   }, [activeTab, data]);
 
+  // ---------------------------------
+  // Fetch related colleges when item changes
+  // ---------------------------------
   useEffect(() => {
-    if (!selectedItem) {
-      setRelatedColleges([]);
-      return;
-    }
+    if (!selectedItem) return;
 
     const controller = new AbortController();
+
     const fetchColleges = async () => {
       setCollegesLoading(true);
       try {
         const filterKey =
-          activeTab === 'Exams' ? 'exams' : activeTab === 'Courses' ? 'categories' : 'streams';
-        const payload: Record<string, any> = {
+          activeTab === "Exams"
+            ? "exams"
+            : activeTab === "Courses"
+            ? "categories"
+            : "streams";
+
+        const payload = {
           page: 1,
           limit: 15,
           [filterKey]: [selectedItem.name],
         };
 
         const res = await fetch(`${api_url}get/colleges/filter`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
           signal: controller.signal,
         });
 
-        if (!res.ok) throw new Error('Failed to load colleges');
         const response = await res.json();
         const list =
           response?.colleges ||
           response?.data?.colleges ||
           response?.data?.data ||
-          response?.data ||
           [];
-        const normalized = (Array.isArray(list) ? list : []).map((college: any) => ({
+
+        const normalized = list.map((college: any) => ({
           name:
             college?.name ||
             college?.collegeName ||
             college?.title ||
-            college?.institution ||
-            'College',
-          slug: college?.slug || college?.collegeSlug || college?._id,
+            "College",
+          slug: college?.slug || college?._id,
         }));
 
-        if (normalized.length === 0) {
-          // Fallback: show a few colleges even if filter returns empty
-          const fallbackRes = await fetch(`${api_url}get/colleges/filter`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ page: 1, limit: 15 }),
-            signal: controller.signal,
-          });
-          const fallbackData = await fallbackRes.json();
-          const fallbackList =
-            fallbackData?.colleges ||
-            fallbackData?.data?.colleges ||
-            fallbackData?.data?.data ||
-            fallbackData?.data ||
-            [];
-          const normalizedFallback = (Array.isArray(fallbackList) ? fallbackList : []).map(
-            (college: any) => ({
-              name:
-                college?.name ||
-                college?.collegeName ||
-                college?.title ||
-                college?.institution ||
-                'College',
-              slug: college?.slug || college?.collegeSlug || college?._id,
-            })
-          );
-          setRelatedColleges(normalizedFallback.slice(0, 15));
-        } else {
-          setRelatedColleges(normalized.slice(0, 15));
-        }
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          console.error('Failed to fetch related colleges:', error);
-          setRelatedColleges([]);
-        }
+        setRelatedColleges(normalized.slice(0, 15));
+      } catch (err: any) {
+        if (err.name !== "AbortError") console.error(err);
       } finally {
-        if (!controller.signal.aborted) {
-          setCollegesLoading(false);
-        }
+        setCollegesLoading(false);
       }
     };
 
@@ -197,54 +199,37 @@ export default function CategoryGrid() {
     return () => controller.abort();
   }, [selectedItem, activeTab]);
 
-const SMALL_WORDS = new Set([
-  "a","an","and","as","at","but","by","for","from","in","into","nor","of","on","or","over","the","to","up","with"
-]);
+  // ---------------------------------
+  // Helper functions
+  // ---------------------------------
+  const encodePlus = (s: string) => encodeURIComponent(s).replace(/%20/g, "+");
 
-const toTitleCaseSmart = (str: string) => {
-  const parts = str.trim().split(/\s+/);
-  return parts
-    .map((word, idx) => {
-      const lower = word.toLowerCase();
-      if (idx === 0) return lower.charAt(0).toUpperCase() + lower.slice(1); // always capitalize first word
-      if (SMALL_WORDS.has(lower)) return lower; // keep small words lowercase
-      return lower.charAt(0).toUpperCase() + lower.slice(1);
-    })
-    .join(" ");
-};
+  const toTitleCaseSmart = (str: string) =>
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
 
-const encodePlus = (s: string) => encodeURIComponent(s).replace(/%20/g, "+");
+  const buildHref = (item: CategoryItem) => {
+    if (activeTab === "Exams")
+      return `/college?page=1&exams=${encodePlus(item.name.toUpperCase())}`;
 
-const buildHref = (item: CategoryItem) => {
-  // Exams: already handled elsewhere (uppercase + page=1 — keep as you had)
-  if (activeTab === "Exams") {
-    const normalized = item.name.trim().toUpperCase();
-    const encoded = encodePlus(normalized);
-    return `/college?page=1&exams=${encoded}`;
-  }
+    if (activeTab === "Courses")
+      return `/college?page=1&categories=${encodePlus(
+        toTitleCaseSmart(item.name)
+      )}`;
 
-  // Categories: Title-case each main word (smart), spaces -> '+', include page=1
-  if (activeTab === "Courses") {
-    const normalized = toTitleCaseSmart(item.name);
-    const encoded = encodePlus(normalized);
-    return `/college?page=1&categories=${encoded}`;
-  }
-
-  // Colleges (Streams): keep existing behaviour (Title Case single-word style)
-  const normalized = toTitleCase(item.name.trim());
-  const encoded = formatQuery(normalized);
-  return `/college?streams=${encoded}`;
-};
-
-
-
-
-  const buildCollegePillHref = (college: { name: string; slug?: string }) => {
-    if (college.slug) {
-      return `/colleges/${college.slug}`;
-    }
-    return `/college?search=${encodeURIComponent(college.name)}`;
+    return `/college?streams=${encodePlus(toTitleCaseSmart(item.name))}`;
   };
+
+  const buildCollegePillHref = (college: { name: string; slug?: string }) =>
+    college.slug
+      ? `/colleges/${college.slug}`
+      : `/college?search=${encodeURIComponent(college.name)}`;
+
+  // =================================================================
+  // UI STARTS HERE  -------------------------------------------------
+  // =================================================================
 
   return (
     <section className="bg-gradient-to-b from-orange-50 to-orange-50 py-16">
@@ -253,7 +238,8 @@ const buildHref = (item: CategoryItem) => {
           Find the Best Colleges, Courses & Exams Tailored to Your Needs
         </h2>
 
-        <div role="tablist" aria-label="Category tabs" className="flex justify-center mb-14">
+        {/* TABS */}
+        <div className="flex justify-center mb-14">
           <div className="relative flex w-full max-w-md bg-white border border-[#D35E45] rounded-full shadow-md overflow-hidden">
             <div
               className="absolute top-0 left-0 h-full bg-[#D35E45] rounded-full transition-transform duration-500 ease-in-out z-0"
@@ -262,21 +248,19 @@ const buildHref = (item: CategoryItem) => {
                 transform: `translateX(${tabs.indexOf(activeTab) * 100}%)`,
               }}
             />
-
             {tabs.map((tab) => (
               <button
                 key={tab}
-                role="tab"
-                aria-selected={activeTab === tab}
-                tabIndex={activeTab === tab ? 0 : -1}
-                onClick={() => setActiveTab(tab as 'Colleges' | 'Exams' | 'Courses')}
-                className={`relative z-10 flex-1 flex justify-center items-center gap-2 text-center text-sm sm:text-base font-semibold py-3 transition-all duration-300 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D35E45] ${
-                  activeTab === tab ? 'text-white' : 'text-[#D35E45] hover:bg-orange-50'
+                onClick={() =>
+                  setActiveTab(tab as "Streams" | "Exams" | "Courses")
+                }
+                className={`relative z-10 flex-1 flex justify-center items-center gap-2 font-semibold py-3 rounded-full transition ${
+                  activeTab === tab ? "text-white" : "text-[#D35E45]"
                 }`}
               >
-                <span>{tab}</span>
-                <span className="inline-block bg-[#D35E45] text-white text-xs font-semibold rounded-full px-2 py-0.5 leading-none select-none">
-                  {`(${tabCounts[tab] ?? 0})`}
+                {tab}
+                <span className="bg-[#D35E45] text-white text-xs px-2 py-0.5 rounded-full">
+                  ({tabCounts[tab]})
                 </span>
               </button>
             ))}
@@ -284,47 +268,36 @@ const buildHref = (item: CategoryItem) => {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[320px,1fr]">
-          <div className="rounded-3xl border border-white/80 bg-white/90 p-4 shadow-sm max-h-[480px] overflow-y-auto">
+          {/* LEFT LIST */}
+          <div className="rounded-3xl border bg-white/90 p-4 shadow-sm max-h-[480px] overflow-y-auto">
             <div className="space-y-3">
               {data[tabKeyMap[activeTab]]?.map((item, index) => {
                 const isSelected = selectedItem?.name === item.name;
                 const swatch = ICON_SWATCHES[index % ICON_SWATCHES.length];
-                const initials = item.name
-                  .split(/\s+/)
-                  .map((word) => word[0]?.toUpperCase() || "")
-                  .join("")
-                  .slice(0, 2);
-                const isImage = item.icon?.startsWith("http") || item.icon?.startsWith("uploads");
 
                 return (
                   <button
                     key={item.name}
                     onClick={() => setSelectedItem(item)}
-                    className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-3 text-left transition ${
+                    className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-3 ${
                       isSelected
-                        ? "border-[#d35e45] bg-[#fff0e6] shadow"
-                        : "border-orange-100 hover:border-[#d35e45]/40"
+                        ? "border-[#d35e45] bg-[#fff0e6]"
+                        : "border-orange-100"
                     }`}
                   >
                     <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${swatch.bg}`}
+                      className={`h-12 w-12 flex items-center justify-center rounded-xl bg-gradient-to-br ${swatch.bg}`}
                     >
-                      {isImage ? (
-                        <img
-                          src={item.icon.startsWith("http") ? item.icon : `${img_url}${item.icon}`}
-                          alt={item.name}
-                          className="h-9 w-9 object-contain"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className={`text-base font-bold ${swatch.text}`}>
-                          {initials || item.icon || "#"}
-                        </span>
-                      )}
+                      <span className={`text-base font-bold ${swatch.text}`}>
+                        {item.name.charAt(0)}
+                      </span>
                     </div>
+
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{item.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-semibold text-left">
+                        {item.name}
+                      </p>
+                      <p className="text-xs text-gray-500 flex justify-start">
                         {item.count} {getCountLabel(activeTab)}
                       </p>
                     </div>
@@ -334,78 +307,52 @@ const buildHref = (item: CategoryItem) => {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/80 bg-white/90 p-8 shadow-lg space-y-6">
+          {/* RIGHT PANEL */}
+          <div className="rounded-[32px] border bg-white/90 p-8 shadow-lg space-y-6">
             {selectedItem ? (
               <>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d35e45]">
-                    {activeTab.slice(0, -1)} Focus
-                  </p>
-                  <h3 className="text-3xl font-extrabold text-gray-900 mt-2">
-                    {selectedItem.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-3">
-                    Explore {selectedItem.count.toLocaleString()} curated{" "}
-                    {getCountLabel(activeTab)} with detailed insights, placements, and campus life.
-                  </p>
+                <h3 className="text-3xl font-extrabold">{selectedItem.name}</h3>
+
+                <div className="flex gap-4 flex-wrap">
+                  <Link
+                    href={buildHref(selectedItem)}
+                    className="bg-[#d25c40] text-white px-6 py-2 rounded-full shadow"
+                  >
+                    View Colleges
+                  </Link>
+
+                  <Link
+                    href="/contactUs"
+                    className="border border-[#d25c40] text-[#d25c40] px-6 py-2 rounded-full"
+                  >
+                    Get Admission Help
+                  </Link>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      Top outcomes
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900 mt-1">
-                      Personalized counselling and campus-specific guidance.
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      Why shortlist
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900 mt-1">
-                      Compare fees, placements, and entrance requirements easily.
-                    </p>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {collegesLoading ? (
+                    <span className="text-xs text-gray-500">
+                      Loading colleges...
+                    </span>
+                  ) : relatedColleges.length > 0 ? (
+                    relatedColleges.map((college, i) => (
+                      <Link
+                        href={buildCollegePillHref(college)}
+                        key={i}
+                        className="bg-white px-3 py-1 rounded-full text-xs shadow"
+                      >
+                        {college.name}
+                      </Link>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      No colleges found.
+                    </span>
+                  )}
                 </div>
-
-                <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={buildHref(selectedItem)}
-              className="inline-flex items-center gap-2 rounded-full bg-[#d25c40] px-6 py-2 text-white text-sm font-semibold shadow-[0_15px_30px_rgba(210,92,64,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_35px_rgba(210,92,64,0.45)]"
-            >
-              View Colleges
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/contactUs"
-              className="inline-flex items-center gap-2 rounded-full border border-[#d25c40] px-6 py-2 text-sm font-semibold text-[#d25c40] hover:bg-[#fff3ed] transition"
-            >
-              Get Admission Help
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {collegesLoading ? (
-              <span className="text-xs text-gray-500">Loading colleges...</span>
-            ) : relatedColleges.length > 0 ? (
-              relatedColleges.map((college, idx) => (
-                <Link
-                  key={`college-pill-${idx}`}
-                  href={buildCollegePillHref(college)}
-                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm hover:border hover:border-[#d35e45]"
-                >
-                  {college.name}
-                </Link>
-              ))
-            ) : (
-              <span className="text-xs text-gray-500">No colleges found for this selection.</span>
-            )}
-          </div>
-        </div>
               </>
             ) : (
-              <p className="text-gray-500 text-sm">No categories available at the moment.</p>
+              <p>No categories available now.</p>
             )}
           </div>
         </div>

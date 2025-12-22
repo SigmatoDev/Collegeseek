@@ -90,6 +90,7 @@ app.use("/api", require("./routes/admin/ads5Routes"));
 app.use("/api", require("./routes/admin/excelCollegeRoutes"));
 app.use("/api", require("./routes/filter/coursesRoutes"));
 app.use("/api", require("./routes/admin/metaRoutes"));
+app.use("/api", require("./routes/admin/categoryFilterRoutes"));
 
 // Start the server
 app.listen(PORT, () => {
