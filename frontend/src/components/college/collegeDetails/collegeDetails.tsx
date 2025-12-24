@@ -140,29 +140,46 @@ export default function CollegeDetailsPage() {
       setMainImageSrc(fallbackImage);
     }
   }, [collegeData]);
+  
+const handleDownload = async (collegeId: string) => {
+  console.log("⬇️ Download started for collegeId:", collegeId);
 
-  const handleDownload = async (collegeId: string) => {
-    try {
-      const url = `${api_url}brochure/college/${collegeId}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Download failed");
+  try {
+    const url = `${api_url}brochure/college/${collegeId}`;
+    console.log("🌐 Fetching brochure from URL:", url);
 
-      const blob = await res.blob();
-      const fileURL = window.URL.createObjectURL(blob);
+    const res = await fetch(url);
+    console.log("📡 Fetch response:", res);
 
-      const a = document.createElement("a");
-      a.href = fileURL;
-      a.download = "brochure.pdf";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      console.log("📄 Brochure downloaded successfully");
-    } catch (error) {
-      alert("Download failed, please try again.");
-      console.error("🚨 Brochure download error:", error);
+    if (!res.ok) {
+      console.error("❌ Fetch failed with status:", res.status);
+      throw new Error("Download failed");
     }
-  };
+
+    const blob = await res.blob();
+    console.log("📦 Blob received:", blob);
+
+    const fileURL = window.URL.createObjectURL(blob);
+    console.log("🔗 Blob URL created:", fileURL);
+
+    const a = document.createElement("a");
+    a.href = fileURL;
+    a.download = "brochure.pdf";
+    document.body.appendChild(a);
+
+    console.log("🖱️ Triggering download...");
+    a.click();
+
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(fileURL);
+
+    console.log("✅ Brochure downloaded successfully");
+  } catch (error) {
+    console.error("🚨 Brochure download error:", error);
+    alert("Download failed, please try again.");
+  }
+};
+
 
 const handleShortlist = async () => {
   console.log("🔍 Checking login:", user?.token);

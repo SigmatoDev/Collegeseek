@@ -7,41 +7,68 @@ const getUploadFileByCollegeId = async (req, res) => {
   try {
     const { collegeId } = req.params;
 
+    console.log("--------------------------------------------------");
+    console.log("Download request received");
+    console.log("College ID from params:", collegeId);
+
     if (!ObjectId.isValid(collegeId)) {
+      console.error("❌ Invalid College ID");
       return res.status(400).json({ message: "Invalid College ID" });
     }
 
-    console.log("Received College ID:", collegeId);
+    const file = await Upload.findOne({ college_id: collegeId });
 
-    const file = await Upload.findOne({ college_id: new ObjectId(collegeId) });
+    console.log("📄 File record from DB:", file);
 
     if (!file) {
-      console.error("No file found for this collegeId");
-      return res.status(404).json({ message: "Brochure not found for this college" });
+      console.error("❌ No document found for this college");
+      return res
+        .status(404)
+        .json({ message: "Brochure not found for this college" });
     }
 
-    // Construct correct file path
-    let filePath = file.filePath.startsWith("/") 
-      ? path.join(__dirname, "../../public", file.filePath)  // If relative, assume it's inside public
-      : file.filePath; // If absolute, use it as is
+    console.log("📁 filePath from DB:", file.filePath);
+    console.log("📎 fileName from DB:", file.fileName);
 
-    console.log("Serving file from:", filePath);
+    const sanitizedPath = file.filePath.replace(/^\/+/, "");
 
-    // Check if file exists
-    fs.access(filePath, fs.constants.F_OK, (err) => {
-      if (err) {
-        console.error("File not found:", err);
-        return res.status(404).json({ message: "File not found on server" });
-      }
+    console.log("🧹 Sanitized filePath:", sanitizedPath);
 
-      console.log("File exists, starting download...");
-      res.download(filePath, file.fileName);
-    });
+    const filePath = path.resolve(
+      __dirname,
+      "../../public",
+      sanitizedPath
+    );
+
+    console.log("📍 Absolute resolved path:", filePath);
+
+    // Check parent directory
+    const dirPath = path.dirname(filePath);
+    console.log("📂 Directory being checked:", dirPath);
+
+    if (!fs.existsSync(dirPath)) {
+      console.error("❌ Directory does not exist:", dirPath);
+    } else {
+      console.log("✅ Directory exists");
+      console.log(
+        "📂 Files in directory:",
+        fs.readdirSync(dirPath)
+      );
+    }
+
+    if (!fs.existsSync(filePath)) {
+      console.error("❌ File not found on disk:", filePath);
+      return res.status(404).json({ message: "File not found on server" });
+    }
+
+    console.log("⬇️ File exists, starting download...");
+    res.download(filePath, file.fileName);
 
   } catch (error) {
-    console.error("Error fetching file:", error);
+    console.error("🔥 Error fetching file:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 module.exports = { getUploadFileByCollegeId };
+
