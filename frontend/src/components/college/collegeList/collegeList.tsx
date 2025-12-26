@@ -195,7 +195,11 @@ const CollegeList = ({ appliedFilters }: CollegeListProps) => {
       <div className="flex flex-col gap-6">
         {colleges.length > 0 ? (
           colleges.map((college) => (
-            <FilterCollegeCard key={college._id} collegeId={college._id} />
+            <FilterCollegeCard
+              key={college._id}
+              collegeId={college._id}
+              college={college as any}
+            />
           ))
         ) : (
           <div className="text-center text-gray-500">No colleges available.</div>

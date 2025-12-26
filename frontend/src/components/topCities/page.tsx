@@ -152,9 +152,9 @@ href={`/college?cities=${formatCity(city.slug || city.name)}`}
                 </div>
                 <div>
                   <p className="text-lg font-bold text-gray-900">{city.name}</p>
-                  <p className="text-xs uppercase tracking-[0.4em] text-[#c25541]">
+                  {/* <p className="text-xs uppercase tracking-[0.4em] text-[#c25541]">
                     #{String(index + 1).padStart(2, "0")}
-                  </p>
+                  </p> */}
                 </div>
               </div>
 

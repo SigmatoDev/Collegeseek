@@ -8,7 +8,8 @@ import CounsellingForm from "@/components/counselling/counsellingForm/page";
 import DOMPurify from "dompurify";
 
 interface Props {
-  collegeId: string;
+  collegeId?: string;
+  college?: CollegeData;
 }
 
 interface CollegeData {
@@ -30,7 +31,7 @@ interface CollegeData {
   coursesCount: number;
 }
 
-export default function FilterCollegeCard({ collegeId }: Props) {
+export default function FilterCollegeCard({ collegeId, college }: Props) {
   const [collegeData, setCollegeData] = useState<CollegeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,19 @@ export default function FilterCollegeCard({ collegeId }: Props) {
   const router = useRouter();
 
   useEffect(() => {
+    const hasMinimumData =
+      college &&
+      Boolean(college.name) &&
+      Boolean(college.slug) &&
+      Boolean(college.description);
+
+    if (hasMinimumData) {
+      setCollegeData(college);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     if (!collegeId) {
       setError("Invalid college ID.");
       setLoading(false);
@@ -69,7 +83,7 @@ export default function FilterCollegeCard({ collegeId }: Props) {
     };
 
     fetchCollegeById();
-  }, [collegeId]);
+  }, [college, collegeId]);
 
   const cleanDescription = (html: string): string => {
     if (!html) return "";
@@ -79,15 +93,13 @@ export default function FilterCollegeCard({ collegeId }: Props) {
       .replace(/<p><\/p>/g, ""); // Remove empty <p> tags
     return DOMPurify.sanitize(cleaned);
   };
-  if (!collegeData)
-    return <div className="text-center p-4">...</div>;
+  if (loading && !collegeData) {
+    return <div className="text-center p-4">Loading...</div>;
+  }
+  if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
+  if (!collegeData) return <div className="text-center p-4">...</div>;
 
   const sanitizedDescription = cleanDescription(collegeData.description || "");
-
-  if (loading) return <div className="text-center p-4">Loading...</div>;
-  if (error) return <div className="text-center p-4 text-red-500">{error}</div>;
-  if (!collegeData)
-    return <div className="text-center p-4">...</div>;
 
   const imageUrlFinal = collegeData.image
     ? `${img_url}uploads/${collegeData.image.replace(/^\/?uploads\//, "")}`

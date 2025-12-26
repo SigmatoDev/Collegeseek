@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 interface FilterItem {
   name: string;
   count: number;
+  state?: string;
 }
 interface CourseFeesItem {
   range: string;
@@ -54,7 +55,7 @@ export default function FilterSidebarNew({
     }
     setSelected(converted);
   }, [selectedFilters]);
-  const toggleSelect = (section: string, value: string) => {
+  const toggleSelect = (section: string, value: string, parentState?: string) => {
     setSelected((prev) => {
       const newSet = new Set(prev[section] || []);
       if (newSet.has(value)) {
@@ -63,6 +64,11 @@ export default function FilterSidebarNew({
         newSet.add(value);
       }
       const updated = { ...prev, [section]: newSet };
+      if (section === "cities" && parentState) {
+        const stateSet = new Set(updated.states || []);
+        stateSet.add(parentState);
+        updated.states = stateSet;
+      }
       // Construct plain object to pass up
       const filterObj: { [key: string]: string[] } = {};
       Object.entries(updated).forEach(([key, set]) => {
@@ -85,7 +91,7 @@ export default function FilterSidebarNew({
       ? "space-y-1 max-h-48 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300"
       : "space-y-1 max-h-48 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300";
   return (
-    <aside className="w-full lg:w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(235vh-50px)] shadow-lg">
+    <aside className="w-full lg:w-[300px] max-w-sm bg-white p-6 rounded-2xl border border-gray-200 space-y-6 overflow-y-auto max-h-[calc(235vh-50px)] shadow-lg lg:sticky lg:top-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Filters</h2>
         {hasActiveFilters && (
@@ -107,12 +113,18 @@ export default function FilterSidebarNew({
                   (filters[key] as FilterItem[]).length
                 )} pl-0 space-y-2`}
               >
-                {(filters[key] as FilterItem[]).map((item) => {
+                {(filters[key] as FilterItem[]).map((item, index) => {
                   const isSelected = selected[key]?.has(item.name) || false;
                   return (
                     <li
-                      key={item.name}
-                      onClick={() => toggleSelect(key, item.name)}
+                      key={`${key}-${item.name}-${index}`}
+                      onClick={() =>
+                        toggleSelect(
+                          key,
+                          item.name,
+                          key === "cities" ? item.state : undefined
+                        )
+                      }
                       className={`flex cursor-pointer items-center justify-between py-0.8 font-semibold border px-3 text-sm text-gray-600 transition bg-[#eaeaea]/20 ${
                         isSelected
                           ? "border-[#7a6be7] bg-[#f0edff] text-[#2f2479]"
@@ -126,7 +138,11 @@ export default function FilterSidebarNew({
                           onClick={(e) => e.stopPropagation()}
                           onChange={(e) => {
                             e.stopPropagation();
-                            toggleSelect(key, item.name);
+                            toggleSelect(
+                              key,
+                              item.name,
+                              key === "cities" ? item.state : undefined
+                            );
                           }}
                           className="h-4 w-4 rounded border-gray-300 accent-[#635dc1] focus:ring-[#635dc1]"
                         />

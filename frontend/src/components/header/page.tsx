@@ -281,9 +281,15 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 { name: "Colleges", href: "/college" },
               ].map((item, index) => (
                 <Link key={index} href={item.href}>
-                  <button className="text-sm font-medium px-3 py-2 rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#D46047]">
+                  <button
+                    className={`text-sm font-medium px-3 py-2 rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#D46047] ${
+                      item.name === "Online"
+                        ? "text-[#D46047] bg-[#fff1ec] border border-[#f0c3b8] rounded-[30px]"
+                        : ""
+                    }`}
+                  >
                     {item.name}
-                    <span className="absolute left-0 bottom-0 w-0 h-[3px] bg-[#D46047] transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute left-0 bottom-0 h-[3px] bg-[#D46047] transition-all duration-300 group-hover:w-full w-0"></span>
                   </button>
                 </Link>
               ))}
@@ -325,7 +331,13 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 { name: "Latest Updates", href: "/latestUpdate" },
               ].map((item, index) => (
                 <Link key={index} href={item.href}>
-                  <span className="block text-sm font-medium py-2 text-gray-800 hover:text-[#D46047] border-b border-gray-200 w-full">
+                  <span
+                    className={`block text-sm font-medium py-2 border-b border-gray-200 w-full ${
+                      item.name === "Online"
+                        ? "text-[#D46047] bg-[#fff1ec] rounded-[30px]"
+                        : "text-gray-800 hover:text-[#D46047]"
+                    }`}
+                  >
                     {item.name}
                   </span>
                 </Link>

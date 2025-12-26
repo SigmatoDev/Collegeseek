@@ -18,7 +18,7 @@ export default function UserHeader() {
   }
 
   return (
-    <header className="w-full bg-gradient-to-r from-[#d1664d] to-[#ef9f00] text-white shadow-md rounded-b-2xl">
+    <header className="w-full bg-gradient-to-r from-[#d1664d] to-[#ef9f00] text-white shadow-md rounded-2xl overflow-hidden">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 py-5 gap-4">
         
         {/* Left Section */}

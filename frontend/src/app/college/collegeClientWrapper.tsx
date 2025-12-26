@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import FilterCollegeCard from "@/components/college/collegeCard/filterCollgedata";
 import AdBox1 from "@/components/adBox/adBox1";
 import AdBox2 from "@/components/adBox/adBox2";
@@ -31,6 +31,7 @@ export default function CollegesClientWrapper() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
+  const lastFilterKeyRef = useRef<string | null>(null);
   const parseSearchParams = () => {
     const result: { [key: string]: string[] } = {};
     searchParams.forEach((value, key) => {
@@ -47,32 +48,46 @@ export default function CollegesClientWrapper() {
     }
     return params.toString();
   };
+  const buildFilterKey = (filters: { [key: string]: string[] }) => {
+    const parts = Object.keys(filters)
+      .filter((key) => key !== "page")
+      .sort()
+      .map((key) => {
+        const values = [...filters[key]]
+          .map((value) => value.toLowerCase())
+          .sort();
+        return `${key}:${values.join(",")}`;
+      });
+    return parts.join("|");
+  };
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       const filterObj = parseSearchParams();
       const page = parseInt(filterObj.page?.[0] || "1", 10);
-      const res = await fetch(`${api_url}get/colleges/filter`, {
+      const hasFilters = Object.entries(filterObj).some(
+        ([key, values]) => key !== "page" && values.length > 0
+      );
+      const filterKey = buildFilterKey(filterObj);
+      const includeFilters = filterKey !== lastFilterKeyRef.current;
+      lastFilterKeyRef.current = filterKey;
+      const res = await fetch(`${api_url}get/colleges/filter-v2`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...filterObj, page, limit }),
+        body: JSON.stringify({
+          ...filterObj,
+          page,
+          limit,
+          includeFilters,
+        }),
       });
       const data = await res.json();
       const filteredColleges = data.colleges || [];
       setColleges(filteredColleges);
       setCurrentPage(data.currentPage || page);
       setTotalPages(data.totalPages || 1);
-      const collegeIds = data.allCollegeIds || [];
-      if (collegeIds.length > 0) {
-        const fRes = await fetch(`${api_url}get/filters/by-colleges`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ collegeIds }),
-        });
-        const dynamicFilters = await fRes.json();
-        setFilters(dynamicFilters);
-      } else {
-        setFilters({});
+      if (data.filters) {
+        setFilters(data.filters);
       }
       setLoading(false);
     };
@@ -118,6 +133,24 @@ export default function CollegesClientWrapper() {
   const handleClearFilters = () => {
     handleFilterChange({});
   };
+
+  const getVisiblePages = () => {
+    const total = totalPages;
+    const current = currentPage;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages = new Set<number>();
+    pages.add(1);
+    pages.add(total);
+    for (let i = current - 1; i <= current + 1; i += 1) {
+      if (i > 1 && i < total) pages.add(i);
+    }
+    return Array.from(pages).sort((a, b) => a - b);
+  };
+
+  const visiblePages = getVisiblePages();
+  const showLeftEllipsis = visiblePages[1] > 2;
+  const showRightEllipsis =
+    visiblePages[visiblePages.length - 2] < totalPages - 1;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
@@ -166,37 +199,63 @@ export default function CollegesClientWrapper() {
         ) : (
           <>
             {colleges.map((college) => (
-              <FilterCollegeCard key={college._id} collegeId={college._id} />
+              <FilterCollegeCard key={college._id} college={college} />
             ))}
             {totalPages > 1 && (
-              <div className="flex flex-wrap justify-center gap-2 mt-6">
-                {[...Array(totalPages)].map((_, i) => {
-                  const page = (i + 1).toString();
-                  return (
-                    <button
-                      key={page}
-                      className={`px-3 py-1 border rounded ${
-                        currentPage === i + 1
-                          ? "bg-black text-white"
-                          : "bg-white text-black"
-                      }`}
-                      onClick={() => {
-                        const updatedFilters = parseSearchParams();
-                        updatedFilters.page = [page];
-                        handleFilterChange(updatedFilters);
-                      }}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-6 text-sm">
+                <button
+                  className="px-3 py-1 border rounded bg-white text-black disabled:opacity-50"
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    const updatedFilters = parseSearchParams();
+                    updatedFilters.page = [String(currentPage - 1)];
+                    handleFilterChange(updatedFilters);
+                  }}
+                >
+                  Prev
+                </button>
+                <button
+                  className="px-3 py-1 border rounded bg-white text-black disabled:opacity-50"
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    const updatedFilters = parseSearchParams();
+                    updatedFilters.page = [String(currentPage + 1)];
+                    handleFilterChange(updatedFilters);
+                  }}
+                >
+                  Next
+                </button>
+                <div className="flex items-center gap-2">
+                  {visiblePages.map((page, index) => {
+                    const pageString = String(page);
+                    return (
+                      <button
+                        key={pageString}
+                        className={`px-3 py-1 border rounded ${
+                          currentPage === page
+                            ? "bg-black text-white"
+                            : "bg-white text-black"
+                        }`}
+                        onClick={() => {
+                          const updatedFilters = parseSearchParams();
+                          updatedFilters.page = [pageString];
+                          handleFilterChange(updatedFilters);
+                        }}
+                      >
+                        {pageString}
+                      </button>
+                    );
+                  })}
+                  {showLeftEllipsis && <span className="px-2">...</span>}
+                  {showRightEllipsis && <span className="px-2">...</span>}
+                </div>
               </div>
             )}
           </>
         )}
       </div>
 
-      <div className="w-[320px] space-y-4 shrink-0">
+      <div className="w-[320px] space-y-4 shrink-0 lg:sticky lg:top-6 h-fit">
         <AdBox1 />
         <AdBox2 />
       </div>

@@ -26,12 +26,12 @@ const UserLayout = ({ children }: { children: ReactNode }) => {
       {/* Dashboard Layout */}
       <div className="min-h-screen bg-gray-50">
         {/* Dashboard Header */}
-        <div className="mx-[313px] pt-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-6 mb-6">
           <UserHeader />
         </div>
 
         {/* Main Section */}
-        <div className="max-w-7xl mx-auto flex gap-0 px-0 py-0 pb-10">
+        <div className="max-w-7xl mx-auto flex gap-0 px-4 sm:px-6 lg:px-10 py-0 pb-10">
           {/* Sidebar */}
           <div className="w-64 flex-shrink-0">
             <UserSidebar />

@@ -25,7 +25,7 @@ const Header = () => {
 
         {/* Profile Dropdown */}
         <Menu as="div" className="relative">
-          <Menu.Button className="flex items-center space-x-2 bg-[#4f2780] px-3 py-2 rounded-full hover:bg-[#3a1d66] transition duration-300">
+          <Menu.Button className="flex items-center space-x-2 bg-[#2b1b67] px-3 py-2 rounded-full border border-[#4f2780] hover:bg-[#3a1d66] transition duration-300">
             <UserCircle className="w-6 h-6 text-white" />
             <span className="text-sm hidden sm:block">Admin</span>
           </Menu.Button>
@@ -46,7 +46,7 @@ const Header = () => {
                     <a
                       href="/admin/changePassword"
                       className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition ${
-                        active ? "bg-[#0a0536] text-white" : "text-gray-700"
+                        active ? "bg-[#2b1b67] text-white" : "text-gray-700"
                       } rounded-md`}
                     >
                       <Key size={16} /> Change Password
@@ -60,7 +60,7 @@ const Header = () => {
                     <button
                       onClick={handleLogout}
                       className={`w-full text-left flex items-center gap-2 px-4 py-2 text-sm font-medium transition ${
-                        active ? "bg-[#0a0536] text-white" : "text-gray-700"
+                        active ? "bg-[#2b1b67] text-white" : "text-gray-700"
                       } rounded-md`}
                     >
                       <LogOut size={16} /> Logout

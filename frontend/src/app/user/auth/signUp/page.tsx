@@ -148,7 +148,7 @@ const Register = () => {
   return (
     <>
       <Header />
-      <div className="flex flex-col justify-center items-center min-h-screen bg-white">
+      <div className="flex flex-col items-center bg-white pt-6 pb-12">
         <div className="w-full max-w-md bg-[#F3F4F6] p-8 rounded-lg shadow-lg">
           <div className="flex justify-center">
             <Image

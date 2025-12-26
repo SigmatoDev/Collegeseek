@@ -36,15 +36,25 @@ const ProfileDropdown = () => {
       {/* Profile Icon + Label */}
       <div
         className={`flex border-[2px] border-gray-200 hover:border-[#D35C42] rounded-full items-center space-x-2 pr-3 sm:space-x-1 transition-all duration-200 ease-in-out ${
-          isLoggedIn ? "pr-3" : ""
+          isLoggedIn ? "pr-3 cursor-pointer" : ""
         }`}
+        onMouseEnter={() => setIsOpen(true)}
+        onClick={() => {
+          if (isLoggedIn) setIsOpen((prev) => !prev);
+        }}
+        role={isLoggedIn ? "button" : undefined}
+        tabIndex={isLoggedIn ? 0 : -1}
+        onKeyDown={(e) => {
+          if (!isLoggedIn) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsOpen((prev) => !prev);
+          }
+        }}
       >
-        <button
-          onMouseEnter={() => setIsOpen(true)}
-          className="relative flex items-center justify-center p-1 rounded-full border border-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-105 hover:border-[#D35C42]"
-        >
+        <span className="relative flex items-center justify-center p-1 rounded-full border border-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-105 hover:border-[#D35C42]">
           <UserCircleIcon className="h-8 w-8 text-gray-700 hover:text-[#D35C42]" />
-        </button>
+        </span>
 
         {isLoggedIn ? (
           <span className="text-gray-700 font-semibold text-[12px] tracking-tight">
