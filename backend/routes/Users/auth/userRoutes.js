@@ -2,6 +2,7 @@ const express = require("express");
 const {
   signup,
   login,
+  loginWithGoogle,
   getUsers,
   getUserById,
   deleteUser,
@@ -17,6 +18,7 @@ router.post("/user/signup", signup);
 
 // POST route for user login
 router.post("/user/login", login);
+router.post("/user/login/google", loginWithGoogle);
 
 // Protected routes (Require authentication)
 router.get("/get/users", getUsers);

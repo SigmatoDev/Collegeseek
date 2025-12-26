@@ -94,6 +94,12 @@ const collegeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+collegeSchema.index({ stream: 1 });
+collegeSchema.index({ ownership: 1 });
+collegeSchema.index({ approvel: 1 });
+collegeSchema.index({ affiliatedby: 1 });
+collegeSchema.index({ examExpected: 1 });
+
 // Auto-increment logic for collegeId
 collegeSchema.pre("save", async function (next) {
   if (this.isNew) {

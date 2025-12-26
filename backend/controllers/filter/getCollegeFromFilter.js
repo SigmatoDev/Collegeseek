@@ -41,35 +41,45 @@ exports.getCollegesFromFilter = async (req, res) => {
     if (streams.length) {
       const streamDocs = await Stream.find({
         name: { $in: streams.map((s) => new RegExp(`^${s}$`, "i")) },
-      });
+      })
+        .select("_id")
+        .lean();
       collegeQuery.stream = { $in: streamDocs.map((s) => s._id) };
     }
     // :large_green_circle: Ownership
     if (ownerships.length) {
       const ownershipDocs = await Ownership.find({
         name: { $in: ownerships.map((o) => new RegExp(`^${o}$`, "i")) },
-      });
+      })
+        .select("_id")
+        .lean();
       collegeQuery.ownership = { $in: ownershipDocs.map((o) => o._id) };
     }
     // :large_green_circle: Exams
     if (exams.length) {
       const examDocs = await ExamsAccepted.find({
         code: { $in: exams.map((e) => new RegExp(`^${e}$`, "i")) },
-      });
+      })
+        .select("_id")
+        .lean();
       collegeQuery.examExpected = { $in: examDocs.map((e) => e._id) };
     }
     // :large_green_circle: Approvals
     if (approvals.length) {
       const approvalDocs = await Approval.find({
         code: { $in: approvals.map((a) => new RegExp(`^${a}$`, "i")) },
-      });
+      })
+        .select("_id")
+        .lean();
       collegeQuery.approvel = { $in: approvalDocs.map((a) => a._id) };
     }
     // :large_green_circle: Affiliated By
     if (affiliatedBy.length) {
       const affDocs = await AffiliatedBy.find({
         name: { $in: affiliatedBy.map((a) => new RegExp(`^${a}$`, "i")) },
-      });
+      })
+        .select("_id")
+        .lean();
       collegeQuery.affiliatedby = { $in: affDocs.map((a) => a._id) };
     }
     // :large_green_circle: Course-based filters
@@ -110,12 +120,7 @@ exports.getCollegesFromFilter = async (req, res) => {
         });
         courseQuery.$or = feeConditions;
       }
-      const matchedCourses = await Course.find(courseQuery).select(
-        "college_id"
-      );
-      courseCollegeIds = [
-        ...new Set(matchedCourses.map((c) => c.college_id.toString())),
-      ];
+      courseCollegeIds = await Course.distinct("college_id", courseQuery);
       if (courseCollegeIds.length) {
         collegeQuery._id = { $in: courseCollegeIds };
       } else {
@@ -125,15 +130,20 @@ exports.getCollegesFromFilter = async (req, res) => {
     // :large_green_circle: Pagination values
     const skip = (parseInt(page) - 1) * parseInt(limit);
     // :white_check_mark: Fetch all matching college IDs (used for accurate filters)
-    const allCollegeDocs = await College.find(collegeQuery).select("_id");
-    const allCollegeIds = allCollegeDocs.map((doc) => doc._id);
-    // :large_green_circle: Get paginated colleges
-    const totalCount = allCollegeIds.length;
+    const includeAllCollegeIds =
+      req.body.includeAllCollegeIds === undefined
+        ? true
+        : Boolean(req.body.includeAllCollegeIds);
+    const totalCount = await College.countDocuments(collegeQuery);
     const totalPages = Math.ceil(totalCount / parseInt(limit));
     const colleges = await College.find(collegeQuery)
       .populate("stream ownership approvel affiliatedby examExpected")
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
+    const allCollegeIds = includeAllCollegeIds
+      ? await College.distinct("_id", collegeQuery)
+      : [];
     // :white_check_mark: Return paginated data + all matched IDs
     res.json({
       colleges,

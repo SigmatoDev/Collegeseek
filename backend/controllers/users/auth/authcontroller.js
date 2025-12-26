@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const User = require("../../../models/users/auth/usersModel");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 
 // JWT Token Generator
 const generateToken = (userId, userEmail) => {
@@ -98,6 +100,70 @@ const login = async (req, res) => {
   }
 };
 
+// ✅ Google Login
+const loginWithGoogle = async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing Google credential." });
+  }
+
+  let tokenInfo;
+  try {
+    const { data } = await axios.get(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`
+    );
+    tokenInfo = data;
+  } catch (error) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid Google token." });
+  }
+
+  const clientId =
+    process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  if (clientId && tokenInfo.aud !== clientId) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Google token audience mismatch." });
+  }
+
+  const email = tokenInfo.email?.trim().toLowerCase();
+  if (!email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Google account email not available." });
+  }
+
+  try {
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const randomPassword = uuidv4();
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(randomPassword, salt);
+
+      user = await User.create({
+        name: tokenInfo.name || email.split("@")[0],
+        email,
+        password: hashedPassword,
+        phone: "",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: { id: user._id, name: user.name, email: user.email },
+      token: generateToken(user._id, user.email),
+    });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 
 
@@ -207,4 +273,12 @@ const updateUser = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, getUsers, deleteUser, getUserById, updateUser };
+module.exports = {
+  signup,
+  login,
+  loginWithGoogle,
+  getUsers,
+  deleteUser,
+  getUserById,
+  updateUser,
+};

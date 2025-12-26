@@ -13,12 +13,16 @@ const capitalize = (text) =>
   text?.charAt(0).toUpperCase() + text?.slice(1).toLowerCase();
 exports.getFiltersFromColleges = async (req, res) => {
   try {
-    const { collegeIds = [] } = req.body;
-    if (!collegeIds.length) return res.json({});
-    const ids = collegeIds.map((id) => new mongoose.Types.ObjectId(id));
+    const { collegeIds = [], useAllColleges = false } = req.body;
+    const hasIds = Array.isArray(collegeIds) && collegeIds.length > 0;
+    if (!hasIds && !useAllColleges) return res.json({});
+    const ids = hasIds
+      ? collegeIds.map((id) => new mongoose.Types.ObjectId(id))
+      : [];
+    const matchStage = hasIds ? { _id: { $in: ids } } : {};
     // STATE
     const stateAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $group: { _id: { $toLower: "$state" }, count: { $sum: 1 } } },
     ]);
     const states = stateAgg.map((s) => ({
@@ -27,7 +31,7 @@ exports.getFiltersFromColleges = async (req, res) => {
     }));
     // CITY
     const cityAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $group: { _id: { $toLower: "$city" }, count: { $sum: 1 } } },
     ]);
     const cities = cityAgg.map((c) => ({
@@ -36,13 +40,13 @@ exports.getFiltersFromColleges = async (req, res) => {
     }));
     // STREAMS
     const streamAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $unwind: "$stream" },
       { $group: { _id: "$stream", count: { $sum: 1 } } },
     ]);
     const streams = await Stream.find({
       _id: { $in: streamAgg.map((s) => s._id) },
-    });
+    }).lean();
     const streamResult = streams.map((s) => {
       const matched = streamAgg.find(
         (sa) => sa._id.toString() === s._id.toString()
@@ -51,12 +55,12 @@ exports.getFiltersFromColleges = async (req, res) => {
     });
     // OWNERSHIP
     const ownershipAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $group: { _id: "$ownership", count: { $sum: 1 } } },
     ]);
     const ownerships = await Ownership.find({
       _id: { $in: ownershipAgg.map((o) => o._id) },
-    });
+    }).lean();
     const ownershipResult = ownerships.map((o) => {
       const matched = ownershipAgg.find(
         (oa) => oa._id.toString() === o._id.toString()
@@ -65,13 +69,13 @@ exports.getFiltersFromColleges = async (req, res) => {
     });
     // EXAMS
     const examAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $unwind: "$examExpected" },
       { $group: { _id: "$examExpected", count: { $sum: 1 } } },
     ]);
     const exams = await ExamsAccepted.find({
       _id: { $in: examAgg.map((e) => e._id) },
-    });
+    }).lean();
     const examResult = exams.map((e) => {
       const matched = examAgg.find(
         (ea) => ea._id.toString() === e._id.toString()
@@ -80,13 +84,13 @@ exports.getFiltersFromColleges = async (req, res) => {
     });
     // APPROVALS
     const approvalAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $unwind: "$approvel" },
       { $group: { _id: "$approvel", count: { $sum: 1 } } },
     ]);
     const approvals = await Approval.find({
       _id: { $in: approvalAgg.map((a) => a._id) },
-    });
+    }).lean();
     const approvalResult = approvals.map((a) => {
       const matched = approvalAgg.find(
         (aa) => aa._id.toString() === a._id.toString()
@@ -95,12 +99,12 @@ exports.getFiltersFromColleges = async (req, res) => {
     });
     // AFFILIATED BY
     const affAgg = await College.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: matchStage },
       { $group: { _id: "$affiliatedby", count: { $sum: 1 } } },
     ]);
     const affiliated = await AffiliatedBy.find({
       _id: { $in: affAgg.map((a) => a._id) },
-    });
+    }).lean();
     const affiliatedResult = affiliated.map((a) => {
       const matched = affAgg.find(
         (aa) => aa._id.toString() === a._id.toString()
@@ -108,7 +112,11 @@ exports.getFiltersFromColleges = async (req, res) => {
       return { name: capitalize(a.name), count: matched?.count || 0 };
     });
     // COURSE FILTERS BASED ON MATCHED COLLEGES
-    const courseDocs = await Course.find({ college_id: { $in: ids } });
+    const courseDocs = await Course.find(
+      hasIds ? { college_id: { $in: ids } } : {}
+    )
+      .select("category specialization programMode fees.amount")
+      .lean();
     const catMap = new Map();
     const specMap = new Map();
     const modeMap = new Map();
@@ -144,13 +152,13 @@ exports.getFiltersFromColleges = async (req, res) => {
     }
     const catDocs = await CoursesList.find({
       _id: { $in: [...catMap.keys()] },
-    });
+    }).lean();
     const specDocs = await Specialization.find({
       _id: { $in: [...specMap.keys()] },
-    });
+    }).lean();
     const modeDocs = await ProgramMode.find({
       _id: { $in: [...modeMap.keys()] },
-    });
+    }).lean();
     const categories = catDocs.map((c) => ({
       name: c.name,
       count: catMap.get(c._id.toString()),

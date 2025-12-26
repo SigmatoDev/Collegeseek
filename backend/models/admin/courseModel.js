@@ -139,4 +139,10 @@ const CourseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+CourseSchema.index({ college_id: 1 });
+CourseSchema.index({ category: 1 });
+CourseSchema.index({ specialization: 1 });
+CourseSchema.index({ programMode: 1 });
+CourseSchema.index({ "fees.amount": 1 });
+
 module.exports = mongoose.model("Course", CourseSchema);
