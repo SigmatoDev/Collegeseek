@@ -35,6 +35,24 @@ declare global {
   }
 }
 
+interface LoginUser {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+interface LoginResponse {
+  token: string;
+  user: LoginUser;
+  message?: string;
+}
+
+interface PendingCollege {
+  id: string;
+  name?: string;
+}
+
 const LogIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,47 +68,46 @@ const LogIn = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [termsError, setTermsError] = useState(false);
   const [googleError, setGoogleError] = useState("");
+
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const googleInitRef = useRef(false);
 
   const router = useRouter();
 
-  // ✅ DO NOT redirect immediately — only allow component to render
-useEffect(() => {
-  setMounted(true);
+  // ✅ Do not redirect immediately — only allow component to render
+  useEffect(() => {
+    setMounted(true);
 
-  const saved = sessionStorage.getItem("redirectAfterLogin");
-  const current = window.location.href;
-  const path = window.location.pathname;
-  const isAuthPage = path.startsWith("/user/auth/");
+    const saved = sessionStorage.getItem("redirectAfterLogin");
+    const current = window.location.href;
+    const path = window.location.pathname;
+    const isAuthPage = path.startsWith("/user/auth/");
 
-  if (!saved && !isAuthPage) {
-    console.log("📌 No redirect stored yet. Setting current page as fallback:", current);
-    sessionStorage.setItem("redirectAfterLogin", current);
-  }
-}, []);
+    if (!saved && !isAuthPage) {
+      sessionStorage.setItem("redirectAfterLogin", current);
+    }
+  }, []);
 
-
-  const handleLoginSuccess = async (data: {
-    token: string;
-    user: { id: string; name: string; email: string; phone?: string };
-  }) => {
-    sessionStorage.setItem("authToken", data.token);
-
+  const handleLoginSuccess = async (data: LoginResponse) => {
+    // Map `id` → `_id` to satisfy User type
     useUserStore.getState().setUser({
-      ...data.user,
+      _id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+  phone: data.user.phone || "", // fallback to empty string
       token: data.token,
     });
 
+    sessionStorage.setItem("authToken", data.token);
     setSuccess("Login successful!");
 
-    const pendingCollege = sessionStorage.getItem("pendingShortlistCollege");
-
-    if (pendingCollege) {
-      const college = JSON.parse(pendingCollege);
-
+    // Auto-shortlist college if pending
+    const pendingCollegeRaw = sessionStorage.getItem("pendingShortlistCollege");
+    if (pendingCollegeRaw) {
       try {
-        const shortlistRes = await fetch(`${api_url}shortlist`, {
+        const college: PendingCollege = JSON.parse(pendingCollegeRaw);
+
+        const res = await fetch(`${api_url}shortlist`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -104,7 +121,7 @@ useEffect(() => {
           }),
         });
 
-        if (shortlistRes.ok) {
+        if (res.ok) {
           sessionStorage.removeItem("pendingShortlistCollege");
         }
       } catch (err) {
@@ -112,6 +129,7 @@ useEffect(() => {
       }
     }
 
+    // Redirect user after login
     const redirectTo = sessionStorage.getItem("redirectAfterLogin");
     const isAuthRedirect =
       !redirectTo ||
@@ -125,9 +143,9 @@ useEffect(() => {
       sessionStorage.removeItem("redirectAfterLogin");
       if (isAuthRedirect) {
         router.push("/user/profile");
-        return;
+      } else {
+        router.push(redirectTo as string);
       }
-      router.push(redirectTo as string);
     }, 1200);
   };
 
@@ -165,7 +183,7 @@ useEffect(() => {
         }),
       });
 
-      let data;
+      let data: LoginResponse;
       try {
         data = await res.json();
       } catch {
@@ -197,13 +215,7 @@ useEffect(() => {
     }
 
     const initializeGoogle = () => {
-      if (
-        typeof window === "undefined" ||
-        !window.google ||
-        !googleButtonRef.current
-      ) {
-        return;
-      }
+      if (!window.google || !googleButtonRef.current) return;
 
       window.google.accounts.id.initialize({
         client_id: clientId,
@@ -223,7 +235,7 @@ useEffect(() => {
               body: JSON.stringify({ credential: response.credential }),
             });
 
-            const data = await res.json();
+            const data: LoginResponse = await res.json();
             if (res.ok && data.token && data.user) {
               await handleLoginSuccess(data);
             } else {
@@ -297,146 +309,150 @@ useEffect(() => {
 
             <div className="px-8 pb-8 pt-0 md:px-10 md:pb-10 md:pt-0">
               <div className="text-center pt-4">
-            <h2 className="text-2xl font-bold text-gray-800">Account Login</h2>
-          </div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Account Login
+                </h2>
+              </div>
 
-          {(error || success) && (
-            <div
-              className={`mt-4 text-center text-sm font-medium ${
-                error ? "text-red-600" : "text-green-600"
-              }`}
-            >
-              {error || success}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Email
-              </label>
-              <input
-                type="email"
-                className={`w-full p-3 border rounded-md ${
-                  emailError ? "border-red-500" : "focus:border-[#581845]"
-                }`}
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              {emailError && (
-                <p className="text-red-500 text-sm mt-1">Email is required.</p>
+              {(error || success) && (
+                <div
+                  className={`mt-4 text-center text-sm font-medium ${
+                    error ? "text-red-600" : "text-green-600"
+                  }`}
+                >
+                  {error || success}
+                </div>
               )}
-            </div>
 
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-600">
-                Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                className={`w-full p-3 border rounded-md ${
-                  passwordError ? "border-red-500" : "focus:border-[#581845]"
-                }`}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-gray-500"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? (
-                  <EyeSlashIcon className="h-5 w-5" />
-                ) : (
-                  <EyeIcon className="h-5 w-5" />
+              <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className={`w-full p-3 border rounded-md ${
+                      emailError ? "border-red-500" : "focus:border-[#581845]"
+                    }`}
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  {emailError && (
+                    <p className="text-red-500 text-sm mt-1">Email is required.</p>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-600">
+                    Password
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className={`w-full p-3 border rounded-md ${
+                      passwordError
+                        ? "border-red-500"
+                        : "focus:border-[#581845]"
+                    }`}
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-gray-500"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
+                  {passwordError && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Password is required.
+                    </p>
+                  )}
+                </div>
+
+                <div className="text-right text-xs">
+                  <Link
+                    href="/user/auth/forgotPassword"
+                    className="text-[#581845] hover:text-[#441137] font-medium"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+
+                <label className="flex items-start gap-2 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#581845]"
+                    checked={acceptedTerms}
+                    onChange={(e) => {
+                      setAcceptedTerms(e.target.checked);
+                      if (e.target.checked) setTermsError(false);
+                    }}
+                  />
+                  <span>
+                    I accept the{" "}
+                    <a
+                      href="/terms&Conditions"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#581845] hover:text-[#441137] underline"
+                    >
+                      Terms and Conditions
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="/privacyPolicy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#581845] hover:text-[#441137] underline"
+                    >
+                      Privacy Policy
+                    </a>
+                    .
+                  </span>
+                </label>
+                {termsError && (
+                  <p className="text-red-500 text-sm">
+                    Please accept the Terms and Conditions and Privacy Policy.
+                  </p>
                 )}
-              </button>
-              {passwordError && (
-                <p className="text-red-500 text-sm mt-1">
-                  Password is required.
-                </p>
-              )}
-            </div>
 
-            <div className="text-right text-xs">
-              <Link
-                href="/user/auth/forgotPassword"
-                className="text-[#581845] hover:text-[#441137] font-medium"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
-            <label className="flex items-start gap-2 text-xs text-gray-600">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#581845]"
-                checked={acceptedTerms}
-                onChange={(e) => {
-                  setAcceptedTerms(e.target.checked);
-                  if (e.target.checked) setTermsError(false);
-                }}
-              />
-              <span>
-                I accept the{" "}
-                <a
-                  href="/terms&Conditions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#581845] hover:text-[#441137] underline"
+                <button
+                  type="submit"
+                  className="w-full bg-[#581845] text-white p-3 rounded-md hover:bg-[#441137] transition"
                 >
-                  Terms and Conditions
-                </a>{" "}
-                and{" "}
-                <a
-                  href="/privacyPolicy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#581845] hover:text-[#441137] underline"
+                  Log In
+                </button>
+              </form>
+
+              <div className="my-6 flex items-center gap-3 text-xs text-gray-500">
+                <span className="h-px flex-1 bg-gray-300" />
+                <span>or continue with</span>
+                <span className="h-px flex-1 bg-gray-300" />
+              </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <div ref={googleButtonRef} className="w-full flex justify-center" />
+                {googleError && (
+                  <p className="text-xs text-red-500 text-center">{googleError}</p>
+                )}
+              </div>
+
+              <div className="mt-4 text-center text-sm">
+                <p className="text-gray-600">Don't have an account?</p>
+                <Link
+                  href="/user/auth/signUp"
+                  className="text-[#581845] hover:text-[#441137] font-medium"
                 >
-                  Privacy Policy
-                </a>
-                .
-              </span>
-            </label>
-            {termsError && (
-              <p className="text-red-500 text-sm">
-                Please accept the Terms and Conditions and Privacy Policy.
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="w-full bg-[#581845] text-white p-3 rounded-md hover:bg-[#441137] transition"
-            >
-              Log In
-            </button>
-          </form>
-
-          <div className="my-6 flex items-center gap-3 text-xs text-gray-500">
-            <span className="h-px flex-1 bg-gray-300" />
-            <span>or continue with</span>
-            <span className="h-px flex-1 bg-gray-300" />
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <div ref={googleButtonRef} className="w-full flex justify-center" />
-            {googleError && (
-              <p className="text-xs text-red-500 text-center">{googleError}</p>
-            )}
-          </div>
-
-          <div className="mt-4 text-center text-sm">
-            <p className="text-gray-600">Don't have an account?</p>
-            <Link
-              href="/user/auth/signUp"
-              className="text-[#581845] hover:text-[#441137] font-medium"
-            >
-              Register here
-            </Link>
-          </div>
+                  Register here
+                </Link>
+              </div>
             </div>
           </div>
         </div>
