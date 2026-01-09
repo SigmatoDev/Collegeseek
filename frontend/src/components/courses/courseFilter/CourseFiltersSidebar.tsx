@@ -48,6 +48,8 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
 
   useEffect(() => {
     const fetchFilters = async () => {
+      console.log("📡 Fetching course filter data...");
+
       try {
         const [streamsRes, programModeRes] = await Promise.all([
           fetch(`${api_url}get2/streams`),
@@ -57,23 +59,31 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
         const streamsData = await streamsRes.json();
         const modesData = await programModeRes.json();
 
+        console.log("✅ Raw Streams API Response:", streamsData);
+        console.log("✅ Raw Program Modes API Response:", modesData);
+
         const resolvedStreams = Array.isArray(streamsData)
           ? streamsData
           : Array.isArray(streamsData?.data)
           ? streamsData.data
           : [];
+
         const resolvedModes = Array.isArray(modesData)
           ? modesData
           : Array.isArray(modesData?.data)
           ? modesData.data
           : [];
 
+        console.log("🔍 Resolved Streams:", resolvedStreams);
+        console.log("🔍 Resolved Program Modes:", resolvedModes);
+
         setStreams(resolvedStreams);
         setProgramModes(resolvedModes);
       } catch (error) {
-        console.error("Failed to load course filters", error);
+        console.error("❌ Failed to load course filters", error);
       } finally {
         setLoading(false);
+        console.log("⏹️ Filter loading finished");
       }
     };
 
@@ -85,11 +95,14 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
     setter: (next: string[]) => void,
     value: string
   ) => {
-    if (currentValues.includes(value)) {
-      setter(currentValues.filter((item) => item !== value));
-    } else {
-      setter([...currentValues, value]);
-    }
+    const updatedValues = currentValues.includes(value)
+      ? currentValues.filter((item) => item !== value)
+      : [...currentValues, value];
+
+    console.log("🔁 Toggled value:", value);
+    console.log("📦 Updated values:", updatedValues);
+
+    setter(updatedValues);
   };
 
   const renderCheckboxList = (
@@ -106,6 +119,7 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
     }
 
     if (!options.length) {
+      console.log("⚠️ No options available for checkbox list");
       return <p className="text-xs text-slate-500">No options available yet.</p>;
     }
 
@@ -120,7 +134,10 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
               type="checkbox"
               className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#6a4de7] focus:ring-[#6a4de7]"
               checked={selectedValues.includes(option._id)}
-              onChange={() => onChange(option._id)}
+              onChange={() => {
+                console.log("☑️ Checkbox clicked:", option);
+                onChange(option._id);
+              }}
             />
             <span>{option.name}</span>
           </label>
@@ -148,7 +165,10 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
             type="checkbox"
             className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#6a4de7] focus:ring-[#6a4de7]"
             checked={selectedValues.includes(option.id)}
-            onChange={() => onChange(option.id)}
+            onChange={() => {
+              console.log("📏 Range option selected:", option);
+              onChange(option.id);
+            }}
           />
           <span>{option.label}</span>
         </label>
@@ -165,7 +185,10 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
         </div>
         <button
           type="button"
-          onClick={onClearFilters}
+          onClick={() => {
+            console.log("🧹 Clear all filters clicked");
+            onClearFilters();
+          }}
           className="text-xs font-medium text-[#635dc1] underline-offset-2 hover:underline"
         >
           Clear all

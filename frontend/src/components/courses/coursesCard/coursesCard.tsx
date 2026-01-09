@@ -6,7 +6,6 @@ import {
   ArrowRightCircle,
   Clock4,
   GraduationCap,
-  IndianRupee,
   Layers,
 } from "lucide-react";
 import Link from "next/link";
@@ -44,6 +43,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
   collegeCount,
   collegeName,
 }) => {
+  console.log("🔹 Rendering CourseCard:", { title, streams, focusAreas, examList });
+
   const specialization = title;
   const specializationQuery = specialization
     ? encodeURIComponent(specialization)
@@ -51,16 +52,23 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const collegeFilterHref = specializationQuery
     ? `/college?specializations=${specializationQuery}`
     : "/college";
+
   const fallbackFocus = streams
     .map((stream) => stream?.name)
     .filter(Boolean) as string[];
   const derivedFocusAreas =
     focusAreas.length > 0 ? focusAreas : fallbackFocus.slice(0, 4);
   const focusDisplay = derivedFocusAreas.slice(0, 4);
+
+  console.log("🔹 Fallback Focus:", fallbackFocus);
+  console.log("🔹 Derived Focus Areas:", derivedFocusAreas);
+  console.log("🔹 Focus Display:", focusDisplay);
+
   const examSummary =
     examList.length > 0
       ? examList.join(", ")
       : entranceExam || "Depends on college";
+
   const summarizeFocus = (items: string[]) => {
     const text = items.join(", ");
     const words = text.split(" ");
@@ -70,16 +78,20 @@ const CourseCard: React.FC<CourseCardProps> = ({
   const focusSummaryText = focusDisplay.length
     ? summarizeFocus(focusDisplay)
     : "General program overview";
+
   const focusChipStyles = [
     "text-[#4731b1] border border-[#4731b1]/30",
     "text-[#b45309] border border-[#b45309]/30",
     "text-[#0b5ed7] border border-[#0b5ed7]/30",
     "text-[#1f7a3f] border border-[#1f7a3f]/30",
   ];
+
   const primaryStream =
     streams && streams.length > 0
       ? streams[0]?.name || "Key stream"
       : "Flexible stream";
+
+  console.log("🔹 Primary Stream:", primaryStream);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-sm shadow-slate-100 transition hover:border-[#635dc1]/40 hover:shadow-lg hover:shadow-slate-200">
@@ -93,6 +105,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
               loading="lazy"
               onError={(e) => {
                 e.currentTarget.src = "/logo/logo-removebg-preview.png";
+                console.log("⚠️ Image failed to load, fallback used");
               }}
             />
           </Link>
@@ -144,7 +157,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           href={collegeFilterHref}
         />
         <CourseChip
-          icon={<Layers className="h-4 w-4 text-emerald-600" />}  
+          icon={<Layers className="h-4 w-4 text-emerald-600" />}
           label="Stream"
           value={primaryStream}
           variant="green"

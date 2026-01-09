@@ -86,21 +86,36 @@ const getCategories = async (req, res) => {
     const { type } = req.query;
     const filter = type ? { type } : {};
 
-    // Fetch all categories
-    const categories = await Category.find(filter).sort({ sortOrder: 1 }).lean();
-    console.log("Fetched categories:", categories.length);
+    /* ---------------- PARALLEL FETCH ---------------- */
+    const [categories, colleges, courses] = await Promise.all([
+      Category.find(filter).sort({ sortOrder: 1 }).lean(),
 
-    // Count maps
+      // Fetch colleges only if needed
+      !type || type === "streams" || type === "exams"
+        ? College.find({})
+            .select("stream examExpected")
+            .populate("stream", "name")
+            .populate("examExpected", "name code")
+            .lean()
+        : Promise.resolve([]),
+
+      // Fetch courses only if needed
+      !type || type === "courses"
+        ? Course.find({})
+            .select("college_id category")
+            .populate("college_id", "_id")
+            .populate("category", "name code")
+            .lean()
+        : Promise.resolve([]),
+    ]);
+
+    /* ---------------- COUNT MAPS ---------------- */
     const countsById = {};
     const countsByName = {};
     const countsByCode = {};
 
     /* ---------------- STREAM COUNTS ---------------- */
     if (!type || type === "streams") {
-      const colleges = await College.find({})
-        .populate("stream", "name")
-        .lean();
-
       colleges.forEach(col => {
         (col.stream || []).forEach(s => {
           if (!s) return;
@@ -109,92 +124,67 @@ const getCategories = async (req, res) => {
           countsByName[s.name] = (countsByName[s.name] || 0) + 1;
         });
       });
-      console.log("Stream counts:", countsByName);
     }
 
     /* ---------------- EXAM COUNTS ---------------- */
     if (!type || type === "exams") {
-      const colleges = await College.find({})
-        .populate("examExpected", "name code")
-        .lean();
-
       colleges.forEach(col => {
         (col.examExpected || []).forEach(e => {
           if (!e) return;
           const id = e._id.toString();
           countsById[id] = (countsById[id] || 0) + 1;
           countsByName[e.name] = (countsByName[e.name] || 0) + 1;
-          countsByCode[e.code] = (countsByCode[e.code] || 0) + 1;
+          if (e.code) {
+            countsByCode[e.code] = (countsByCode[e.code] || 0) + 1;
+          }
         });
       });
-      console.log("Exam counts:", countsByName);
     }
 
     /* ---------------- COURSE COUNTS ---------------- */
-/* ---------------- COURSE COUNTS (LIKE STREAMS & EXAMS) ---------------- */
-if (!type || type === "courses") {
-  const courses = await Course.find({})
-    .populate("college_id", "_id")
-    .populate("category", "name code")
-    .lean();
+    if (!type || type === "courses") {
+      const categoryCollegeMap = {};
 
-  // categoryId -> Set of unique collegeIds
-  const categoryCollegeMap = {};
+      courses.forEach(course => {
+        if (!course.category || !course.college_id) return;
 
-  courses.forEach(course => {
-    if (!course.category || !course.college_id) return;
+        const categoryId = course.category._id.toString();
+        const collegeId = course.college_id._id.toString();
 
-    const categoryId = course.category._id.toString();
-    const collegeId = course.college_id._id.toString();
+        if (!categoryCollegeMap[categoryId]) {
+          categoryCollegeMap[categoryId] = new Set();
+        }
 
-    if (!categoryCollegeMap[categoryId]) {
-      categoryCollegeMap[categoryId] = new Set();
+        categoryCollegeMap[categoryId].add(collegeId);
+
+        // fallback
+        countsByName[course.category.name] =
+          (countsByName[course.category.name] || 0) + 1;
+
+        if (course.category.code) {
+          countsByCode[course.category.code] =
+            (countsByCode[course.category.code] || 0) + 1;
+        }
+      });
+
+      Object.entries(categoryCollegeMap).forEach(([catId, collegeSet]) => {
+        countsById[catId] = collegeSet.size;
+      });
     }
-
-    // one college counted only once per category
-    categoryCollegeMap[categoryId].add(collegeId);
-
-    // fallback maps (name/code)
-    countsByName[course.category.name] =
-      (countsByName[course.category.name] || 0) + 1;
-
-    if (course.category.code) {
-      countsByCode[course.category.code] =
-        (countsByCode[course.category.code] || 0) + 1;
-    }
-  });
-
-  // Final college counts per category
-  Object.entries(categoryCollegeMap).forEach(([catId, collegeSet]) => {
-    countsById[catId] = collegeSet.size;
-  });
-
-  console.log("Course category → college counts:", countsById);
-}
-
-
-
 
     /* ---------------- FINAL MAPPING ---------------- */
     const finalData = categories.map(cat => {
       const id = cat._id?.toString();
-      const name = cat.name;
-      const code = cat.code;
-
-      // Determine type
-      let catType = cat.type || "courses"; // default to courses
-
-      const count =
-        countsById[id] ?? countsByName[name] ?? countsByCode[code] ?? 0;
-
       return {
         ...cat,
-        type: catType,
-        count,
+        type: cat.type || "courses",
+        count:
+          countsById[id] ??
+          countsByName[cat.name] ??
+          countsByCode[cat.code] ??
+          0,
       };
     });
-
-    console.log("Final mapped categories:", finalData);
 
     res.status(200).json(finalData);
   } catch (error) {
@@ -202,7 +192,6 @@ if (!type || type === "courses") {
     res.status(500).json({ message: "Server Error", error });
   }
 };
-
 
 
 

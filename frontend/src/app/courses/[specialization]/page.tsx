@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Footer from "@/components/footer/page";
 import Header from "@/components/header/page";
-import FilterSidebar from "./FilterSidebar";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
 import { api_url } from "@/utils/apiCall";
 import CourseDetail from "./courseList";
@@ -14,8 +13,10 @@ const CoursesFilterPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(1); // Current page state
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-const params = useParams();
-const specialization = decodeURIComponent((params?.specialization as string) || "");
+  const params = useParams();
+  const specialization = decodeURIComponent(
+    (params?.specialization as string) || ""
+  );
   console.log("Received filters parent course page:", filters);
   // Handle filter changes
   const handleFilterChange = useCallback((newFilters: any) => {
@@ -27,9 +28,9 @@ const specialization = decodeURIComponent((params?.specialization as string) || 
       setLoading(true);
       setError(null);
       const queryParams = new URLSearchParams({
-  specialization,  // changed from name
-  page: String(currentPage),
-});
+        specialization, // changed from name
+        page: String(currentPage),
+      });
       if (filters?.duration?.length > 0) {
         filters.duration.forEach((d: string) =>
           queryParams.append("duration", d)
@@ -87,13 +88,16 @@ const specialization = decodeURIComponent((params?.specialization as string) || 
       <Header />
       {/* Breadcrumb Section */}
       <div className="px-10 pt-6">
-      <Breadcrumb
-  items={[
-    { label: "Home", href: "/" },
-    { label: "Courses", href: "/courses" },
-    { label: specialization, href: `/courses/${encodeURIComponent(specialization)}` },
-  ]}
-/>
+        <Breadcrumb
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Courses", href: "/courses" },
+            {
+              label: specialization,
+              href: `/courses/${encodeURIComponent(specialization)}`,
+            },
+          ]}
+        />
       </div>
       {/* Main Content Section */}
       <div className="flex mx-auto px-10 py-5 justify-center gap-6">
