@@ -155,10 +155,11 @@
 //   }
 // };
 
+require("dotenv").config();
 const ExcelJS = require("exceljs");
 const axios = require("axios");
-const College = require("../../models/admin/collegemodel");
 const path = require("path");
+const College = require("../../models/admin/collegemodel");
 
 // Helper to strip HTML tags
 function stripHtml(html) {
@@ -169,21 +170,16 @@ function stripHtml(html) {
 // Helper to download image and return buffer
 async function fetchImageBuffer(imageUrl) {
   try {
-    const response = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-      timeout: 10000, // ✅ prevent server hang
-    });
+    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
     return Buffer.from(response.data, "binary");
   } catch (err) {
-    console.error(`❌ Failed to fetch image: ${imageUrl}`);
+    console.warn(`⚠ Failed to fetch image at ${imageUrl}:`, err.message);
     return null;
   }
 }
 
 exports.exportColleges = async (req, res) => {
   try {
-    console.log("📤 Export started");
-
     const selectedIdsParam = req.query.ids;
     const selectedIds = selectedIdsParam ? selectedIdsParam.split(",") : [];
     const query = selectedIds.length > 0 ? { _id: { $in: selectedIds } } : {};
@@ -199,9 +195,10 @@ exports.exportColleges = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Colleges");
 
+    // Define columns
     sheet.columns = [
       { header: "College ID", key: "collegeId", width: 10 },
-      { header: "Image", key: "image", width: 18 },
+      { header: "Image", key: "image", width: 15 },
       { header: "Mongo ID", key: "mongoId", width: 30 },
       { header: "Name", key: "name", width: 30 },
       { header: "Slug", key: "slug", width: 25 },
@@ -225,19 +222,24 @@ exports.exportColleges = async (req, res) => {
       { header: "Location", key: "location", width: 30 },
     ];
 
+    // Apply wrap and alignment
     sheet.columns.forEach((col) => {
       col.style = {
         alignment: { wrapText: true, horizontal: "left", vertical: "top" },
       };
     });
 
+    const BACKEND_URL = process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get("host")}`;
     let collegeIdCounter = 1;
 
-    for (const college of colleges) {
-      // ✅ add row first
-      const row = sheet.addRow({
+    for (let i = 0; i < colleges.length; i++) {
+      const college = colleges[i];
+      const rowIndex = i + 2; // row 1 is header
+
+      // Add row
+      sheet.addRow({
         collegeId: collegeIdCounter++,
-        image: "",
+        image: "", // Placeholder; actual image added later
         mongoId: college._id.toString(),
         name: college.name,
         slug: college.slug,
@@ -248,76 +250,64 @@ exports.exportColleges = async (req, res) => {
         streams: JSON.stringify(college.stream?.map((s) => s.name) || []),
         approvals: JSON.stringify(college.approvel?.map((a) => a.name) || []),
         affiliatedby: college.affiliatedby?.name || "",
-        examExpected: JSON.stringify(
-          college.examExpected?.map((e) => e.name) || []
-        ),
+        examExpected: JSON.stringify(college.examExpected?.map((e) => e.name) || []),
         ownership: college.ownership?.name || "",
         rank: college.rank,
         fees: college.fees,
         avgPackage: college.avgPackage,
         website: college.website,
-        contactNumbers:
-          college.contactNumbers
-            ?.map((c) => `${c.type}: ${c.number}`)
-            .join(", ") || "",
+        contactNumbers: college.contactNumbers
+          ?.map((c) => `${c.type}: ${c.number}`)
+          .join(", ") || "",
         contactEmail: college.contactEmail,
         featured: college.featured ? "Yes" : "No",
         address: college.address,
         location: college.location,
       });
 
-      // ---------------- IMAGE ----------------
-      if (!college.image) continue;
+      // Insert image if exists
+      if (college.image) {
+        let imageUrl = college.image.startsWith("/uploads")
+          ? `${BACKEND_URL}${college.image}`
+          : college.image;
 
-      let imageUrl = college.image;
+        const imageBuffer = await fetchImageBuffer(imageUrl);
 
-      // ✅ ALWAYS convert to public URL
-      const BASE_URL = process.env.PUBLIC_BASE_URL;
+        if (imageBuffer) {
+          let ext = path.extname(imageUrl).slice(1).toLowerCase();
+          if (!["jpeg", "jpg", "png", "gif"].includes(ext)) ext = "jpeg";
 
-      if (!BASE_URL) {
-        console.error("❌ PUBLIC_BASE_URL not set");
+          const imageId = workbook.addImage({
+            buffer: imageBuffer,
+            extension: ext,
+          });
+
+          sheet.getRow(rowIndex).height = 60;
+
+          sheet.addImage(imageId, {
+            tl: { col: 1, row: rowIndex - 1 },
+            ext: { width: 80, height: 80 },
+            editAs: "oneCell",
+          });
+        }
       }
-
-      if (!imageUrl.startsWith("http")) {
-        imageUrl = `${BASE_URL}${
-          imageUrl.startsWith("/") ? "" : "/"
-        }${imageUrl}`;
-      }
-
-      const imageBuffer = await fetchImageBuffer(imageUrl);
-      if (!imageBuffer) continue;
-
-      let ext = path.extname(imageUrl).slice(1).toLowerCase();
-      if (!["jpeg", "jpg", "png", "gif", "webp"].includes(ext)) {
-        ext = "jpeg";
-      }
-
-      const imageId = workbook.addImage({
-        buffer: imageBuffer,
-        extension: ext,
-      });
-
-      sheet.getRow(row.number).height = 60;
-
-      sheet.addImage(imageId, {
-        tl: { col: 1, row: row.number - 1 },
-        ext: { width: 80, height: 80 },
-        editAs: "oneCell",
-      });
     }
 
+    // Send Excel file
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader("Content-Disposition", "attachment; filename=colleges.xlsx");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=colleges.xlsx"
+    );
 
     await workbook.xlsx.write(res);
     res.end();
-
-    console.log("✅ Export completed");
   } catch (error) {
     console.error("❌ Error exporting colleges:", error);
     res.status(500).json({ error: "Failed to export colleges" });
   }
 };
+
