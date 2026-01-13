@@ -12,7 +12,7 @@ const AdveSection: React.FC = () => {
       {/* Title and Image Section */}
       <div className="flex flex-col md:flex-row-reverse items-center justify-between gap-16 mb-16">
         {/* Image Section */}
-        <div className="md:w-1/2 relative group">
+        <div className="md:w-[770px] relative group">
           <div className="relative overflow-hidden rounded-xl shadow-lg transform transition duration-500 ease-in-out hover:shadow-xl">
             <Image
               src={adveImg}
@@ -20,7 +20,7 @@ const AdveSection: React.FC = () => {
               className="object-cover w-full h-full"
               placeholder="blur"
               sizes="(max-width: 768px) 80vw, 50vw"
-              style={{ height: '600px' }}
+              style={{ height: '500px' }}
             />
           </div>
           {/* Hover Overlay */}

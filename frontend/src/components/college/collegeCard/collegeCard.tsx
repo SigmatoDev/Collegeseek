@@ -32,7 +32,6 @@ interface Props {
   collegeId: string;
 }
 
-
 export default function CollegeCard({ collegeId }: Props) {
   const [collegeData, setCollegeData] = useState<CollegeData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +69,10 @@ export default function CollegeCard({ collegeId }: Props) {
         }
       } catch (error: any) {
         setError("Failed to load college data.");
-        console.error("Error fetching data:", error?.response?.data || error?.message);
+        console.error(
+          "Error fetching data:",
+          error?.response?.data || error?.message
+        );
       } finally {
         setLoading(false);
       }
@@ -79,7 +81,9 @@ export default function CollegeCard({ collegeId }: Props) {
     fetchCollegeById();
   }, [collegeId]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -103,7 +107,6 @@ export default function CollegeCard({ collegeId }: Props) {
     ? `${img_url}uploads/${collegeData.image.replace(/^\/?uploads\//, "")}`
     : "/logo/logo1.png";
 
-
   return (
     <div className="border rounded-lg shadow-md p-4 bg-white">
       <div className="flex gap-4">
@@ -114,7 +117,9 @@ export default function CollegeCard({ collegeId }: Props) {
           height={128}
           className="w-48 h-32 rounded-lg object-cover cursor-pointer"
           loading="lazy"
-          onError={(e) => (e.currentTarget.src = "/logo/logo-removebg-preview.png")}
+          onError={(e) =>
+            (e.currentTarget.src = "/logo/logo-removebg-preview.png")
+          }
           onClick={() => setSelectedImage(imageUrlFinal)}
         />
         <div className="flex flex-col justify-between flex-1">
@@ -123,9 +128,12 @@ export default function CollegeCard({ collegeId }: Props) {
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mt-1">
             <div className="flex items-center gap-1">
               <MapPinIcon className="w-5 h-5 text-blue-500" />
-              {collegeData.city}{collegeData.state}
+              {collegeData.city}
+              {collegeData.state}
             </div>
-            <div className="text-orange-500 font-semibold">#{collegeData.rank} NIRF</div>
+            <div className="text-orange-500 font-semibold">
+              #{collegeData.rank} NIRF
+            </div>
             <div className="flex items-center gap-1">
               <CurrencyRupeeIcon className="w-5 h-5 text-green-500" />
               <div>
@@ -144,7 +152,9 @@ export default function CollegeCard({ collegeId }: Props) {
 
           <div className="mt-2 text-sm text-gray-600">
             <p>
-              {isExpanded ? collegeData.description : `${collegeData.description.slice(0, 150)}...`}
+              {isExpanded
+                ? collegeData.description
+                : `${collegeData.description.slice(0, 150)}...`}
             </p>
             {collegeData.description.length > 150 && (
               <button
@@ -166,62 +176,71 @@ export default function CollegeCard({ collegeId }: Props) {
                 >
                   ✕
                 </button>
-                <img src={selectedImage} alt="Selected Image" width={600} height={400} className="rounded-lg" />
+                <img
+                  src={selectedImage}
+                  alt="Selected Image"
+                  width={600}
+                  height={400}
+                  className="rounded-lg"
+                />
               </div>
             </div>
           )}
 
           {/* Shortlisted Users Section */}
-          {Array.isArray(collegeData.shortlistedUsers) && collegeData.shortlistedUsers.length > 0 && (
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex -space-x-2">
-                {collegeData.shortlistedUsers.map((user, index) => (
-                  <img
-                    key={index}
-                    src={user.image ? `${img_url}${user.image.replace(/^\/+/, "")}` : "/logo/default-user.png"}
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 rounded-full border"
-                    alt={user.name}
-                    onError={(e) => (e.currentTarget.src = "/logo/default-user.png")}
-                  />
-                ))}
+          {Array.isArray(collegeData.shortlistedUsers) &&
+            collegeData.shortlistedUsers.length > 0 && (
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex -space-x-2">
+                  {collegeData.shortlistedUsers.map((user, index) => (
+                    <img
+                      key={index}
+                      src={
+                        user.image
+                          ? `${img_url}${user.image.replace(/^\/+/, "")}`
+                          : "/logo/default-user.png"
+                      }
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 rounded-full border"
+                      alt={user.name}
+                      onError={(e) =>
+                        (e.currentTarget.src = "/logo/default-user.png")
+                      }
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-700">
+                  Shortlisted by {collegeData.shortlistedCount ?? 0}+ students
+                </span>
               </div>
-              <span className="text-sm text-gray-700">
-                Shortlisted by {collegeData.shortlistedCount ?? 0}+ students
-              </span>
-            </div>
-          )}
+            )}
         </div>
       </div>
 
       <div className="border-t mt-4 pt-2 flex justify-between text-sm text-[#441A6B]">
         <div className="flex gap-2">
-        <button
-        onClick={() => setIsModalOpen(true)}
-        className="bg-[#D35B42] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
-      >
-        Get Free Counselling
-      </button>
-
-      {/* Modal with Form */}
-  <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-  <CounsellingForm
-    collegeId={collegeId}
-    onClose={() => setIsModalOpen(false)} // ✅ Pass parent close method down
-  />
-</Modal>
-
-
-
-
-          
           <button
-  onClick={() => router.push(`/colleges/${collegeData.slug}`)}
-  className="border px-4 py-2 rounded-lg hover:bg-gray-100"
->
-  View Details
-</button>
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#D35B42] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
+          >
+            Get Free Counselling
+          </button>
+
+          {/* Modal with Form */}
+          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <CounsellingForm
+              collegeId={collegeId}
+              onClose={() => setIsModalOpen(false)} // ✅ Pass parent close method down
+            />
+          </Modal>
+
+          <button
+            onClick={() => router.push(`/colleges/${collegeData.slug}`)}
+            className="border px-4 py-2 rounded-lg hover:bg-gray-100"
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>

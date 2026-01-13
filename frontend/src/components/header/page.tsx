@@ -88,6 +88,14 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
   });
   const [isCounsellingOpen, setIsCounsellingOpen] = useState(false);
 
+  /* 🔍 MOBILE MENU LOG */
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
   useEffect(() => {
     setIsMounted(true);
 
@@ -308,13 +316,19 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
             <div className="flex items-center space-x-4 md:ml-6">
               <ProfileDropdown />
               <button
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                type="button"
+                className="md:hidden p- bg-white relative z-[10000]"
+                onClick={() =>
+                  setMobileMenuOpen((prev) => {
+                    console.log(prev ? "close" : "open");
+                    return !prev;
+                  })
+                }
               >
                 {mobileMenuOpen ? (
-                  <XMarkIcon className="h-6 w-6 text-gray-800" />
+                  <XMarkIcon className="h-6 w-6" />
                 ) : (
-                  <Bars3Icon className="h-6 w-6 text-gray-800" />
+                  <Bars3Icon className="h-6 w-6" />
                 )}
               </button>
             </div>
@@ -323,29 +337,37 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
 
         {/* Mobile Nav Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-md z-50">
-            <div className="flex flex-col px-4 pt-4 pb-2 space-y-2 text-center">
-              {[
-                { name: "Online", href: "/college?programModes=Online" },
-                { name: "Colleges", href: "/college" },
-                { name: "Latest Updates", href: "/latestUpdate" },
-              ].map((item, index) => (
-                <Link key={index} href={item.href}>
-                  <span
-                    className={`block text-sm font-medium py-2 border-b border-gray-200 w-full ${
-                      item.name === "Online"
-                        ? "text-[#D46047] bg-[#fff1ec] rounded-[30px]"
-                        : "text-gray-800 hover:text-[#D46047]"
-                    }`}
-                  >
-                    {item.name}
-                  </span>
-                </Link>
-              ))}
-              <div className="pt-2 w-full justify-center text-start">
+          <div className="md:hidden absolute left-0 right-0 top-full bg-white shadow-lg z-50">
+            <div className="flex flex-col px-4 py-4 space-y-3 text-left">
+              <Link
+                href="/college?programModes=Online"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-3 px-4 border-b"
+              >
+                Online
+              </Link>
+
+              <Link
+                href="/college"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-3 px-4  border-b"
+              >
+                Colleges
+              </Link>
+
+              <Link
+                href="/latestUpdate"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-3 px-4 border-b"
+              >
+                Latest Updates
+              </Link>
+
+              <div className="pt-2 text-left">
                 <MegaMenu />
               </div>
-              <div className="pt-2 w-full">
+
+              <div className="pt-2">
                 <SearchBar />
               </div>
             </div>

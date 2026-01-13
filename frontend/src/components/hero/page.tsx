@@ -89,34 +89,24 @@ export default function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative pt-28 text-left text-black max-w-4xl w-full ml-0 sm:ml-8">
-        <div className="min-h-[140px]">
+      <div className="relative pt-20 sm:pt-28 text-left text-black max-w-4xl w-full ml-0 sm:ml-8">
+        <div className="min-h-[120px] sm:min-h-[140px]">
           <AnimatePresence mode="wait">
             <motion.h1
               key={`${quoteSlides[quoteIndex].primary}-${quoteSlides[quoteIndex].secondary}`}
-              className="text-2xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl mb-6 font-extrabold leading-tight tracking-tight text-[#141019]"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl mb-4 sm:mb-6 font-extrabold leading-tight tracking-tight text-[#141019]"
               variants={headingVariants}
               initial="initial"
               animate="animate"
               exit="exit"
             >
               <span className="block overflow-hidden">
-                <motion.span
-                  className="inline-flex flex-wrap"
-                  initial={false}
-                  animate="animate"
-                  exit="exit"
-                >
+                <motion.span className="inline-flex flex-wrap">
                   {renderLine(quoteSlides[quoteIndex].primary)}
                 </motion.span>
               </span>
               <span className="block overflow-hidden">
-                <motion.span
-                  className="inline-flex flex-wrap"
-                  initial={false}
-                  animate="animate"
-                  exit="exit"
-                >
+                <motion.span className="inline-flex flex-wrap">
                   {renderLine(quoteSlides[quoteIndex].secondary)}
                 </motion.span>
               </span>
@@ -124,7 +114,7 @@ export default function HeroSection() {
           </AnimatePresence>
         </div>
 
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 font-light leading-relaxed text-gray-800">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-6 sm:mb-8 font-light leading-relaxed text-gray-800">
           Helping students and parents find the right college.
           <br className="hidden sm:block" />
           Shaping India’s future, <br className="sm:hidden" />
@@ -133,64 +123,30 @@ export default function HeroSection() {
           </span>
         </p>
 
-        <div className="pt-4 mb-[110px] flex flex-wrap gap-4">
+        <div className="pt-2 sm:pt-4 mb-8 sm:mb-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center sm:justify-start">
           <Link href="/college">
-            <Button className="group bg-[#D25C40] text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300 border border-transparent hover:bg-[#FFF7ED] hover:text-[#D25C40] hover:border-[#D25C40] flex items-center gap-3">
+            <Button className="group bg-[#D25C40] text-white text-base sm:text-lg px-5 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition-all duration-300 border border-transparent hover:bg-[#FFF7ED] hover:text-[#D25C40] hover:border-[#D25C40] flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
               Find Your College
-              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </Link>
 
-          <Link href="/courses" className="relative">
-            <Button className="group bg-[#635dc1] text-white text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition duration-300 hover:bg-[#4c46a4] border border-transparent flex items-center gap-3">
-              <span>Course Finder</span>
-              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              <span className="absolute -top-3 -right-3 rounded-full bg-white text-[#635dc1] px-3 py-0.5 text-xs font-semibold shadow">
-                NEW
-              </span>
-            </Button>
-          </Link>
+          <div className="relative inline-block">
+            <Link href="/courses">
+              <Button className="group bg-[#635dc1] text-white text-base sm:text-lg px-5 sm:px-8 py-3 sm:py-4 font-semibold rounded-xl shadow-lg transition duration-300 hover:bg-[#4c46a4] border border-transparent flex items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                <span>Course Finder</span>
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1" />
+              </Button>
+            </Link>
+
+            {/* NEW badge */}
+           <span className="absolute -top-3 right-[140px] sm:-top-2 sm:-right-2 rounded-full bg-white text-[#635dc1] px-2.5 py-0.5 text-[10px] sm:text-xs font-semibold shadow">
+  NEW
+</span>
+
+          </div>
         </div>
       </div>
-
-      {/* Video Modal */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
-          >
-            <motion.div
-              className="relative bg-gray-900 rounded-2xl shadow-2xl overflow-hidden w-[90%] md:w-[60%] lg:w-[50%]"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -50, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                className="absolute top-3 right-3 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition duration-300"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="w-6 h-6" />
-              </button>
-
-              {/* Embedded Video */}
-              <iframe
-                className="w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] rounded-2xl"
-                src="https://www.youtube.com/embed/your-video-id"
-                title="Brand Film"
-                frameBorder="0"
-                allowFullScreen
-              ></iframe>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

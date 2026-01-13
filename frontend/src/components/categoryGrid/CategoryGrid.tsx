@@ -70,12 +70,12 @@ export default function CategoryGrid() {
 useEffect(() => {
   const fetchCategoryData = async () => {
     try {
-      console.log("Fetching categories from API:", `${api_url}getCategoriesFilter`);
+      // console.log("Fetching categories from API:", `${api_url}getCategoriesFilter`);
 
       const response = await fetch(`${api_url}getCategoriesFilter`);
 
       // Log the raw response object
-      console.log("Raw fetch response:", response);
+      // console.log("Raw fetch response:", response);
 
       if (!response.ok) {
         console.error("Fetch failed with status:", response.status, response.statusText);
@@ -84,10 +84,10 @@ useEffect(() => {
 
       // Clone the response to log full text
       const responseText = await response.clone().text();
-      console.log("Raw response text:", responseText);
+      // console.log("Raw response text:", responseText);
 
       const list: CategoryItem[] = await response.json();
-      console.log("Parsed JSON list from backend:", list);
+      // console.log("Parsed JSON list from backend:", list);
 
       // Group by type and ensure counts are numbers
       const grouped: CategoryData = {
@@ -102,14 +102,14 @@ useEffect(() => {
           .map(c => ({ ...c, count: Number(c.count || 0) })),
       };
 
-      console.log(
-        "Grouped Courses with numeric counts:",
-        grouped.Courses.map(c => ({ name: c.name, count: c.count }))
-      );
-      console.log(
-        "Total Courses count:",
-        grouped.Courses.reduce((acc, i) => acc + i.count, 0)
-      );
+      // console.log(
+      //   "Grouped Courses with numeric counts:",
+      //   grouped.Courses.map(c => ({ name: c.name, count: c.count }))
+      // );
+      // console.log(
+      //   "Total Courses count:",
+      //   grouped.Courses.reduce((acc, i) => acc + i.count, 0)
+      // );
 
       setData(grouped);
 

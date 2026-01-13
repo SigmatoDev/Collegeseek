@@ -96,36 +96,55 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
     [searchTerm]
   );
 
-  const fetchCourses = async (
-    pageNumber: number,
-    filterPayload: { field: string; value: unknown }[]
-  ) => {
-    setLoading(true);
-    setError(null);
+ const fetchCourses = async (
+  pageNumber: number,
+  filterPayload: { field: string; value: unknown }[]
+) => {
+  setLoading(true);
+  setError(null);
 
-    try {
-      const response = await fetch(
-        `${api_url}courses/filter/by/specializationpage?page=${pageNumber}&limit=${limit}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filters: filterPayload }),
-        }
-      );
+  // 🔍 Log request info
+  console.log("📤 Fetching courses");
+  console.log("➡️ Page:", pageNumber);
+  console.log("➡️ Limit:", limit);
+  console.log("➡️ Filters Payload:", filterPayload);
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch courses: ${response.status}`);
-      }
+  try {
+    const url = `${api_url}courses/filter/by/specializationpage?page=${pageNumber}&limit=${limit}`;
+    console.log("🌐 API URL:", url);
 
-      const data = await response.json();
-      setCourses(data.courses || []);
-      setTotalPages(data.totalPages || 1);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filters: filterPayload }),
+    });
+
+    console.log("📥 Response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ API error response:", errorText);
+      throw new Error(`Failed to fetch courses: ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+
+    // ✅ Log response data
+    console.log("✅ API Response:", data);
+    console.log("📚 Courses count:", data?.courses?.length || 0);
+    console.log("📄 Total pages:", data?.totalPages);
+
+    setCourses(data.courses || []);
+    setTotalPages(data.totalPages || 1);
+  } catch (err) {
+    console.error("🔥 Fetch courses error:", err);
+    setError(err instanceof Error ? err.message : "An error occurred");
+  } finally {
+    setLoading(false);
+    console.log("⏹ Fetch completed");
+  }
+};
+
 
   useEffect(() => {
     setPage(1);

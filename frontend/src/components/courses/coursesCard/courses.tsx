@@ -12,6 +12,7 @@ import {
   CurrencyRupeeIcon,
   DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
+import CourseListSkeleton from "./coursesCardSkeleton/CourseListSkeleton";
 
 interface Course {
   _id: string;
@@ -129,8 +130,9 @@ export default function CollegeCourses({ college_id }: Props) {
     return specializations.find((s) => s._id === id)?.name || "Specialization";
   };
 
-  if (loading) return <Loader />;
-  if (error) return <p className="text-center text-red-500">{error}</p>;
+if (loading) {
+  return <CourseListSkeleton count={6} />;
+}  if (error) return <p className="text-center text-red-500">{error}</p>;
   if (!courses.length)
     return (
       <p className="text-center text-gray-500">
@@ -138,104 +140,122 @@ export default function CollegeCourses({ college_id }: Props) {
       </p>
     );
 
-  return (
-    <div className="my-5 py-8 bg-gray-200 px-4 sm:px-10 md:px-16 lg:px-[70px]">
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black text-center mb-10">
-        Explore Our Courses
-      </h1>
+return (
+  <div className="my-6 py-8 bg-gray-200 px-4 sm:px-8 md:px-12 lg:px-[70px]">
+    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-black text-center mb-8 sm:mb-10">
+      Explore Our Courses
+    </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {courses.slice(0, visibleCount).map((course) => (
-          <div
-            key={course._id}
-            className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-          >
-            <h2 className="text-base sm:text-lg font-semibold text-[#403A83] truncate pb-1">
-              {course.category?.name || "Category"}{" "}
-              <span className="text-gray-500 italic">
-                ({getSpecializationName(course.specialization)})
-              </span>
+    {/* Courses Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+      {courses.slice(0, visibleCount).map((course) => (
+        <div
+          key={course._id}
+          className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 p-5 sm:p-6 flex flex-col justify-between"
+        >
+          {/* Header */}
+          <div>
+            <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-[#403A83] truncate">
+              {course.category?.name || "Category"}
             </h2>
 
+            <p className="text-xs sm:text-sm text-gray-500 italic mb-2">
+              {getSpecializationName(course.specialization)}
+            </p>
+
+            {/* Description */}
             <p className="text-sm sm:text-base text-gray-600 line-clamp-3">
               {course.description}
             </p>
-
-            <div className="mt-4 space-y-3 text-sm sm:text-base text-gray-700">
-              <p className="flex items-center gap-2">
-                <CalendarDaysIcon className="w-5 h-5 text-[#403A83]" />
-                <strong>Duration:</strong> {course.duration}
-                <span className="mx-2">|</span>
-                <BookOpenIcon className="w-5 h-5 text-[#403A83]" />
-                <strong>Program Mode:</strong> {course.programMode?.name}
-              </p>
-
-              <p className="flex items-center gap-2">
-                <AcademicCapIcon className="w-5 h-5 text-[#403A83]" />
-                <strong>Eligibility:</strong> {course.eligibility}
-              </p>
-
-              {course.fees && (
-                <p className="flex items-center gap-2 font-semibold text-indigo-700">
-                  <CurrencyRupeeIcon className="w-5 h-5" />
-                  Fees: ₹{course.fees.amount.toLocaleString()}{" "}
-                  {course.fees.currency} ({course.fees.year})
-                </p>
-              )}
-            </div>
-
-            <div className="mt-4 flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
-              <button
-                onClick={() => handleOpenModal(course._id)}
-                className="bg-[#38347C] text-white px-3 py-3 rounded-lg w-full sm:w-[150px] text-base sm:text-lg font-semibold text-center"
-              >
-                Enroll now
-              </button>
-
-              <button
-                onClick={() =>
-                  window.open(
-                    course.brochure_link,
-                    "_blank",
-                    "noopener,noreferrer"
-                  )
-                }
-                className="px-5 py-2 bg-transparent border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition duration-200 text-center w-full sm:w-auto flex items-center justify-center gap-2"
-              >
-                <DocumentArrowDownIcon className="w-5 h-5" />
-                Download Brochure
-              </button>
-            </div>
           </div>
-        ))}
-      </div>
 
-      {/* Show More / Show Less */}
-      {courses.length > 6 && (
-        <div className="mt-10 flex justify-end">
-          {visibleCount < courses.length ? (
+          {/* Details */}
+          <div className="mt-4 space-y-3 text-sm sm:text-base text-gray-700">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="flex items-center gap-2">
+                <CalendarDaysIcon className="w-4 h-4 text-[#403A83]" />
+                <span className="font-medium">Duration:</span> {course.duration}
+              </span>
+
+              <span className="flex items-center gap-2">
+                <BookOpenIcon className="w-4 h-4 text-[#403A83]" />
+                <span className="font-medium">Mode:</span>{" "}
+                {course.programMode?.name}
+              </span>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <AcademicCapIcon className="w-4 h-4 text-[#403A83] mt-1" />
+              <p>
+                <span className="font-medium">Eligibility:</span>{" "}
+                {course.eligibility}
+              </p>
+            </div>
+
+            {course.fees && (
+              <p className="flex items-center gap-2 font-semibold text-indigo-700">
+                <CurrencyRupeeIcon className="w-4 h-4" />
+                ₹{course.fees.amount.toLocaleString()}{" "}
+                {course.fees.currency} ({course.fees.year})
+              </p>
+            )}
+          </div>
+
+          {/* Buttons */}
+          <div className="mt-5 flex flex-col sm:flex-row gap-3">
             <button
-              onClick={() => setVisibleCount(courses.length)}
-              className="px-6 py-2 bg-[#38347C] text-white rounded-full font-medium shadow-md hover:shadow-lg hover:bg-[#2f2b6a] transition-all duration-300"
+              onClick={() => handleOpenModal(course._id)}
+              className="bg-[#38347C] text-white px-4 py-2.5 rounded-lg text-sm sm:text-base font-semibold w-full sm:w-auto"
             >
-              Show More →
+              Enroll Now
             </button>
-          ) : (
+
             <button
-              onClick={() => setVisibleCount(9)}
-              className="px-6 py-2 bg-gray-300 text-black rounded-full font-medium shadow-md hover:shadow-lg hover:bg-gray-400 transition-all duration-300"
+              onClick={() =>
+                window.open(
+                  course.brochure_link,
+                  "_blank",
+                  "noopener,noreferrer"
+                )
+              }
+              className="px-4 py-2.5 border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition flex items-center justify-center gap-2 w-full sm:w-auto"
             >
-              Show Less ↑
+              <DocumentArrowDownIcon className="w-4 h-4" />
+              Brochure
             </button>
-          )}
+          </div>
         </div>
-      )}
-
-      {isModalOpen && (
-        <EnrollmentModal isOpen={true} onClose={handleCloseModal}>
-          <EnrollmentForm courseId={isModalOpen} />
-        </EnrollmentModal>
-      )}
+      ))}
     </div>
-  );
+
+    {/* Show More / Less */}
+    {courses.length > 6 && (
+      <div className="mt-10 flex justify-center sm:justify-end">
+        {visibleCount < courses.length ? (
+          <button
+            onClick={() => setVisibleCount(courses.length)}
+            className="px-6 py-2 bg-[#38347C] text-white rounded-full font-medium hover:bg-[#2f2b6a] transition"
+          >
+            Show More →
+          </button>
+        ) : (
+          <button
+            onClick={() => setVisibleCount(9)}
+            className="px-6 py-2 bg-gray-300 text-black rounded-full font-medium hover:bg-gray-400 transition"
+          >
+            Show Less ↑
+          </button>
+        )}
+      </div>
+    )}
+
+    {/* Modal */}
+    {isModalOpen && (
+      <EnrollmentModal isOpen={true} onClose={handleCloseModal}>
+        <EnrollmentForm courseId={isModalOpen} />
+      </EnrollmentModal>
+    )}
+  </div>
+);
+
 }

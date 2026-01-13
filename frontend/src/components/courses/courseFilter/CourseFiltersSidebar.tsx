@@ -45,6 +45,11 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
   const [streams, setStreams] = useState<StreamOption[]>([]);
   const [programModes, setProgramModes] = useState<ProgramModeOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false); // ✅ Hydration safety
+
+  useEffect(() => {
+    setHasMounted(true); // Only render actual content after client mounts
+  }, []);
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -175,6 +180,15 @@ const CourseFiltersSidebar: React.FC<CourseFiltersSidebarProps> = ({
       ))}
     </div>
   );
+
+  // ✅ Only render actual filters after client mounts
+  if (!hasMounted) {
+    return (
+      <aside className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+        <p className="text-xs text-slate-500">Loading filters...</p>
+      </aside>
+    );
+  }
 
   return (
     <aside className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm lg:sticky lg:top-24">

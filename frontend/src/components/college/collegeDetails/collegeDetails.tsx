@@ -140,136 +140,137 @@ export default function CollegeDetailsPage() {
       setMainImageSrc(fallbackImage);
     }
   }, [collegeData]);
-  
-const handleDownload = async (collegeId: string) => {
-  console.log("⬇️ Download started for collegeId:", collegeId);
 
-  try {
-    const url = `${api_url}brochure/college/${collegeId}`;
-    console.log("🌐 Fetching brochure from URL:", url);
+  const handleDownload = async (collegeId: string) => {
+    console.log("⬇️ Download started for collegeId:", collegeId);
 
-    const res = await fetch(url);
-    console.log("📡 Fetch response:", res);
+    try {
+      const url = `${api_url}brochure/college/${collegeId}`;
+      console.log("🌐 Fetching brochure from URL:", url);
 
-    if (!res.ok) {
-      console.error("❌ Fetch failed with status:", res.status);
-      throw new Error("Download failed");
+      const res = await fetch(url);
+      console.log("📡 Fetch response:", res);
+
+      if (!res.ok) {
+        console.error("❌ Fetch failed with status:", res.status);
+        throw new Error("Download failed");
+      }
+
+      const blob = await res.blob();
+      console.log("📦 Blob received:", blob);
+
+      const fileURL = window.URL.createObjectURL(blob);
+      console.log("🔗 Blob URL created:", fileURL);
+
+      const a = document.createElement("a");
+      a.href = fileURL;
+      a.download = "brochure.pdf";
+      document.body.appendChild(a);
+
+      console.log("🖱️ Triggering download...");
+      a.click();
+
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(fileURL);
+
+      console.log("✅ Brochure downloaded successfully");
+    } catch (error) {
+      console.error("🚨 Brochure download error:", error);
+      alert("Download failed, please try again.");
     }
+  };
 
-    const blob = await res.blob();
-    console.log("📦 Blob received:", blob);
+  const handleShortlist = async () => {
+    console.log("🔍 Checking login:", user?.token);
 
-    const fileURL = window.URL.createObjectURL(blob);
-    console.log("🔗 Blob URL created:", fileURL);
+    // If user not logged in → save redirect + pending shortlist
+    if (!user?.token) {
+      console.warn("❌ User not logged in — redirecting to login page.");
 
-    const a = document.createElement("a");
-    a.href = fileURL;
-    a.download = "brochure.pdf";
-    document.body.appendChild(a);
+      // Save ONLY the path, not full domain (works on local + production)
+      const currentPath = window.location.pathname + window.location.search;
 
-    console.log("🖱️ Triggering download...");
-    a.click();
+      const existingRedirect = sessionStorage.getItem("redirectAfterLogin");
 
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(fileURL);
+      if (
+        !existingRedirect ||
+        existingRedirect === "null" ||
+        existingRedirect === ""
+      ) {
+        console.log("📌 Saving redirectAfterLogin:", currentPath);
+        sessionStorage.setItem("redirectAfterLogin", currentPath);
+      } else {
+        console.log("⚠️ Redirect already exists →", existingRedirect);
+      }
 
-    console.log("✅ Brochure downloaded successfully");
-  } catch (error) {
-    console.error("🚨 Brochure download error:", error);
-    alert("Download failed, please try again.");
-  }
-};
+      // Save pending college info
+      const pendingCollege = {
+        id: collegeData?._id || collegeData?.id,
+        name: collegeData?.name,
+        location: collegeData?.location,
+      };
 
+      console.log("📦 Saving pendingShortlistCollege:", pendingCollege);
+      sessionStorage.setItem(
+        "pendingShortlistCollege",
+        JSON.stringify(pendingCollege)
+      );
 
-const handleShortlist = async () => {
-  console.log("🔍 Checking login:", user?.token);
-
-  // If user not logged in → save redirect + pending shortlist
-  if (!user?.token) {
-    console.warn("❌ User not logged in — redirecting to login page.");
-
-    // Save ONLY the path, not full domain (works on local + production)
-    const currentPath = window.location.pathname + window.location.search;
-
-    const existingRedirect = sessionStorage.getItem("redirectAfterLogin");
-
-    if (!existingRedirect || existingRedirect === "null" || existingRedirect === "") {
-      console.log("📌 Saving redirectAfterLogin:", currentPath);
-      sessionStorage.setItem("redirectAfterLogin", currentPath);
-    } else {
-      console.log("⚠️ Redirect already exists →", existingRedirect);
-    }
-
-    // Save pending college info
-    const pendingCollege = {
-      id: collegeData?._id || collegeData?.id,
-      name: collegeData?.name,
-      location: collegeData?.location,
-    };
-
-    console.log("📦 Saving pendingShortlistCollege:", pendingCollege);
-    sessionStorage.setItem("pendingShortlistCollege", JSON.stringify(pendingCollege));
-
-    // Redirect to login (auto-adjusts domain)
-    window.location.href = "/user/auth/logIn";
-    return;
-  }
-
-  // User logged in → process shortlist
-  console.log("👤 User logged in — processing shortlist…");
-
-  const userId = user.id || user._id;
-  const collegeId = collegeData?._id || collegeData?.id;
-
-  try {
-    const res = await fetch(`${api_url}shortlist`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        collegeId,
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
-      }),
-    });
-
-    const data = await res.json();
-    console.log("📨 API Response:", data);
-
-    if (data.message === "User not found.") {
-      alert("Your account was not found. Please sign up first.");
-      window.location.href = "/signup";
+      // Redirect to login (auto-adjusts domain)
+      window.location.href = "/user/auth/logIn";
       return;
     }
 
-    if (res.ok) {
-      console.log("✅ College shortlisted successfully!");
+    // User logged in → process shortlist
+    console.log("👤 User logged in — processing shortlist…");
 
-      // Update locally
-      addToShortlist({
-        id: collegeData?._id || collegeData?.id || "",
-        name: collegeData?.name || "",
-        location: collegeData?.location || "",
+    const userId = user.id || user._id;
+    const collegeId = collegeData?._id || collegeData?.id;
+
+    try {
+      const res = await fetch(`${api_url}shortlist`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          collegeId,
+          name: user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+        }),
       });
 
-      setAlreadyShortlisted(true);
-    } else {
-      console.error("❌ Shortlist error:", data.message);
-      alert(data.message || "Failed to shortlist this college.");
+      const data = await res.json();
+      console.log("📨 API Response:", data);
+
+      if (data.message === "User not found.") {
+        alert("Your account was not found. Please sign up first.");
+        window.location.href = "/signup";
+        return;
+      }
+
+      if (res.ok) {
+        console.log("✅ College shortlisted successfully!");
+
+        // Update locally
+        addToShortlist({
+          id: collegeData?._id || collegeData?.id || "",
+          name: collegeData?.name || "",
+          location: collegeData?.location || "",
+        });
+
+        setAlreadyShortlisted(true);
+      } else {
+        console.error("❌ Shortlist error:", data.message);
+        alert(data.message || "Failed to shortlist this college.");
+      }
+    } catch (err) {
+      console.error("🚨 API Request Error:", err);
+      alert("Something went wrong. Please try again.");
     }
-  } catch (err) {
-    console.error("🚨 API Request Error:", err);
-    alert("Something went wrong. Please try again.");
-  }
-};
-
-
-
-
-
+  };
 
   if (!mounted) return null;
   if (loading) return <Loader />;
@@ -485,8 +486,7 @@ const handleShortlist = async () => {
                   onClick={() =>
                     setCurrentImageIndex(
                       (prev) =>
-                        (prev - 1 + galleryImages.length) %
-                        galleryImages.length
+                        (prev - 1 + galleryImages.length) % galleryImages.length
                     )
                   }
                   className="absolute left-2 top-1/2 transform -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-gray-900/90 text-white rounded-full hover:scale-110 hover:bg-[#D35B42] transition-all duration-300"

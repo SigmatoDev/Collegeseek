@@ -86,10 +86,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
     "text-[#1f7a3f] border border-[#1f7a3f]/30",
   ];
 
-  const primaryStream =
-    streams && streams.length > 0
-      ? streams[0]?.name || "Key stream"
-      : "Flexible stream";
+ const primaryStream =
+  streams && streams.length > 0
+    ? streams.find(s => s.name === title)?.name || streams[0]?.name
+    : "Flexible stream";
+
 
   console.log("🔹 Primary Stream:", primaryStream);
 

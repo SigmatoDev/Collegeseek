@@ -248,3 +248,9 @@ ol li::marker {
   z-index: 1000 !important;
 }
 
+/* Hydration-safe gradient for search form */
+.search-form-bg {
+  background: radial-gradient(circle at top, rgba(99,93,193,0.08), transparent 50%),
+              radial-gradient(circle at bottom, rgba(207,94,68,0.08), transparent 55%);
+}
+

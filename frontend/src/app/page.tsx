@@ -41,8 +41,8 @@ export async function generateMetadata() {
   } catch (error) {
     console.error("❌ Meta fetch failed:", error);
     return {
-      title: "Pre School",
-      description: "Best preschool platform for kids.",
+      title: "collegeseek",
+      description: "Best collegeseek platform for kids.",
     };
   }
 }
@@ -60,7 +60,7 @@ export default function HomePage() {
       <CategoryGrid />
       <BlogList />
       <CallbackForm />
-      <PopUp />
+      {/* <PopUp /> */}
       <Footer />
     </div>
   );
