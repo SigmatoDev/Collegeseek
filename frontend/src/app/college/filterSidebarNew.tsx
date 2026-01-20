@@ -55,7 +55,11 @@ export default function FilterSidebarNew({
     }
     setSelected(converted);
   }, [selectedFilters]);
-  const toggleSelect = (section: string, value: string, parentState?: string) => {
+  const toggleSelect = (
+    section: string,
+    value: string,
+    parentState?: string
+  ) => {
     setSelected((prev) => {
       const newSet = new Set(prev[section] || []);
       if (newSet.has(value)) {

@@ -160,6 +160,22 @@ const AdminCourses = () => {
     }
   };
 
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm("Are you sure you want to delete this course?")) return;
+
+    try {
+      await axios.delete(`${api_url}/courses/${courseId}`);
+      toast.success("Course deleted successfully.");
+      // Refresh the list
+      fetchCourses(currentPage);
+      // Also remove from selectedCourses if it was selected
+      setSelectedCourses((prev) => prev.filter((id) => id !== courseId));
+    } catch (err: any) {
+      console.error("Error deleting course:", err);
+      toast.error(err.response?.data?.message || "Failed to delete course.");
+    }
+  };
+
   const filteredCourses = courses.filter((course) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -295,6 +311,12 @@ const AdminCourses = () => {
                             className="rounded-lg bg-blue-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-600"
                           >
                             Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCourse(course._id)}
+                            className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-600"
+                          >
+                            Delete
                           </button>
                           <button
                             onClick={() => handleDuplicateCourse(course._id)}

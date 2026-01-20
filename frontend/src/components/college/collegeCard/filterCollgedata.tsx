@@ -40,50 +40,58 @@ export default function FilterCollegeCard({ collegeId, college }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const hasMinimumData =
-      college &&
-      Boolean(college.name) &&
-      Boolean(college.slug) &&
-      Boolean(college.description);
+useEffect(() => {
+  const hasMinimumData =
+    college &&
+    Boolean(college.name) &&
+    Boolean(college.slug) &&
+    Boolean(college.description);
 
-    if (hasMinimumData) {
-      setCollegeData(college);
-      setError(null);
-      setLoading(false);
-      return;
-    }
+  if (hasMinimumData) {
+    setCollegeData(college);
+    setError(null);
+    setLoading(false);
+    return;
+  }
 
-    if (!collegeId) {
-      setError("Invalid college ID.");
-      setLoading(false);
-      return;
-    }
+  if (!collegeId) {
+    setError("Invalid college ID.");
+    setLoading(false);
+    return;
+  }
 
-    const fetchCollegeById = async () => {
-      setLoading(true);
-      setError(null);
+  const fetchCollegeById = async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const response = await axios.get(`${api_url}/colleges/${collegeId}`);
-        if (response.data?.success) {
-          setCollegeData(response.data.data);
-        } else {
-          setError("College data not found.");
-        }
-      } catch (error: any) {
-        setError("Failed to load college data.");
-        console.error(
-          "Error fetching data:",
-          error?.response?.data || error?.message
-        );
-      } finally {
-        setLoading(false);
+    const timerLabel = `API /colleges/${collegeId}`;
+    console.time(timerLabel);
+
+    try {
+      const response = await axios.get(`${api_url}/colleges/${collegeId}`);
+
+      console.timeEnd(timerLabel); // ⏱ API time
+
+      if (response.data?.success) {
+        setCollegeData(response.data.data);
+      } else {
+        setError("College data not found.");
       }
-    };
+    } catch (error: any) {
+      console.timeEnd(timerLabel); // ensure timer ends on error
+      setError("Failed to load college data.");
+      console.error(
+        "Error fetching data:",
+        error?.response?.data || error?.message
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchCollegeById();
-  }, [college, collegeId]);
+  fetchCollegeById();
+}, [college, collegeId]);
+
 
   const cleanDescription = (html: string): string => {
     if (!html) return "";

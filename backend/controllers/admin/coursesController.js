@@ -11,9 +11,16 @@ const Streams = require("../../models/admin/streams");
 // Get all courses
 const getCourse = async (req, res) => {
   try {
-    const courses = await Course.find()
-      .populate("category", "name") // Populate the category name field
-      .populate("programMode", "name"); // Populate the programMode name field
+    const { college_id } = req.query;
+
+    if (!college_id) {
+      return res.status(400).json({ message: "college_id is required" });
+    }
+
+    const courses = await Course.find({ college_id })
+      .populate("category", "name")
+      .populate("programMode", "name")
+      .lean(); // 🚀 faster read-only queries
 
     res.json(courses);
   } catch (error) {
@@ -21,6 +28,7 @@ const getCourse = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch courses" });
   }
 };
+
 
 // Get paginated courses with full population
 const getCourses = async (req, res) => {
