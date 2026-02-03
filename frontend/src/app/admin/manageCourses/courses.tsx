@@ -46,11 +46,12 @@ const AdminCourses = () => {
     setIsMounted(true);
   }, []);
 
-  const fetchCourses = async (page: number) => {
+  const fetchCourses = async (page: number, searchValue: string) => {
     setLoading(true);
     try {
+      const query = searchValue ? `&search=${encodeURIComponent(searchValue)}` : "";
       const { data } = await axios.get(
-        `${api_url}/courses?page=${page}&limit=${coursesPerPage}`
+        `${api_url}/courses?page=${page}&limit=${coursesPerPage}${query}`
       );
       const fetchedCourses = data?.courses || [];
       setCourses(
@@ -120,7 +121,7 @@ const AdminCourses = () => {
       if (newCourseId) {
         router.push(`/admin/manageCourses/${newCourseId}`);
       } else {
-        fetchCourses(currentPage);
+        fetchCourses(currentPage, searchTerm);
       }
     } catch (err: any) {
       console.error("Error duplicating course:", err);
@@ -133,8 +134,14 @@ const AdminCourses = () => {
   };
 
   useEffect(() => {
-    if (isMounted) fetchCourses(currentPage);
-  }, [currentPage, isMounted, coursesPerPage]);
+    if (isMounted) fetchCourses(currentPage, searchTerm);
+  }, [currentPage, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    setCurrentPage(1);
+    fetchCourses(1, searchTerm);
+  }, [searchTerm, coursesPerPage, isMounted]);
 
   const toggleSelectCourse = (id: string) => {
     setSelectedCourses((prev) =>
@@ -143,15 +150,7 @@ const AdminCourses = () => {
   };
 
   const toggleSelectAll = () => {
-    const filtered = courses.filter(
-      (course) =>
-        course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.duration.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.specialization?.name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-    );
-    const allIds = filtered.map((c) => c._id);
+    const allIds = courses.map((c) => c._id);
     const isAllSelected = allIds.every((id) => selectedCourses.includes(id));
     if (isAllSelected) {
       setSelectedCourses((prev) => prev.filter((id) => !allIds.includes(id)));
@@ -167,7 +166,7 @@ const AdminCourses = () => {
       await axios.delete(`${api_url}/courses/${courseId}`);
       toast.success("Course deleted successfully.");
       // Refresh the list
-      fetchCourses(currentPage);
+      fetchCourses(currentPage, searchTerm);
       // Also remove from selectedCourses if it was selected
       setSelectedCourses((prev) => prev.filter((id) => id !== courseId));
     } catch (err: any) {
@@ -176,14 +175,7 @@ const AdminCourses = () => {
     }
   };
 
-  const filteredCourses = courses.filter((course) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      course.description.toLowerCase().includes(term) ||
-      course.duration.toLowerCase().includes(term) ||
-      course.specialization?.name.toLowerCase().includes(term)
-    );
-  });
+  const filteredCourses = courses;
 
   if (!isMounted) return null;
 

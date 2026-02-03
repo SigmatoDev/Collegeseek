@@ -53,16 +53,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     ? `/college?specializations=${specializationQuery}`
     : "/college";
 
-  const fallbackFocus = streams
-    .map((stream) => stream?.name)
-    .filter(Boolean) as string[];
-  const derivedFocusAreas =
-    focusAreas.length > 0 ? focusAreas : fallbackFocus.slice(0, 4);
-  const focusDisplay = derivedFocusAreas.slice(0, 4);
-
-  console.log("🔹 Fallback Focus:", fallbackFocus);
-  console.log("🔹 Derived Focus Areas:", derivedFocusAreas);
-  console.log("🔹 Focus Display:", focusDisplay);
+  const focusDisplay = focusAreas.slice(0, 4);
 
   const examSummary =
     examList.length > 0

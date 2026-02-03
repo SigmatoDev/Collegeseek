@@ -94,6 +94,12 @@ const Sidebar = () => {
           isOpen,
         },
         {
+          href: "/admin/leads/applications",
+          icon: <FileText size={18} />,
+          text: "Applications",
+          isOpen,
+        },
+        {
           href: "/admin/leads/enrolledStudents",
           icon: <UserGroupIcon className="h-5 w-5" />,
           text: "Enrolled students",
