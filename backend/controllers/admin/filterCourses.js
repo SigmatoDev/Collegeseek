@@ -568,7 +568,9 @@ const buildMatchConditions = (filters = []) => {
     /* ================= COURSE TYPE ================= */
     if (field === "courseType" && Array.isArray(value) && value.length) {
       andConditions.push({
-        courseType: { $in: value },
+        programMode: {
+          $in: value.map((id) => new mongoose.Types.ObjectId(id)),
+        },
       });
     }
 
@@ -601,13 +603,32 @@ const buildMatchConditions = (filters = []) => {
 };
 
 
+const normalizeStreamFilter = async (filters) => {
+  const normalized = Array.isArray(filters) ? [...filters] : [];
+  const streamFilter = normalized.find((f) => f?.field === "streams");
+  if (!streamFilter || !Array.isArray(streamFilter.value)) return normalized;
+
+  const rawValues = streamFilter.value;
+  const ids = rawValues.filter((v) => mongoose.Types.ObjectId.isValid(v));
+  const names = rawValues.filter((v) => !mongoose.Types.ObjectId.isValid(v));
+
+  if (names.length) {
+    const streamDocs = await Streams.find({ name: { $in: names } }).select("_id");
+    streamDocs.forEach((doc) => ids.push(doc._id.toString()));
+  }
+
+  streamFilter.value = [...new Set(ids)];
+  return normalized;
+};
+
 const getCoursesWithCommonSpecialization = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const filters = Array.isArray(req.body?.filters) ? req.body.filters : [];
+    const incomingFilters = Array.isArray(req.body?.filters) ? req.body.filters : [];
+    const filters = await normalizeStreamFilter(incomingFilters);
 
     /**
      * Convert duration string → numeric

@@ -36,9 +36,91 @@ const getCourses = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 100;
     const skip = (page - 1) * limit;
+    const search = (req.query.search || "").toString().trim();
+
+    if (search) {
+      const regex = new RegExp(search, "i");
+      const feeMatch = !Number.isNaN(Number(search))
+        ? { "fees.amount": Number(search) }
+        : null;
+      const basePipeline = [
+        {
+          $lookup: {
+            from: "specializations",
+            localField: "specialization",
+            foreignField: "_id",
+            as: "specialization",
+          },
+        },
+        { $unwind: { path: "$specialization", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "colleges",
+            localField: "college_id",
+            foreignField: "_id",
+            as: "college_id",
+          },
+        },
+        { $unwind: { path: "$college_id", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "courseslists",
+            localField: "category",
+            foreignField: "_id",
+            as: "category",
+          },
+        },
+        { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: "programmodes",
+            localField: "programMode",
+            foreignField: "_id",
+            as: "programMode",
+          },
+        },
+        { $unwind: { path: "$programMode", preserveNullAndEmptyArrays: true } },
+        {
+          $match: {
+            $or: [
+              { name: regex },
+              { description: regex },
+              { duration: regex },
+              { entrance_exam: regex },
+              { eligibility: regex },
+              { "specialization.name": regex },
+              { "college_id.name": regex },
+              { "category.name": regex },
+              { "programMode.name": regex },
+              feeMatch,
+            ].filter(Boolean),
+          },
+        },
+      ];
+
+      const courses = await Course.aggregate([
+        ...basePipeline,
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+      ]);
+
+      const totalAgg = await Course.aggregate([
+        ...basePipeline,
+        { $count: "total" },
+      ]);
+
+      const totalCourses = totalAgg[0]?.total || 0;
+
+      return res.json({
+        courses,
+        totalPages: Math.ceil(totalCourses / limit),
+        currentPage: page,
+      });
+    }
 
     const courses = await Course.find()
-      .populate("specialization", "name") // ✅ lowercase 'specialization'
+      .populate("specialization", "name")
       .populate("college_id", "name slug")
       .populate("category", "name")
       .populate("programMode", "name")

@@ -65,6 +65,7 @@ app.use("/api", require("./routes/Users/shortlistRoutes"));
 app.use("/api", require("./routes/admin/auth/forgotPasswordRoutes"));
 app.use("/api", require("./routes/Users/profileRoutes"));
 app.use("/api", require("./routes/Users/contactUsRountes"));
+app.use("/api", require("./routes/Users/applicationRoutes"));
 app.use("/api", require("./routes/admin/dashboardRoutes"));
 app.use("/api", require("./routes/admin/termsAndConditionsRoutes"));
 app.use("/api", require("./routes/admin/privacyPolicyRoutes"));
