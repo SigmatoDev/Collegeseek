@@ -76,74 +76,47 @@ export default function CollegeCourses({ college_id }: Props) {
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(6); // 👈 NEW
 
- useEffect(() => {
-  if (!college_id) {
-    setError("College ID is missing.");
-    setLoading(false);
-    return;
-  }
-
-  const fetchCourses = async () => {
-    console.time("fetchCourses API");
-    const start = performance.now();
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const url = `${api_url}c/courses?college_id=${college_id}`;
-      console.log("Courses API URL:", url);
-
-      const response = await fetch(url);
-      if (!response.ok)
-        throw new Error(`Failed to fetch courses: ${response.statusText}`);
-
-      const data: Course[] = await response.json();
-      const filteredCourses = data.filter(
-        (course) => course.college_id === college_id
-      );
-
-      setCourses(filteredCourses);
-    } catch (error) {
-      setError((error as Error).message);
-    } finally {
-      const end = performance.now();
-      console.timeEnd("fetchCourses API");
-      console.log(
-        `fetchCourses total time: ${(end - start).toFixed(2)} ms`
-      );
+  useEffect(() => {
+    if (!college_id) {
+      setError("College ID is missing.");
       setLoading(false);
+      return;
     }
-  };
 
-  const fetchSpecializations = async () => {
-    console.time("fetchSpecializations API");
-    const start = performance.now();
+    const fetchCourses = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const url = `${api_url}c/courses?college_id=${college_id}`;
+        const response = await fetch(url);
+        if (!response.ok)
+          throw new Error(`Failed to fetch courses: ${response.statusText}`);
+        const data: Course[] = await response.json();
+        const filteredCourses = data.filter(
+          (course) => course.college_id === college_id
+        );
+        setCourses(filteredCourses);
+      } catch (error) {
+        setError((error as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    try {
-      const url = `${api_url}get2/Specialization`;
-      console.log("Specializations API URL:", url);
+    const fetchSpecializations = async () => {
+      try {
+        const res = await fetch(`${api_url}get2/Specialization`);
+        if (!res.ok) throw new Error("Failed to fetch specializations");
+        const data: Specialization[] = await res.json();
+        setSpecializations(data);
+      } catch (error) {
+        console.error("Specialization error:", error);
+      }
+    };
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Failed to fetch specializations");
-
-      const data: Specialization[] = await res.json();
-      setSpecializations(data);
-    } catch (error) {
-      console.error("Specialization error:", error);
-    } finally {
-      const end = performance.now();
-      console.timeEnd("fetchSpecializations API");
-      console.log(
-        `fetchSpecializations total time: ${(end - start).toFixed(2)} ms`
-      );
-    }
-  };
-
-  fetchCourses();
-  fetchSpecializations();
-}, [college_id]);
-
+    fetchCourses();
+    fetchSpecializations();
+  }, [college_id]);
 
   const handleOpenModal = (courseId: string) => {
     setIsModalOpen(courseId);

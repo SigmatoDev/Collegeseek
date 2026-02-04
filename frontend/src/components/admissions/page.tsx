@@ -72,7 +72,7 @@ export default function CollegeAdmissions() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Link href="/college">
+          <Link href="college/apply?college">
             <Button className="bg-[#d25c41] text-white px-8 py-3 rounded-full shadow-md hover:bg-[#b74930] transition">
               Start Your Application
             </Button>

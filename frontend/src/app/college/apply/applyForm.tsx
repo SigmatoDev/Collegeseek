@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import Input from "@/components/application/inputs/input";
 
 const STORAGE_KEY = "college_apply_draft_v1";
 const STORAGE_STEP_KEY = "college_apply_step_v1";
@@ -262,8 +263,18 @@ type ApplicationForm = {
   };
 };
 
-const emptySubject = () => ({ subject: "", maxMarks: "", obtainedMarks: "", percentage: "" });
-const emptyUGSubject = () => ({ subject: "", maxMarks: "", obtainedMarks: "", percentageOrGrade: "" });
+const emptySubject = () => ({
+  subject: "",
+  maxMarks: "",
+  obtainedMarks: "",
+  percentage: "",
+});
+const emptyUGSubject = () => ({
+  subject: "",
+  maxMarks: "",
+  obtainedMarks: "",
+  percentageOrGrade: "",
+});
 
 const initialData: ApplicationForm = {
   collegeSlug: "",
@@ -328,9 +339,30 @@ const initialData: ApplicationForm = {
     passportDateOfExpiry: "",
   },
   parents: {
-    father: { name: "", email: "", mobile: "", pan: "", occupation: "", designation: "" },
-    mother: { name: "", email: "", mobile: "", pan: "", occupation: "", designation: "" },
-    guardian: { name: "", email: "", mobile: "", pan: "", occupation: "", designation: "" },
+    father: {
+      name: "",
+      email: "",
+      mobile: "",
+      pan: "",
+      occupation: "",
+      designation: "",
+    },
+    mother: {
+      name: "",
+      email: "",
+      mobile: "",
+      pan: "",
+      occupation: "",
+      designation: "",
+    },
+    guardian: {
+      name: "",
+      email: "",
+      mobile: "",
+      pan: "",
+      occupation: "",
+      designation: "",
+    },
   },
   addresses: {
     communication: {
@@ -374,8 +406,19 @@ const initialData: ApplicationForm = {
       yearOfPassing: "",
       resultStatus: "",
       percentage: "",
-      subjects: [emptySubject(), emptySubject(), emptySubject(), emptySubject(), emptySubject()],
-      totals: { totalSubjects: "", totalMaxMarks: "", totalObtainedMarks: "", totalPercentage: "" },
+      subjects: [
+        emptySubject(),
+        emptySubject(),
+        emptySubject(),
+        emptySubject(),
+        emptySubject(),
+      ],
+      totals: {
+        totalSubjects: "",
+        totalMaxMarks: "",
+        totalObtainedMarks: "",
+        totalPercentage: "",
+      },
     },
     diploma: {
       instituteNameWithBranch: "",
@@ -405,7 +448,12 @@ const initialData: ApplicationForm = {
         emptyUGSubject(),
         emptyUGSubject(),
       ],
-      totals: { totalSubjects: "", totalMaxMarks: "", totalObtainedMarks: "", totalPercentage: "" },
+      totals: {
+        totalSubjects: "",
+        totalMaxMarks: "",
+        totalObtainedMarks: "",
+        totalPercentage: "",
+      },
     },
     others: {
       instituteName: "",
@@ -416,18 +464,74 @@ const initialData: ApplicationForm = {
       percentage: "",
     },
     international: {
-      oLevel: { instituteName: "", board: "", certificateName: "", yearOfPassing: "", marksScore: "", gpaGradePercentage: "" },
-      aLevel: { instituteName: "", board: "", certificateName: "", yearOfPassing: "", marksScore: "", gpaGradePercentage: "" },
-      diplomaCertificate: { instituteName: "", board: "", certificateName: "", yearOfPassing: "", marksScore: "", gpaGradePercentage: "" },
-      bachelors: { instituteName: "", board: "", certificateName: "", yearOfPassing: "", marksScore: "", gpaGradePercentage: "" },
-      masters: { instituteName: "", board: "", certificateName: "", yearOfPassing: "", marksScore: "", gpaGradePercentage: "" },
-      otherQualification: { instituteName: "", board: "", certificateName: "", yearOfPassing: "", marksScore: "", gpaGradePercentage: "" },
+      oLevel: {
+        instituteName: "",
+        board: "",
+        certificateName: "",
+        yearOfPassing: "",
+        marksScore: "",
+        gpaGradePercentage: "",
+      },
+      aLevel: {
+        instituteName: "",
+        board: "",
+        certificateName: "",
+        yearOfPassing: "",
+        marksScore: "",
+        gpaGradePercentage: "",
+      },
+      diplomaCertificate: {
+        instituteName: "",
+        board: "",
+        certificateName: "",
+        yearOfPassing: "",
+        marksScore: "",
+        gpaGradePercentage: "",
+      },
+      bachelors: {
+        instituteName: "",
+        board: "",
+        certificateName: "",
+        yearOfPassing: "",
+        marksScore: "",
+        gpaGradePercentage: "",
+      },
+      masters: {
+        instituteName: "",
+        board: "",
+        certificateName: "",
+        yearOfPassing: "",
+        marksScore: "",
+        gpaGradePercentage: "",
+      },
+      otherQualification: {
+        instituteName: "",
+        board: "",
+        certificateName: "",
+        yearOfPassing: "",
+        marksScore: "",
+        gpaGradePercentage: "",
+      },
     },
     entranceExams: {
       appeared: "",
       exams: [
-        { name: "", rollNo: "", year: "", resultStatus: "", score: "", rank: "" },
-        { name: "", rollNo: "", year: "", resultStatus: "", score: "", rank: "" },
+        {
+          name: "",
+          rollNo: "",
+          year: "",
+          resultStatus: "",
+          score: "",
+          rank: "",
+        },
+        {
+          name: "",
+          rollNo: "",
+          year: "",
+          resultStatus: "",
+          score: "",
+          rank: "",
+        },
       ],
     },
   },
@@ -523,8 +627,12 @@ export default function ApplyForm() {
   const saveTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-    const savedStep = typeof window !== "undefined" ? localStorage.getItem(STORAGE_STEP_KEY) : null;
+    const saved =
+      typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+    const savedStep =
+      typeof window !== "undefined"
+        ? localStorage.getItem(STORAGE_STEP_KEY)
+        : null;
     if (saved) {
       try {
         setFormData(JSON.parse(saved));
@@ -561,41 +669,41 @@ export default function ApplyForm() {
 
   useEffect(() => {
     const loadFiles = async () => {
-      const keys = Object.keys(files);
       const nextFiles: FileMap = { ...files };
-      for (const key of keys) {
+
+      for (const key of Object.keys(files)) {
         const blob = await idbGet(key);
         if (blob) {
-          nextFiles[key] = new File([blob], blob.name || key, { type: blob.type });
+          nextFiles[key] =
+            blob instanceof File
+              ? blob
+              : new File([blob], key, { type: blob.type });
         }
       }
+
       setFiles(nextFiles);
     };
+
     loadFiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateField = (path: string, value: any) => {
-    const keys = path.split(".");
-    setFormData((prev) => {
-      const next: any = Array.isArray(prev) ? [...(prev as any)] : { ...prev };
-      let cursor: any = next;
-      let prevCursor: any = prev as any;
-      for (let i = 0; i < keys.length; i += 1) {
+    setFormData((prev: any) => {
+      const keys = path.split(".");
+      const updated = { ...prev };
+
+      let current = updated;
+
+      for (let i = 0; i < keys.length - 1; i++) {
         const key = keys[i];
-        const isLast = i === keys.length - 1;
-        if (isLast) {
-          cursor[key] = value;
-        } else {
-          const prevVal = prevCursor?.[key];
-          const cloned =
-            Array.isArray(prevVal) ? [...prevVal] : { ...(prevVal || {}) };
-          cursor[key] = cloned;
-          cursor = cloned;
-          prevCursor = prevVal || {};
-        }
+        current[key] = { ...(current[key] ?? {}) };
+        current = current[key];
       }
-      return next;
+
+      current[keys[keys.length - 1]] = value;
+
+      return updated;
     });
   };
 
@@ -629,7 +737,9 @@ export default function ApplyForm() {
         ["registration.admissionIntake", "Admission intake is required"],
       ];
       required.forEach(([path, message]) => {
-        const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+        const value = path
+          .split(".")
+          .reduce((acc: any, key: string) => acc?.[key], formData);
         if (!value) nextErrors[path] = message;
       });
       if (!formData.registration.course && !formData.registration.program) {
@@ -652,7 +762,9 @@ export default function ApplyForm() {
         ["applicant.gender", "Gender is required"],
       ];
       required.forEach(([path, message]) => {
-        const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+        const value = path
+          .split(".")
+          .reduce((acc: any, key: string) => acc?.[key], formData);
         if (!value) nextErrors[path] = message;
       });
       if (formData.applicant.email && !isEmail(formData.applicant.email)) {
@@ -670,19 +782,26 @@ export default function ApplyForm() {
         ["addresses.communication.country", "Country is required"],
       ];
       required.forEach(([path, message]) => {
-        const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+        const value = path
+          .split(".")
+          .reduce((acc: any, key: string) => acc?.[key], formData);
         if (!value) nextErrors[path] = message;
       });
       if (!formData.addresses.permanentSameAsCommunication) {
         const permRequired = [
-          ["addresses.permanent.addressLine1", "Permanent address line 1 is required"],
+          [
+            "addresses.permanent.addressLine1",
+            "Permanent address line 1 is required",
+          ],
           ["addresses.permanent.city", "Permanent city is required"],
           ["addresses.permanent.state", "Permanent state is required"],
           ["addresses.permanent.pincode", "Permanent pincode is required"],
           ["addresses.permanent.country", "Permanent country is required"],
         ];
         permRequired.forEach(([path, message]) => {
-          const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+          const value = path
+            .split(".")
+            .reduce((acc: any, key: string) => acc?.[key], formData);
           if (!value) nextErrors[path] = message;
         });
       }
@@ -695,18 +814,28 @@ export default function ApplyForm() {
         ["education.tenth.percentage", "10th percentage is required"],
       ];
       required.forEach(([path, message]) => {
-        const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+        const value = path
+          .split(".")
+          .reduce((acc: any, key: string) => acc?.[key], formData);
         if (!value) nextErrors[path] = message;
       });
       if (formData.education.tenth.studiedUpTo12th === "Yes") {
         const req12 = [
-          ["education.twelfth.instituteNameWithBranch", "12th institute name is required"],
+          [
+            "education.twelfth.instituteNameWithBranch",
+            "12th institute name is required",
+          ],
           ["education.twelfth.board", "12th board is required"],
-          ["education.twelfth.yearOfPassing", "12th year of passing is required"],
+          [
+            "education.twelfth.yearOfPassing",
+            "12th year of passing is required",
+          ],
           ["education.twelfth.percentage", "12th percentage is required"],
         ];
         req12.forEach(([path, message]) => {
-          const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+          const value = path
+            .split(".")
+            .reduce((acc: any, key: string) => acc?.[key], formData);
           if (!value) nextErrors[path] = message;
         });
       }
@@ -718,11 +847,14 @@ export default function ApplyForm() {
         ["declaration.date", "Declaration date is required"],
       ];
       required.forEach(([path, message]) => {
-        const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData);
+        const value = path
+          .split(".")
+          .reduce((acc: any, key: string) => acc?.[key], formData);
         if (!value) nextErrors[path] = message;
       });
       if (!files.photo) nextErrors["uploads.photo"] = "Photo is required";
-      if (!files.signature) nextErrors["uploads.signature"] = "Signature is required";
+      if (!files.signature)
+        nextErrors["uploads.signature"] = "Signature is required";
     }
 
     setErrors(nextErrors);
@@ -777,55 +909,26 @@ export default function ApplyForm() {
       await idbClear();
     } catch (error: any) {
       console.error("Submit error:", error);
-      toast.error(error?.response?.data?.message || "Failed to submit application.");
+      toast.error(
+        error?.response?.data?.message || "Failed to submit application.",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const StepHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+  const StepHeader = ({
+    title,
+    subtitle,
+  }: {
+    title: string;
+    subtitle?: string;
+  }) => (
     <div className="mb-4">
       <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
       {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
     </div>
   );
-
-  const Input = ({
-    label,
-    path,
-    type = "text",
-    required,
-    placeholder,
-  }: {
-    label: string;
-    path: string;
-    type?: string;
-    required?: boolean;
-    placeholder?: string;
-  }) => {
-    const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData) ?? "";
-    const error = stepErrors[path];
-    return (
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium text-gray-700">
-          {label} {required && <span className="text-red-500">*</span>}
-        </span>
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => {
-            updateField(path, e.target.value);
-            clearFieldError(path);
-          }}
-          placeholder={placeholder}
-          className={`rounded-lg border px-3 py-2 text-sm focus:outline-none ${
-            error ? "border-red-400" : "border-gray-200"
-          }`}
-        />
-        {error && <span className="text-xs text-red-500">{error}</span>}
-      </label>
-    );
-  };
 
   const Select = ({
     label,
@@ -838,7 +941,9 @@ export default function ApplyForm() {
     options: string[];
     required?: boolean;
   }) => {
-    const value = path.split(".").reduce((acc: any, key: string) => acc?.[key], formData) ?? "";
+    const value =
+      path.split(".").reduce((acc: any, key: string) => acc?.[key], formData) ??
+      "";
     const error = stepErrors[path];
     return (
       <label className="flex flex-col gap-1 text-sm">
@@ -867,7 +972,15 @@ export default function ApplyForm() {
     );
   };
 
-  const FileInput = ({ label, fileKey, accept }: { label: string; fileKey: string; accept: string }) => {
+  const FileInput = ({
+    label,
+    fileKey,
+    accept,
+  }: {
+    label: string;
+    fileKey: string;
+    accept: string;
+  }) => {
     const error = stepErrors[`uploads.${fileKey}`];
     return (
       <label className="flex flex-col gap-1 text-sm">
@@ -875,11 +988,15 @@ export default function ApplyForm() {
         <input
           type="file"
           accept={accept}
-          onChange={(e) => handleFileChange(fileKey, e.target.files?.[0] || null)}
+          onChange={(e) =>
+            handleFileChange(fileKey, e.target.files?.[0] || null)
+          }
           className={`rounded-lg border px-3 py-2 text-sm ${error ? "border-red-400" : "border-gray-200"}`}
         />
         {files[fileKey] && (
-          <span className="text-xs text-gray-500">Selected: {files[fileKey]?.name}</span>
+          <span className="text-xs text-gray-500">
+            Selected: {files[fileKey]?.name}
+          </span>
         )}
         {error && <span className="text-xs text-red-500">{error}</span>}
       </label>
@@ -901,7 +1018,9 @@ export default function ApplyForm() {
               <div
                 key={title}
                 className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
-                  active ? "border-[#7a6be7] bg-[#f6f5ff] text-[#44368a]" : "border-gray-200 text-gray-500"
+                  active
+                    ? "border-[#7a6be7] bg-[#f6f5ff] text-[#44368a]"
+                    : "border-gray-200 text-gray-500"
                 }`}
               >
                 <div className="text-[10px] uppercase">Step {stepNumber}</div>
@@ -915,113 +1034,824 @@ export default function ApplyForm() {
       <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         {currentStep === 1 && (
           <div className="space-y-6">
-            <StepHeader title="Registration & Admission" subtitle="Provide registration and admission details." />
+            <StepHeader
+              title="Registration & Admission"
+              subtitle="Provide registration and admission details."
+            />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Input label="Form Name" path="registration.formName" required />
-              <Input label="Registered Name" path="registration.registeredName" required />
-              <Input label="Registered Email" path="registration.registeredEmail" type="email" required />
-              <Input label="Registration Date" path="registration.registrationDate" type="date" required />
-              <Input label="Registered Mobile" path="registration.registeredMobile" required />
-              <Input label="Registered Country" path="registration.registeredCountry" required />
-              <Input label="Alternate Mobile" path="registration.alternateMobile" />
-              <Input label="Alternate Mobile No" path="registration.alternateMobileNo" />
-              <Input label="State" path="registration.state" />
-              <Input label="City" path="registration.city" />
-              <Input label="Course" path="registration.course" required />
-              <Input label="Admission Intake" path="registration.admissionIntake" required />
-              <Input label="Occupation" path="registration.occupation" />
-              <Input label="Relationship" path="registration.relationship" />
-              <Input label="Annual Income" path="registration.annualIncome" />
-              <Input label="Father Name" path="registration.fatherName" />
-              <Input label="Application No" path="registration.applicationNo" />
-              <Input label="Program" path="registration.program" />
-              <Input label="Specialization" path="registration.specialization" />
-              <Input label="School Name" path="registration.schoolName" />
-              <Input label="Category / Nationality" path="registration.categoryNationality" />
-              <Input label="Admission Owner" path="registration.admissionOwner" />
-              <Input label="Admission Category" path="registration.admissionCategory" />
-              <Input label="Withdrawal Documents Eligibility Checked?" path="registration.withdrawalDocsEligible" />
-              <Input label="Title" path="registration.title" />
-              <Input label="Referral Code" path="registration.referralCode" />
+              <Input
+                label="Form Name"
+                path="registration.formName"
+                required
+                placeholder="Enter form name"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Registered Name"
+                path="registration.registeredName"
+                required
+                placeholder="Enter Registered Name"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Registered Email"
+                path="registration.registeredEmail"
+                type="email"
+                required
+                placeholder="Enter Registered Email"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Registration Date"
+                path="registration.registrationDate"
+                type="date"
+                placeholder="Enter Registered Date"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Registered Mobile"
+                path="registration.registeredMobile"
+                type="tel"
+                placeholder="Enter Registered Mobile"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Registered Country"
+                path="registration.registeredCountry"
+                placeholder="Enter Registered Country"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Alternate Mobile"
+                path="registration.alternateMobile"
+                type="tel"
+                placeholder="Enter Alternate Mobile"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Alternate Mobile No"
+                path="registration.alternateMobileNo"
+                type="tel"
+                placeholder="Enter Alternate Mobile No"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="State"
+                path="registration.state"
+                placeholder="Enter State"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="City"
+                path="registration.city"
+                placeholder="Enter City"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Course"
+                path="registration.course"
+                placeholder="Enter Course"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Admission Intake"
+                path="registration.admissionIntake"
+                required
+                placeholder="Enter Admission Intake"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Occupation"
+                path="registration.occupation"
+                placeholder="Enter Occupation"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Relationship"
+                path="registration.relationship"
+                placeholder="Enter Relationship"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Annual Income"
+                path="registration.annualIncome"
+                placeholder="Enter Annual Income"
+                type="tel"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Father Name"
+                path="registration.fatherName"
+                placeholder="Enter Father Name"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Application No"
+                path="registration.applicationNo"
+                type="tel"
+                placeholder="Enter Application No"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Program"
+                path="registration.program"
+                placeholder="Enter Registered Program"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Specialization"
+                path="registration.specialization"
+                placeholder="Enter Specialization"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="School Name"
+                path="registration.schoolName"
+                placeholder="Enter School Name"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Category / Nationality"
+                path="registration.categoryNationality"
+                placeholder="Enter Category / Nationality"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Admission Owner"
+                path="registration.admissionOwner"
+                placeholder="Admission Owner"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Admission Category"
+                path="registration.admissionCategory"
+                placeholder="Merit / Management"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Withdrawal Documents Eligibility Checked?"
+                path="registration.withdrawalDocsEligible"
+                placeholder="Yes / No"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Title"
+                path="registration.title"
+                placeholder="Mr"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Referral Code"
+                path="registration.referralCode"
+                placeholder="Enter referral code"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
             </div>
           </div>
         )}
 
         {currentStep === 2 && (
           <div className="space-y-6">
-            <StepHeader title="Applicant Details" subtitle="Personal and identity details of the applicant." />
+            <StepHeader
+              title="Applicant Details"
+              subtitle="Personal and identity details of the applicant."
+            />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Input label="Title" path="applicant.title" />
-              <Input label="First Name" path="applicant.firstName" required />
-              <Input label="Middle Name" path="applicant.middleName" />
-              <Input label="Last Name" path="applicant.lastName" required />
-              <Input label="Email Address" path="applicant.email" type="email" required />
-              <Input label="Mobile Number" path="applicant.mobile" required />
-              <Input label="Date Of Birth" path="applicant.dateOfBirth" type="date" required />
-              <Select label="Gender" path="applicant.gender" options={["Male", "Female", "Other"]} required />
-              <Input label="Place Of Birth" path="applicant.placeOfBirth" />
-              <Input label="Religion" path="applicant.religion" />
-              <Input label="Blood Group" path="applicant.bloodGroup" />
-              <Input label="Marital Status" path="applicant.maritalStatus" />
-              <Select label="Do You Require Transport" path="applicant.requireTransport" options={["Yes", "No"]} />
-              <Select label="Do You Require Hostel Facility" path="applicant.requireHostel" options={["Yes", "No"]} />
-              <Input label="Room Type" path="applicant.roomType" />
-              <Select label="Person With Disabilities (PWD)" path="applicant.pwd" options={["Yes", "No"]} />
-              <Input label="Caste Category" path="applicant.casteCategory" />
-              <Input label="Aadhar Card Number" path="applicant.aadharNumber" />
-              <Input label="Please Select As Applicable" path="applicant.applicable" />
-              <Input label="Country Of Birth" path="applicant.countryOfBirth" />
-              <Input label="VISA Type" path="applicant.visaType" />
-              <Input label="VISA Number" path="applicant.visaNumber" />
-              <Input label="Duration" path="applicant.visaDuration" />
-              <Input label="Fee" path="applicant.fee" />
-              <Input label="Country Of Residence" path="applicant.countryOfResidence" />
-              <Input label="Passport Number" path="applicant.passportNumber" />
-              <Input label="Country" path="applicant.passportCountry" />
-              <Input label="Place Of Issue" path="applicant.passportPlaceOfIssue" />
-              <Input label="Date Of Issue" path="applicant.passportDateOfIssue" type="date" />
-              <Input label="Date Of Expiry" path="applicant.passportDateOfExpiry" type="date" />
+              <Input
+                label="Title"
+                path="applicant.title"
+                placeholder="Mr., Ms.,"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="First Name"
+                path="applicant.firstName"
+                placeholder="Enter first name"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Middle Name"
+                path="applicant.middleName"
+                placeholder="Enter middle name"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Last Name"
+                path="applicant.lastName"
+                placeholder="Enter last name"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Email Address"
+                path="applicant.email"
+                type="email"
+                placeholder="Enter your email"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Mobile Number"
+                path="applicant.mobile"
+                type="tel"
+                placeholder="Enter mobile number"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Date Of Birth"
+                path="applicant.dateOfBirth"
+                type="date"
+                placeholder="Select date of birth"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Select
+                label="Gender"
+                path="applicant.gender"
+                options={["Male", "Female", "Other"]}
+                required
+              />
+              <Input
+                label="Place Of Birth"
+                path="applicant.placeOfBirth"
+                placeholder="Place Of Birth"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Religion"
+                path="applicant.religion"
+                placeholder="Enter your religion"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Blood Group"
+                path="applicant.bloodGroup"
+                placeholder="Enter your blood group (A+, O-)"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Marital Status"
+                path="applicant.maritalStatus"
+                placeholder="Single / Married / Divorced"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Select
+                label="Do You Require Transport"
+                path="applicant.requireTransport"
+                options={["Yes", "No"]}
+              />
+              <Select
+                label="Do You Require Hostel Facility"
+                path="applicant.requireHostel"
+                options={["Yes", "No"]}
+              />
+              <Input
+                label="Room Type"
+                path="applicant.roomType"
+                placeholder="Room Type"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Select
+                label="Person With Disabilities (PWD)"
+                path="applicant.pwd"
+                options={["Yes", "No"]}
+              />
+              <Input
+                label="Caste Category"
+                path="applicant.casteCategory"
+                placeholder="Enter caste category (if any)"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Aadhar Card Number"
+                path="applicant.aadharNumber"
+                placeholder="Enter 12-digit Aadhar number"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Please Enter As Applicable"
+                path="applicant.applicable"
+                placeholder="Enter applicable"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Country Of Birth"
+                path="applicant.countryOfBirth"
+                placeholder="India"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="VISA Type"
+                path="applicant.visaType"
+                placeholder="Student / Work / Tourist"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="VISA Number"
+                path="applicant.visaNumber"
+                placeholder="Enter your VISA number"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Duration"
+                path="applicant.visaDuration"
+                placeholder="Enter VISA duration"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Fee"
+                path="applicant.fee"
+                type="number"
+                placeholder="Enter fee amount"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Country Of Residence"
+                path="applicant.countryOfResidence"
+                placeholder="Enter country of residence"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Passport Number"
+                path="applicant.passportNumber"
+                placeholder="Enter passport number"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Country"
+                path="applicant.passportCountry"
+                placeholder="Enter country of passport issue"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+              <Input
+                label="Place Of Issue"
+                path="applicant.passportPlaceOfIssue"
+                placeholder="Enter place of passport issue"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Date Of Issue"
+                path="applicant.passportDateOfIssue"
+                type="date"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Date Of Expiry"
+                path="applicant.passportDateOfExpiry"
+                type="date"
+                placeholder="Select date of expiry"
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
             </div>
           </div>
         )}
 
         {currentStep === 3 && (
           <div className="space-y-6">
-            <StepHeader title="Parents / Guardians & Address" subtitle="Parent details and address information." />
+            <StepHeader
+              title="Parents / Guardians & Address"
+              subtitle="Parent details and address information."
+            />
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Parents / Guardians Details</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Parents / Guardians Details
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Father's Name" path="parents.father.name" required />
-                <Input label="Father's Email" path="parents.father.email" />
-                <Input label="Father's Mobile" path="parents.father.mobile" required />
-                <Input label="Father's PAN Card No" path="parents.father.pan" />
-                <Input label="Father's Occupation" path="parents.father.occupation" />
-                <Input label="Father's Designation" path="parents.father.designation" />
-                <Input label="Mother's Name" path="parents.mother.name" />
-                <Input label="Mother's Email" path="parents.mother.email" />
-                <Input label="Mother's Mobile" path="parents.mother.mobile" />
-                <Input label="Mother's PAN Card No" path="parents.mother.pan" />
-                <Input label="Mother's Occupation" path="parents.mother.occupation" />
-                <Input label="Mother's Designation" path="parents.mother.designation" />
-                <Input label="Guardian's Name" path="parents.guardian.name" />
-                <Input label="Guardian's Email" path="parents.guardian.email" />
-                <Input label="Guardian's Mobile" path="parents.guardian.mobile" />
-                <Input label="Guardian's PAN Card No" path="parents.guardian.pan" />
-                <Input label="Guardian's Occupation" path="parents.guardian.occupation" />
-                <Input label="Guardian's Designation" path="parents.guardian.designation" />
+                <Input
+                  label="Father's Name"
+                  path="parents.father.name"
+                  required
+                  placeholder="Enter father's full name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Father's Email"
+                  path="parents.father.email"
+                  type="email"
+                  placeholder="Enter father's email address"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Father's Mobile"
+                  path="parents.father.mobile"
+                  type="tel"
+                  required
+                  placeholder="Enter father's mobile number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Father's PAN Card No"
+                  path="parents.father.pan"
+                  placeholder="Enter father's PAN card number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Father's Occupation"
+                  path="parents.father.occupation"
+                  placeholder="Enter father's occupation"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Father's Designation"
+                  path="parents.father.designation"
+                  placeholder="Enter father's designation"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Mother's Name"
+                  path="parents.mother.name"
+                  placeholder="Enter mother's full name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Mother's Email"
+                  path="parents.mother.email"
+                  type="email"
+                  placeholder="Enter mother's email address"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Mother's Mobile"
+                  path="parents.mother.mobile"
+                  type="tel"
+                  placeholder="Enter mother's mobile number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Mother's PAN Card No"
+                  path="parents.mother.pan"
+                  placeholder="Enter mother's PAN card number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Mother's Occupation"
+                  path="parents.mother.occupation"
+                  placeholder="Enter mother's occupation"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Mother's Designation"
+                  path="parents.mother.designation"
+                  placeholder="Enter mother's designation"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Guardian's Name"
+                  path="parents.guardian.name"
+                  placeholder="Enter guardian's full name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Guardian's Email"
+                  path="parents.guardian.email"
+                  type="email"
+                  placeholder="Enter guardian's email address"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+                <Input
+                  label="Guardian's Mobile"
+                  path="parents.guardian.mobile"
+                  type="tel"
+                  placeholder="Enter guardian's mobile number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Guardian's PAN Card No"
+                  path="parents.guardian.pan"
+                  placeholder="Enter guardian's PAN card number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Guardian's Occupation"
+                  path="parents.guardian.occupation"
+                  placeholder="Enter guardian's occupation"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Guardian's Designation"
+                  path="parents.guardian.designation"
+                  placeholder="Enter guardian's designation"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Address For Communication</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Address For Communication
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Country" path="addresses.communication.country" required />
-                <Input label="State" path="addresses.communication.state" required />
-                <Input label="District" path="addresses.communication.district" />
-                <Input label="City" path="addresses.communication.city" required />
-                <Input label="Address Line 1" path="addresses.communication.addressLine1" required />
-                <Input label="Address Line 2" path="addresses.communication.addressLine2" />
-                <Input label="Pincode" path="addresses.communication.pincode" required />
+                <Input
+                  label="Country"
+                  path="addresses.communication.country"
+                  placeholder="Enter country"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="State"
+                  path="addresses.communication.state"
+                  placeholder="Enter state"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="District"
+                  path="addresses.communication.district"
+                  placeholder="Enter district"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="City"
+                  path="addresses.communication.city"
+                  placeholder="Enter city"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Address Line 1"
+                  path="addresses.communication.addressLine1"
+                  placeholder="Enter address line 1"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Address Line 2"
+                  path="addresses.communication.addressLine2"
+                  placeholder="Enter address line 2"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Pincode"
+                  path="addresses.communication.pincode"
+                  placeholder="Enter pincode"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
@@ -1029,22 +1859,96 @@ export default function ApplyForm() {
               <input
                 type="checkbox"
                 checked={formData.addresses.permanentSameAsCommunication}
-                onChange={(e) => updateField("addresses.permanentSameAsCommunication", e.target.checked)}
+                onChange={(e) =>
+                  updateField(
+                    "addresses.permanentSameAsCommunication",
+                    e.target.checked,
+                  )
+                }
               />
               Is Permanent Address Same As Address For Communication?
             </label>
 
             {!formData.addresses.permanentSameAsCommunication && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-700">Permanent Address</h3>
+                <h3 className="text-lg font-semibold text-gray-700">
+                  Permanent Address
+                </h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  <Input label="Country" path="addresses.permanent.country" required />
-                  <Input label="State" path="addresses.permanent.state" required />
-                  <Input label="District" path="addresses.permanent.district" />
-                  <Input label="City" path="addresses.permanent.city" required />
-                  <Input label="Address Line 1" path="addresses.permanent.addressLine1" required />
-                  <Input label="Address Line 2" path="addresses.permanent.addressLine2" />
-                  <Input label="Pincode" path="addresses.permanent.pincode" required />
+                  <Input
+                    label="Country"
+                    path="addresses.permanent.country"
+                    placeholder="Enter country"
+                    required
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
+
+                  <Input
+                    label="State"
+                    path="addresses.permanent.state"
+                    placeholder="Enter state"
+                    required
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
+
+                  <Input
+                    label="District"
+                    path="addresses.permanent.district"
+                    placeholder="Enter district"
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
+
+                  <Input
+                    label="City"
+                    path="addresses.permanent.city"
+                    placeholder="Enter city"
+                    required
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
+
+                  <Input
+                    label="Address Line 1"
+                    path="addresses.permanent.addressLine1"
+                    placeholder="Enter address line 1"
+                    required
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
+
+                  <Input
+                    label="Address Line 2"
+                    path="addresses.permanent.addressLine2"
+                    placeholder="Enter address line 2"
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
+
+                  <Input
+                    label="Pincode"
+                    path="addresses.permanent.pincode"
+                    placeholder="Enter pincode"
+                    required
+                    formData={formData}
+                    stepErrors={stepErrors}
+                    updateField={updateField}
+                    clearFieldError={clearFieldError}
+                  />
                 </div>
               </div>
             )}
@@ -1053,130 +1957,683 @@ export default function ApplyForm() {
 
         {currentStep === 4 && (
           <div className="space-y-6">
-            <StepHeader title="Education Details" subtitle="Academic qualifications and entrance exams." />
+            <StepHeader
+              title="Education Details"
+              subtitle="Academic qualifications and entrance exams."
+            />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">10th Details</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                10th Details
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Institute Name" path="education.tenth.instituteName" required />
-                <Input label="Board" path="education.tenth.board" required />
-                <Input label="Register Number / Roll No" path="education.tenth.rollNo" />
-                <Input label="Year Of Passing" path="education.tenth.yearOfPassing" required />
-                <Input label="Obtained Percentage / CGPA" path="education.tenth.percentage" required />
-                <Input label="Marking Scheme" path="education.tenth.markingScheme" />
-                <Select label="Have You Studied Kannada As A Language" path="education.tenth.studiedKannada" options={["Yes", "No"]} />
-                <Select label="Studied Up To 10th Std" path="education.tenth.studiedUpTo10th" options={["Yes", "No"]} />
-                <Select label="Studied Up To 12th Std" path="education.tenth.studiedUpTo12th" options={["Yes", "No"]} />
-                <Input label="After 10th Qualification" path="education.tenth.after10thQualification" />
+                <Input
+                  label="Institute Name"
+                  path="education.tenth.instituteName"
+                  placeholder="Enter institute name"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Board"
+                  path="education.tenth.board"
+                  placeholder="Enter board name"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Register Number / Roll No"
+                  path="education.tenth.rollNo"
+                  placeholder="Enter register/roll number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Year Of Passing"
+                  path="education.tenth.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Obtained Percentage / CGPA"
+                  path="education.tenth.percentage"
+                  placeholder="Enter obtained percentage / CGPA"
+                  required
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Marking Scheme"
+                  path="education.tenth.markingScheme"
+                  placeholder="Enter marking scheme"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Select
+                  label="Have You Studied Kannada As A Language"
+                  path="education.tenth.studiedKannada"
+                  options={["Yes", "No"]}
+                />
+                <Select
+                  label="Studied Up To 10th Std"
+                  path="education.tenth.studiedUpTo10th"
+                  options={["Yes", "No"]}
+                />
+                <Select
+                  label="Studied Up To 12th Std"
+                  path="education.tenth.studiedUpTo12th"
+                  options={["Yes", "No"]}
+                />
+                <Input
+                  label="After 10th Qualification"
+                  path="education.tenth.after10thQualification"
+                  placeholder="Enter qualification after 10th"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">12th Details</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                12th Details
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Institute Name With Branch" path="education.twelfth.instituteNameWithBranch" />
-                <Input label="Board" path="education.twelfth.board" />
-                <Input label="Register Number / Roll No" path="education.twelfth.rollNo" />
-                <Input label="Stream" path="education.twelfth.stream" />
-                <Input label="Year Of Passing" path="education.twelfth.yearOfPassing" />
-                <Input label="Result Status" path="education.twelfth.resultStatus" />
-                <Input label="Obtained Percentage" path="education.twelfth.percentage" />
+                <Input
+                  label="Institute Name With Branch"
+                  path="education.twelfth.instituteNameWithBranch"
+                  placeholder="Enter institute name with branch"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Board"
+                  path="education.twelfth.board"
+                  placeholder="Enter board name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Register Number / Roll No"
+                  path="education.twelfth.rollNo"
+                  placeholder="Enter register/roll number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Stream"
+                  path="education.twelfth.stream"
+                  placeholder="Enter stream"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Year Of Passing"
+                  path="education.twelfth.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Result Status"
+                  path="education.twelfth.resultStatus"
+                  placeholder="Enter result status"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Obtained Percentage"
+                  path="education.twelfth.percentage"
+                  placeholder="Enter obtained percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {formData.education.twelfth.subjects.map((_, idx) => (
-                  <div key={`twelfth-subject-${idx}`} className="rounded-xl border border-gray-100 p-3">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Subject {idx + 1}</h4>
+                  <div
+                    key={`twelfth-subject-${idx}`}
+                    className="rounded-xl border border-gray-100 p-3"
+                  >
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                      Subject {idx + 1}
+                    </h4>
                     <div className="grid grid-cols-1 gap-3">
-                      <Input label="Subject" path={`education.twelfth.subjects.${idx}.subject`} />
-                      <Input label="Maximum Marks" path={`education.twelfth.subjects.${idx}.maxMarks`} />
-                      <Input label="Obtained Marks" path={`education.twelfth.subjects.${idx}.obtainedMarks`} />
-                      <Input label="Obtained Percentage" path={`education.twelfth.subjects.${idx}.percentage`} />
+                      <Input
+                        label="Subject"
+                        path={`education.twelfth.subjects.${idx}.subject`}
+                        placeholder="Enter subject name"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+
+                      <Input
+                        label="Maximum Marks"
+                        path={`education.twelfth.subjects.${idx}.maxMarks`}
+                        placeholder="Enter maximum marks"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+
+                      <Input
+                        label="Obtained Marks"
+                        path={`education.twelfth.subjects.${idx}.obtainedMarks`}
+                        placeholder="Enter obtained marks"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+
+                      <Input
+                        label="Obtained Percentage"
+                        path={`education.twelfth.subjects.${idx}.percentage`}
+                        placeholder="Enter obtained percentage"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
                     </div>
                   </div>
                 ))}
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Total Subjects" path="education.twelfth.totals.totalSubjects" />
-                <Input label="Total Maximum Marks" path="education.twelfth.totals.totalMaxMarks" />
-                <Input label="Total Obtained Marks" path="education.twelfth.totals.totalObtainedMarks" />
-                <Input label="Total Obtained Percentage" path="education.twelfth.totals.totalPercentage" />
+                <Input
+                  label="Total Subjects"
+                  path="education.twelfth.totals.totalSubjects"
+                  placeholder="Enter total subjects"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Total Maximum Marks"
+                  path="education.twelfth.totals.totalMaxMarks"
+                  placeholder="Enter total maximum marks"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Total Obtained Marks"
+                  path="education.twelfth.totals.totalObtainedMarks"
+                  placeholder="Enter total obtained marks"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Total Obtained Percentage"
+                  path="education.twelfth.totals.totalPercentage"
+                  placeholder="Enter total obtained percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Diploma Details</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Diploma Details
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Institute Name With Branch" path="education.diploma.instituteNameWithBranch" />
-                <Input label="Board / University" path="education.diploma.boardOrUniversity" />
-                <Input label="Register Number / Roll No" path="education.diploma.rollNo" />
-                <Input label="Stream" path="education.diploma.stream" />
-                <Input label="Year Of Passing" path="education.diploma.yearOfPassing" />
-                <Input label="Result Status" path="education.diploma.resultStatus" />
-                <Input label="Obtained Percentage" path="education.diploma.percentage" />
+                <Input
+                  label="Institute Name With Branch"
+                  path="education.diploma.instituteNameWithBranch"
+                  placeholder="Enter institute name with branch"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Board / University"
+                  path="education.diploma.boardOrUniversity"
+                  placeholder="Enter board or university"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Register Number / Roll No"
+                  path="education.diploma.rollNo"
+                  placeholder="Enter register/roll number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Stream"
+                  path="education.diploma.stream"
+                  placeholder="Enter stream"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Year Of Passing"
+                  path="education.diploma.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Result Status"
+                  path="education.diploma.resultStatus"
+                  placeholder="Enter result status"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Obtained Percentage"
+                  path="education.diploma.percentage"
+                  placeholder="Enter obtained percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Graduation (UG) Details</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Graduation (UG) Details
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Result Status" path="education.ug.resultStatus" />
-                <Input label="UG Institute" path="education.ug.institute" />
-                <Input label="UG University" path="education.ug.university" />
-                <Input label="UG Register Number" path="education.ug.registerNumber" />
-                <Input label="UG Year Of Passing" path="education.ug.yearOfPassing" />
-                <Input label="UG Total Marks" path="education.ug.totalMarks" />
-                <Input label="UG Marks Obtained" path="education.ug.marksObtained" />
-                <Input label="UG Overall Percentage" path="education.ug.overallPercentage" />
+                <Input
+                  label="Result Status"
+                  path="education.ug.resultStatus"
+                  placeholder="Enter result status"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG Institute"
+                  path="education.ug.institute"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG University"
+                  path="education.ug.university"
+                  placeholder="Enter university name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG Register Number"
+                  path="education.ug.registerNumber"
+                  placeholder="Enter register/roll number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG Year Of Passing"
+                  path="education.ug.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG Total Marks"
+                  path="education.ug.totalMarks"
+                  placeholder="Enter total marks"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG Marks Obtained"
+                  path="education.ug.marksObtained"
+                  placeholder="Enter obtained marks"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="UG Overall Percentage"
+                  path="education.ug.overallPercentage"
+                  placeholder="Enter overall percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {formData.education.ug.subjects.map((_, idx) => (
-                  <div key={`ug-subject-${idx}`} className="rounded-xl border border-gray-100 p-3">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Subject {idx + 1}</h4>
+                  <div
+                    key={`ug-subject-${idx}`}
+                    className="rounded-xl border border-gray-100 p-3"
+                  >
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                      Subject {idx + 1}
+                    </h4>
                     <div className="grid grid-cols-1 gap-3">
-                      <Input label="Subject" path={`education.ug.subjects.${idx}.subject`} />
-                      <Input label="Maximum Marks" path={`education.ug.subjects.${idx}.maxMarks`} />
-                      <Input label="Obtained Marks" path={`education.ug.subjects.${idx}.obtainedMarks`} />
-                      <Input label="Percentage / Grade" path={`education.ug.subjects.${idx}.percentageOrGrade`} />
+                      <Input
+                        label="Subject"
+                        path={`education.ug.subjects.${idx}.subject`}
+                        placeholder="Enter subject name"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Maximum Marks"
+                        path={`education.ug.subjects.${idx}.maxMarks`}
+                        placeholder="Enter max marks"
+                        type="number"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Obtained Marks"
+                        path={`education.ug.subjects.${idx}.obtainedMarks`}
+                        placeholder="Enter obtained marks"
+                        type="number"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Percentage / Grade"
+                        path={`education.ug.subjects.${idx}.percentageOrGrade`}
+                        placeholder="Enter percentage or grade"
+                        type="text"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
                     </div>
                   </div>
                 ))}
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Total Subjects" path="education.ug.totals.totalSubjects" />
-                <Input label="Total Maximum Marks" path="education.ug.totals.totalMaxMarks" />
-                <Input label="Total Obtained Marks" path="education.ug.totals.totalObtainedMarks" />
-                <Input label="Total Percentage / Grade" path="education.ug.totals.totalPercentage" />
+                <Input
+                  label="Total Subjects"
+                  path="education.ug.totals.totalSubjects"
+                  placeholder="Enter total number of subjects"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Total Maximum Marks"
+                  path="education.ug.totals.totalMaxMarks"
+                  placeholder="Enter total maximum marks"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Total Obtained Marks"
+                  path="education.ug.totals.totalObtainedMarks"
+                  placeholder="Enter total obtained marks"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Total Percentage / Grade"
+                  path="education.ug.totals.totalPercentage"
+                  placeholder="Enter total percentage or grade"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Other Qualifications</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Other Qualifications
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="Institute Name" path="education.others.instituteName" />
-                <Input label="University" path="education.others.university" />
-                <Input label="Degree" path="education.others.degree" />
-                <Input label="Year Of Passing" path="education.others.yearOfPassing" />
-                <Input label="Result Status" path="education.others.resultStatus" />
-                <Input label="Percentage" path="education.others.percentage" />
+                <Input
+                  label="Institute Name"
+                  path="education.others.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="University"
+                  path="education.others.university"
+                  placeholder="Enter university name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Degree"
+                  path="education.others.degree"
+                  placeholder="Enter degree"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Year Of Passing"
+                  path="education.others.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Result Status"
+                  path="education.others.resultStatus"
+                  placeholder="Enter result status"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Percentage"
+                  path="education.others.percentage"
+                  placeholder="Enter percentage"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">Entrance Exams</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Entrance Exams
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Select label="Have You Appeared For Any Entrance Exam" path="education.entranceExams.appeared" options={["Yes", "No"]} />
+                <Select
+                  label="Have You Appeared For Any Entrance Exam"
+                  path="education.entranceExams.appeared"
+                  options={["Yes", "No"]}
+                />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {formData.education.entranceExams.exams.map((_, idx) => (
-                  <div key={`exam-${idx}`} className="rounded-xl border border-gray-100 p-3">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Exam {idx + 1}</h4>
+                  <div
+                    key={`exam-${idx}`}
+                    className="rounded-xl border border-gray-100 p-3"
+                  >
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                      Exam {idx + 1}
+                    </h4>
                     <div className="grid grid-cols-1 gap-3">
-                      <Input label="Exam" path={`education.entranceExams.exams.${idx}.name`} />
-                      <Input label="Exam Roll No" path={`education.entranceExams.exams.${idx}.rollNo`} />
-                      <Input label="Year Of Appearing" path={`education.entranceExams.exams.${idx}.year`} />
-                      <Input label="Result Status" path={`education.entranceExams.exams.${idx}.resultStatus`} />
-                      <Input label="Score" path={`education.entranceExams.exams.${idx}.score`} />
-                      <Input label="All India Rank" path={`education.entranceExams.exams.${idx}.rank`} />
+                      <Input
+                        label="Exam"
+                        path={`education.entranceExams.exams.${idx}.name`}
+                        placeholder="Enter exam name"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Exam Roll No"
+                        path={`education.entranceExams.exams.${idx}.rollNo`}
+                        placeholder="Enter roll number"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Year Of Appearing"
+                        path={`education.entranceExams.exams.${idx}.year`}
+                        placeholder="Enter year"
+                        type="number"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Result Status"
+                        path={`education.entranceExams.exams.${idx}.resultStatus`}
+                        placeholder="Enter result status"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="Score"
+                        path={`education.entranceExams.exams.${idx}.score`}
+                        placeholder="Enter score"
+                        type="number"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
+                      <Input
+                        label="All India Rank"
+                        path={`education.entranceExams.exams.${idx}.rank`}
+                        placeholder="Enter rank"
+                        type="number"
+                        formData={formData}
+                        stepErrors={stepErrors}
+                        updateField={updateField}
+                        clearFieldError={clearFieldError}
+                      />
                     </div>
                   </div>
                 ))}
@@ -1184,44 +2641,389 @@ export default function ApplyForm() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700">International Qualifications (if applicable)</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                International Qualifications (if applicable)
+              </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Input label="O Level/10th - Institute" path="education.international.oLevel.instituteName" />
-                <Input label="O Level/10th - Board" path="education.international.oLevel.board" />
-                <Input label="O Level/10th - Certificate" path="education.international.oLevel.certificateName" />
-                <Input label="O Level/10th - Year Of Passing" path="education.international.oLevel.yearOfPassing" />
-                <Input label="O Level/10th - Marks / Score" path="education.international.oLevel.marksScore" />
-                <Input label="O Level/10th - GPA/Grade/Percentage" path="education.international.oLevel.gpaGradePercentage" />
-                <Input label="A Level/12th - Institute" path="education.international.aLevel.instituteName" />
-                <Input label="A Level/12th - Board" path="education.international.aLevel.board" />
-                <Input label="A Level/12th - Certificate" path="education.international.aLevel.certificateName" />
-                <Input label="A Level/12th - Year Of Passing" path="education.international.aLevel.yearOfPassing" />
-                <Input label="A Level/12th - Marks / Score" path="education.international.aLevel.marksScore" />
-                <Input label="A Level/12th - GPA/Grade/Percentage" path="education.international.aLevel.gpaGradePercentage" />
-                <Input label="Diploma/Certificate - Institute" path="education.international.diplomaCertificate.instituteName" />
-                <Input label="Diploma/Certificate - Board" path="education.international.diplomaCertificate.board" />
-                <Input label="Diploma/Certificate - Certificate" path="education.international.diplomaCertificate.certificateName" />
-                <Input label="Diploma/Certificate - Year Of Passing" path="education.international.diplomaCertificate.yearOfPassing" />
-                <Input label="Diploma/Certificate - Marks / Score" path="education.international.diplomaCertificate.marksScore" />
-                <Input label="Diploma/Certificate - GPA/Grade/Percentage" path="education.international.diplomaCertificate.gpaGradePercentage" />
-                <Input label="Bachelor's Degree - Institute" path="education.international.bachelors.instituteName" />
-                <Input label="Bachelor's Degree - Board" path="education.international.bachelors.board" />
-                <Input label="Bachelor's Degree - Certificate" path="education.international.bachelors.certificateName" />
-                <Input label="Bachelor's Degree - Year Of Passing" path="education.international.bachelors.yearOfPassing" />
-                <Input label="Bachelor's Degree - Marks / Score" path="education.international.bachelors.marksScore" />
-                <Input label="Bachelor's Degree - GPA/Grade/Percentage" path="education.international.bachelors.gpaGradePercentage" />
-                <Input label="Master's Degree - Institute" path="education.international.masters.instituteName" />
-                <Input label="Master's Degree - Board" path="education.international.masters.board" />
-                <Input label="Master's Degree - Certificate" path="education.international.masters.certificateName" />
-                <Input label="Master's Degree - Year Of Passing" path="education.international.masters.yearOfPassing" />
-                <Input label="Master's Degree - Marks / Score" path="education.international.masters.marksScore" />
-                <Input label="Master's Degree - GPA/Grade/Percentage" path="education.international.masters.gpaGradePercentage" />
-                <Input label="Any Other Qualification - Institute" path="education.international.otherQualification.instituteName" />
-                <Input label="Any Other Qualification - Board" path="education.international.otherQualification.board" />
-                <Input label="Any Other Qualification - Certificate" path="education.international.otherQualification.certificateName" />
-                <Input label="Any Other Qualification - Year Of Passing" path="education.international.otherQualification.yearOfPassing" />
-                <Input label="Any Other Qualification - Marks / Score" path="education.international.otherQualification.marksScore" />
-                <Input label="Any Other Qualification - GPA/Grade/Percentage" path="education.international.otherQualification.gpaGradePercentage" />
+                {/* O Level / 10th */}
+                <Input
+                  label="O Level/10th - Institute"
+                  path="education.international.oLevel.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="O Level/10th - Board"
+                  path="education.international.oLevel.board"
+                  placeholder="Enter board"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="O Level/10th - Certificate"
+                  path="education.international.oLevel.certificateName"
+                  placeholder="Enter certificate name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="O Level/10th - Year Of Passing"
+                  path="education.international.oLevel.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="O Level/10th - Marks / Score"
+                  path="education.international.oLevel.marksScore"
+                  placeholder="Enter marks or score"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="O Level/10th - GPA/Grade/Percentage"
+                  path="education.international.oLevel.gpaGradePercentage"
+                  placeholder="Enter GPA, grade, or percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* A Level / 12th */}
+                <Input
+                  label="A Level/12th - Institute"
+                  path="education.international.aLevel.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="A Level/12th - Board"
+                  path="education.international.aLevel.board"
+                  placeholder="Enter board"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="A Level/12th - Certificate"
+                  path="education.international.aLevel.certificateName"
+                  placeholder="Enter certificate name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* A Level / 12th */}
+                <Input
+                  label="A Level/12th - Year Of Passing"
+                  path="education.international.aLevel.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="A Level/12th - Marks / Score"
+                  path="education.international.aLevel.marksScore"
+                  placeholder="Enter marks or score"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="A Level/12th - GPA/Grade/Percentage"
+                  path="education.international.aLevel.gpaGradePercentage"
+                  placeholder="Enter GPA, grade, or percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* Diploma / Certificate */}
+                <Input
+                  label="Diploma/Certificate - Institute"
+                  path="education.international.diplomaCertificate.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Diploma/Certificate - Board"
+                  path="education.international.diplomaCertificate.board"
+                  placeholder="Enter board"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Diploma/Certificate - Certificate"
+                  path="education.international.diplomaCertificate.certificateName"
+                  placeholder="Enter certificate name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Diploma/Certificate - Year Of Passing"
+                  path="education.international.diplomaCertificate.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Diploma/Certificate - Marks / Score"
+                  path="education.international.diplomaCertificate.marksScore"
+                  placeholder="Enter marks or score"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Diploma/Certificate - GPA/Grade/Percentage"
+                  path="education.international.diplomaCertificate.gpaGradePercentage"
+                  placeholder="Enter GPA, grade, or percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* Bachelor's Degree */}
+                <Input
+                  label="Bachelor's Degree - Institute"
+                  path="education.international.bachelors.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Bachelor's Degree - Board"
+                  path="education.international.bachelors.board"
+                  placeholder="Enter board/university"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Bachelor's Degree - Certificate"
+                  path="education.international.bachelors.certificateName"
+                  placeholder="Enter certificate name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Bachelor's Degree - Year Of Passing"
+                  path="education.international.bachelors.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Bachelor's Degree - Marks / Score"
+                  path="education.international.bachelors.marksScore"
+                  placeholder="Enter marks or score"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Bachelor's Degree - GPA/Grade/Percentage"
+                  path="education.international.bachelors.gpaGradePercentage"
+                  placeholder="Enter GPA, grade, or percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* Master's Degree */}
+                <Input
+                  label="Master's Degree - Institute"
+                  path="education.international.masters.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Master's Degree - Board"
+                  path="education.international.masters.board"
+                  placeholder="Enter board/university"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Master's Degree - Certificate"
+                  path="education.international.masters.certificateName"
+                  placeholder="Enter certificate name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Master's Degree - Year Of Passing"
+                  path="education.international.masters.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* Master's Degree */}
+                <Input
+                  label="Master's Degree - Marks / Score"
+                  path="education.international.masters.marksScore"
+                  placeholder="Enter marks or score"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Master's Degree - GPA/Grade/Percentage"
+                  path="education.international.masters.gpaGradePercentage"
+                  placeholder="Enter GPA, grade, or percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                {/* Any Other Qualification */}
+                <Input
+                  label="Any Other Qualification - Institute"
+                  path="education.international.otherQualification.instituteName"
+                  placeholder="Enter institute name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Any Other Qualification - Board"
+                  path="education.international.otherQualification.board"
+                  placeholder="Enter board/university"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Any Other Qualification - Certificate"
+                  path="education.international.otherQualification.certificateName"
+                  placeholder="Enter certificate name"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Any Other Qualification - Year Of Passing"
+                  path="education.international.otherQualification.yearOfPassing"
+                  placeholder="Enter year of passing"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Any Other Qualification - Marks / Score"
+                  path="education.international.otherQualification.marksScore"
+                  placeholder="Enter marks or score"
+                  type="number"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
+
+                <Input
+                  label="Any Other Qualification - GPA/Grade/Percentage"
+                  path="education.international.otherQualification.gpaGradePercentage"
+                  placeholder="Enter GPA, grade, or percentage"
+                  formData={formData}
+                  stepErrors={stepErrors}
+                  updateField={updateField}
+                  clearFieldError={clearFieldError}
+                />
               </div>
             </div>
           </div>
@@ -1229,20 +3031,76 @@ export default function ApplyForm() {
 
         {currentStep === 5 && (
           <div className="space-y-6">
-            <StepHeader title="Uploads & Declaration" subtitle="Upload required documents and confirm declaration." />
+            <StepHeader
+              title="Uploads & Declaration"
+              subtitle="Upload required documents and confirm declaration."
+            />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <FileInput label="Upload Recent Passport Size Photograph" fileKey="photo" accept="image/*" />
-              <FileInput label="Upload Your Signature" fileKey="signature" accept="image/*" />
-              <FileInput label="Upload Diploma / Certificate" fileKey="diplomaCertificate" accept="image/*,.pdf,.doc,.docx" />
-              <FileInput label="Upload Bachelor's Degree Certificate & Transcript" fileKey="bachelorCertificate" accept="image/*,.pdf,.doc,.docx" />
-              <FileInput label="Upload Master's Degree Certificate & Transcript" fileKey="masterCertificate" accept="image/*,.pdf,.doc,.docx" />
-              <FileInput label="Upload Other Qualification Certificate" fileKey="otherQualificationCertificate" accept="image/*,.pdf,.doc,.docx" />
+              <FileInput
+                label="Upload Recent Passport Size Photograph"
+                fileKey="photo"
+                accept="image/*"
+              />
+              <FileInput
+                label="Upload Your Signature"
+                fileKey="signature"
+                accept="image/*"
+              />
+              <FileInput
+                label="Upload Diploma / Certificate"
+                fileKey="diplomaCertificate"
+                accept="image/*,.pdf,.doc,.docx"
+              />
+              <FileInput
+                label="Upload Bachelor's Degree Certificate & Transcript"
+                fileKey="bachelorCertificate"
+                accept="image/*,.pdf,.doc,.docx"
+              />
+              <FileInput
+                label="Upload Master's Degree Certificate & Transcript"
+                fileKey="masterCertificate"
+                accept="image/*,.pdf,.doc,.docx"
+              />
+              <FileInput
+                label="Upload Other Qualification Certificate"
+                fileKey="otherQualificationCertificate"
+                accept="image/*,.pdf,.doc,.docx"
+              />
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Input label="Applicant Name" path="declaration.applicantName" required />
-              <Input label="Parent Name" path="declaration.parentName" required />
-              <Input label="Date" path="declaration.date" type="date" required />
+              <Input
+                label="Applicant Name"
+                path="declaration.applicantName"
+                placeholder="Enter applicant's full name"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Parent Name"
+                path="declaration.parentName"
+                placeholder="Enter parent’s full name"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
+
+              <Input
+                label="Date"
+                path="declaration.date"
+                type="date"
+                required
+                formData={formData}
+                stepErrors={stepErrors}
+                updateField={updateField}
+                clearFieldError={clearFieldError}
+              />
             </div>
           </div>
         )}

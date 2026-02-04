@@ -60,7 +60,7 @@ export default function HomePage() {
       <CategoryGrid />
       <BlogList />
       <CallbackForm />
-      {/* <PopUp /> */}
+      <PopUp />
       <Footer />
     </div>
   );
