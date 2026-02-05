@@ -647,11 +647,9 @@ export default function ApplyForm() {
   }, []);
 
   useEffect(() => {
-    const slug = searchParams.get("college") || "";
-    if (slug) {
-      setFormData((prev) => ({ ...prev, collegeSlug: slug }));
-    }
-  }, [searchParams]);
+  const slug = searchParams.get("college") || "";
+  if (slug) setFormData((prev) => ({ ...prev, collegeSlug: slug }));
+}, [searchParams]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

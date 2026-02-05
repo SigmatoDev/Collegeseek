@@ -1,3 +1,7 @@
+// app/college/apply/page.tsx
+"use client";
+
+import { Suspense } from "react";
 import Header from "@/components/header/page";
 import Footer from "@/components/footer/page";
 import Breadcrumb from "@/components/breadcrumb/breadcrumb";
@@ -17,7 +21,9 @@ export default function ApplyPage() {
         />
       </div>
       <div className="px-6 md:px-10 py-6">
-        <ApplyForm />
+        <Suspense fallback={<div>Loading form...</div>}>
+          <ApplyForm />
+        </Suspense>
       </div>
       <Footer />
     </>
