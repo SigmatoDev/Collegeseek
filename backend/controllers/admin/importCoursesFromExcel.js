@@ -399,12 +399,9 @@ exports.importCoursesFromExcel = async (req, res) => {
         // CLEAN COLLEGE NAME
         const cleanCollegeName = rawCollegeName?.replace(/\(.*?\)/g, "").trim();
 
-        const college = await College.findOne({
-          name: new RegExp(
-            cleanCollegeName?.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-            "i"
-          ),
-        });
+      const college = await College.findOne({
+  name: new RegExp(`^${cleanCollegeName.trim()}$`, "i"),
+});
 
         if (!college) {
           console.log(`❌ College not found:`, cleanCollegeName);
