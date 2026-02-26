@@ -21,27 +21,12 @@ if (!fs.existsSync(UPLOAD_ROOT)) {
   fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
 }
 
-// Check write permission
-try {
-  fs.accessSync(UPLOAD_ROOT, fs.constants.W_OK);
-  console.log("✅ Upload folder is writable");
-} catch (err) {
-  console.error("❌ Upload folder is not writable:", err);
-}
-
 /* =====================================================
    2️⃣ MULTER CONFIGURATION
 ===================================================== */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    console.log("Uploading file to folder:", UPLOAD_ROOT);
-    cb(null, UPLOAD_ROOT);
-  },
-  filename: (req, file, cb) => {
-    const finalName = `${Date.now()}-${file.originalname}`;
-    console.log("Saving file as:", finalName);
-    cb(null, finalName);
-  },
+  destination: (req, file, cb) => cb(null, UPLOAD_ROOT),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 
 const fileFilter = (req, file, cb) => {
@@ -52,16 +37,15 @@ const fileFilter = (req, file, cb) => {
     "text/plain",
   ];
   if (allowedTypes.includes(file.mimetype)) cb(null, true);
-  else
-    cb(new Error("Invalid file type. Only PDF, DOC, DOCX, TXT allowed"), false);
+  else cb(new Error("Invalid file type. Only PDF, DOC, DOCX, TXT allowed"), false);
 };
 
+// Increase file size limit safely to 50MB
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 50 * 1024 * 1024 },
 });
-
 /* =====================================================
    ✅ 3. GET ALL FILES (PAGINATED)
 ===================================================== */
@@ -123,58 +107,47 @@ const getUploadFileById = async (req, res) => {
 const createUploadFile = async (req, res) => {
   upload.single("file")(req, res, async (err) => {
     if (err) {
-      if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ message: "Max upload size is 10MB" });
-      }
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json({ message: err.code === "LIMIT_FILE_SIZE" ? "Max upload size is 50MB" : err.message });
     }
 
     if (!req.file || !req.body.college_id) {
-      return res
-        .status(400)
-        .json({ message: "File and College ID are required" });
+      return res.status(400).json({ message: "File and College ID are required" });
     }
 
     try {
       let finalName = req.file.filename;
-      let finalPath = path.join(UPLOAD_ROOT, finalName);
+      let finalPath = req.file.path;
 
-      // ✅ Add PDF compression here
+      // Always compress PDFs
       if (req.file.mimetype === "application/pdf") {
         try {
           const compressedPath = await compressPdf(req.file.path);
 
-          // Delete original
-          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-
+          // Replace original with compressed
+          fs.unlinkSync(req.file.path);
           finalName = path.basename(compressedPath);
-          finalPath = path.join(UPLOAD_ROOT, finalName);
+          finalPath = compressedPath;
         } catch (err) {
-          console.warn("⚠️ PDF compression failed, using original PDF");
-          finalName = req.file.filename;
-          finalPath = req.file.path;
+          console.warn("⚠️ PDF compression failed, using original file");
         }
       }
 
-      // Save file info to DB
       const uploadDoc = new Upload({
         fileName: finalName,
-        filePath: `/uploads/documents/${finalName}`, // public URL path
+        filePath: `/uploads/documents/${finalName}`,
         college_id: req.body.college_id,
       });
 
       await uploadDoc.save();
 
-      res.status(201).json({
-        message: "File uploaded successfully",
-        upload: uploadDoc,
-      });
+      res.status(201).json({ message: "File uploaded successfully", upload: uploadDoc });
     } catch (error) {
       console.error("Upload error:", error);
       res.status(500).json({ message: "Upload failed" });
     }
   });
 };
+
 
 /* =====================================================
    ✅ 6. UPDATE FILE
@@ -183,56 +156,40 @@ const createUploadFile = async (req, res) => {
 const updateUploadFile = async (req, res) => {
   upload.single("file")(req, res, async (err) => {
     if (err) {
-      if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ message: "Max file size exceeded" });
-      }
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json({ message: err.code === "LIMIT_FILE_SIZE" ? "Max upload size is 50MB" : err.message });
     }
 
     try {
       const { id } = req.params;
       const { college_id } = req.body;
 
-      // Find existing file
       const existingFile = await Upload.findById(id);
-      if (!existingFile) {
-        return res.status(404).json({ message: "File not found" });
-      }
+      if (!existingFile) return res.status(404).json({ message: "File not found" });
 
-      // Validate college if changed
+      // Update college if provided
       if (college_id) {
         const college = await College.findById(college_id);
-        if (!college) {
-          return res.status(404).json({ message: "College not found" });
-        }
+        if (!college) return res.status(404).json({ message: "College not found" });
         existingFile.college_id = college_id;
       }
 
-      // Process new file upload
       if (req.file) {
-        // Delete old file if exists
-        const oldPath = path.join(UPLOAD_ROOT, existingFile.fileName);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
+        // Remove old file
+        const oldPath = path.join(UPLOAD_ROOT, path.basename(existingFile.filePath));
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
 
         let finalName = req.file.filename;
-        let finalPath = path.join(UPLOAD_ROOT, finalName);
+        let finalPath = req.file.path;
 
-        // ✅ Compress PDF using pdf-lib (Node.js) instead of Ghostscript
+        // Always compress PDFs
         if (req.file.mimetype === "application/pdf") {
           try {
             const compressedPath = await compressPdf(req.file.path);
-
-            // Delete original
-            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-
+            fs.unlinkSync(req.file.path);
             finalName = path.basename(compressedPath);
-            finalPath = path.join(UPLOAD_ROOT, finalName);
+            finalPath = compressedPath;
           } catch (err) {
-            console.warn("⚠️ PDF compression failed, using original PDF");
-            finalName = req.file.filename;
-            finalPath = req.file.path;
+            console.warn("⚠️ PDF compression failed, using original file");
           }
         }
 
@@ -241,17 +198,14 @@ const updateUploadFile = async (req, res) => {
       }
 
       await existingFile.save();
-
-      res.status(200).json({
-        message: "File updated successfully",
-        upload: existingFile,
-      });
+      res.status(200).json({ message: "File updated successfully", upload: existingFile });
     } catch (error) {
-      console.error("🔥 Update error:", error);
+      console.error("Update error:", error);
       res.status(500).json({ message: "Failed to update file" });
     }
   });
 };
+
 /* =====================================================
    ✅ 7. DELETE FILE
 ===================================================== */
