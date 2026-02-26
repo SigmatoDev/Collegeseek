@@ -34,11 +34,11 @@ const getUploadFileByCollegeId = async (req, res) => {
 
     console.log("🧹 Sanitized filePath:", sanitizedPath);
 
-    const filePath = path.resolve(
-      __dirname,
-      "../../public",
-      sanitizedPath
-    );
+   const filePath = path.resolve(
+  __dirname,
+  "../../uploads/documents",
+  file.fileName
+);
 
     console.log("📍 Absolute resolved path:", filePath);
 
