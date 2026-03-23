@@ -8,6 +8,7 @@ const AffiliatedBy = require("../../models/admin/affiliatedBy");
 const CoursesList = require("../../models/admin/coursesList");
 const Specialization = require("../../models/admin/specialization");
 const ProgramMode = require("../../models/admin/programMode");
+
 exports.getCollegesFromFilter = async (req, res) => {
   try {
     const {

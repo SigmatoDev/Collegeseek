@@ -144,14 +144,14 @@ const ActualCourseForm = () => {
     setCourse((prev: any) => ({
       ...prev,
       [field]: (prev[field] || []).filter(
-        (_: string, itemIndex: number) => itemIndex !== index
+        (_: string, itemIndex: number) => itemIndex !== index,
       ),
     }));
   };
 
   const handleTagKeyDown = (
     field: TagField,
-    event: KeyboardEvent<HTMLInputElement>
+    event: KeyboardEvent<HTMLInputElement>,
   ) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -161,7 +161,7 @@ const ActualCourseForm = () => {
 
   const handleSuggestedFocusClick = (suggestion: string) => {
     const exists = (course.focusAreas || []).some(
-      (item: string) => item.toLowerCase() === suggestion.toLowerCase()
+      (item: string) => item.toLowerCase() === suggestion.toLowerCase(),
     );
     if (exists) return;
     setCourse((prev: any) => ({
@@ -172,7 +172,7 @@ const ActualCourseForm = () => {
 
   const handleSuggestedExamClick = (suggestion: string) => {
     const exists = (course.examList || []).some(
-      (item: string) => item.toLowerCase() === suggestion.toLowerCase()
+      (item: string) => item.toLowerCase() === suggestion.toLowerCase(),
     );
     if (exists) return;
     setCourse((prev: any) => ({
@@ -181,30 +181,12 @@ const ActualCourseForm = () => {
     }));
   };
 
-  // const [course, setCourse] = useState<Course>({
-  //   name: "",
-  //   description: "",
-  //   college_id: "",
-  //   category: "B.Tech",
-  //   duration: "",
-  //   // mode: "Full-Time",
-  //   programMode: "",
-  //   specialization: "",
-  //   streams: "",
-  //   fees: { amount: 0, currency: "INR", year: new Date().getFullYear() },
-  //   eligibility: "",
-  //   application_dates: { start_date: "", end_date: "" },
-  //   ratings: { score: 0, reviews_count: 0 },
-  //   placements: { median_salary: 0, currency: "INR", placement_rate: 0 },
-  //   intake_capacity: { male: 0, female: 0, total: 0 },
-  //   entrance_exam: "",
-  //   enrollmentLink: "",
-  //   brochure_link: "",
-  // });
   const [course, setCourse] = useState<any>({
     name: "",
     description: "",
-    college: null, // store full college object here
+    college: null,
+    state: "",
+    city: "",
     category: "B.Tech",
     duration: "",
     programMode: "",
@@ -237,7 +219,7 @@ const ActualCourseForm = () => {
     return colleges.filter((college) =>
       `${college.name} ${college.state ?? ""} ${college.city ?? ""}`
         .toLowerCase()
-        .includes(query)
+        .includes(query),
     );
   }, [colleges, searchCollege]);
 
@@ -293,7 +275,7 @@ const ActualCourseForm = () => {
             const fullCollege = colleges.find(
               (c) =>
                 c._id === fetchedCourse.college_id._id ||
-                c._id === fetchedCourse.college_id
+                c._id === fetchedCourse.college_id,
             );
             fetchedCourse.college = fullCollege || null;
           }
@@ -315,18 +297,18 @@ const ActualCourseForm = () => {
     (
       e: React.ChangeEvent<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-      >
+      >,
     ) => {
       console.log("Field changed:", e.target.name, "Value:", e.target.value); // <--- Add this line
       setCourse((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
     },
-    []
+    [],
   );
 
   const handleNestedChange = useCallback(
     (
       e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-      section: keyof Course
+      section: keyof Course,
     ) => {
       setCourse((prev: { [x: string]: Record<string, any> }) => ({
         ...prev,
@@ -338,12 +320,12 @@ const ActualCourseForm = () => {
         },
       }));
     },
-    []
+    [],
   );
 
   const handleCancel = useCallback(
     () => router.push("/admin/manageCourses"),
-    [router]
+    [router],
   );
 
   const collectValidationErrors = () => {
@@ -511,6 +493,8 @@ const ActualCourseForm = () => {
       const payload = {
         ...course,
         college_id: course.college?._id || course.college,
+        state: course.state,
+        city: course.city,
         category: course.category?._id || course.category,
         programMode: course.programMode?._id || course.programMode,
         specialization: course.specialization?._id || course.specialization,
@@ -544,7 +528,7 @@ const ActualCourseForm = () => {
       if (res.status >= 200 && res.status < 300) {
         setFormErrors({});
         toast.success(
-          `Course ${isEditing ? "updated" : "added"} successfully!`
+          `Course ${isEditing ? "updated" : "added"} successfully!`,
         );
         router.push("/admin/manageCourses");
       } else {
@@ -571,7 +555,7 @@ const ActualCourseForm = () => {
     setCourse((prev: any) => ({ ...prev, programMode: e.target.value }));
   };
   const handleSpecializationChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     setCourse((prev: any) => ({ ...prev, specialization: e.target.value }));
   };
@@ -653,7 +637,7 @@ const ActualCourseForm = () => {
             <span className="truncate">
               {course.college
                 ? `${course.college.name} (${capitalizeWords(
-                    course.college.state ?? ""
+                    course.college.state ?? "",
                   )}${course.college.city ? `, ${course.college.city}` : ""})`
                 : "Select College"}
             </span>
@@ -684,7 +668,13 @@ const ActualCourseForm = () => {
                     role="option"
                     className="cursor-pointer px-3 py-2 text-sm hover:bg-gray-100"
                     onClick={() => {
-                      setCourse((prev: any) => ({ ...prev, college }));
+                      setCourse((prev: any) => ({
+                        ...prev,
+                        college,
+                        state: college.state || "",
+                        city: college.city || "",
+                      }));
+
                       setIsOpen(false);
                       setSearchCollege("");
                     }}
@@ -744,6 +734,35 @@ const ActualCourseForm = () => {
             <p className="mt-1 text-xs text-red-600">{formErrors.category}</p>
           )}
         </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 pb-2">
+            State
+          </label>
+
+          <input
+            type="text"
+            name="state"
+            value={course.state ?? ""}
+            readOnly
+            className="w-full rounded border px-3 py-2 text-sm bg-gray-50"
+            placeholder="State will auto fill"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 pb-2">
+            City
+          </label>
+
+          <input
+            type="text"
+            name="city"
+            value={course.city ?? ""}
+            readOnly
+            className="w-full rounded border px-3 py-2 text-sm bg-gray-50"
+            placeholder="City will auto fill"
+          />
+        </div>
 
         <div>
           <StreamsDropdown
@@ -766,9 +785,7 @@ const ActualCourseForm = () => {
           />
 
           {formErrors.specialization && (
-            <p className="text-xs text-red-600">
-              {formErrors.specialization}
-            </p>
+            <p className="text-xs text-red-600">{formErrors.specialization}</p>
           )}
         </div>
 
@@ -781,9 +798,7 @@ const ActualCourseForm = () => {
           />
 
           {formErrors.programMode && (
-            <p className="text-xs text-red-600">
-              {formErrors.programMode}
-            </p>
+            <p className="text-xs text-red-600">{formErrors.programMode}</p>
           )}
         </div>
       </div>
@@ -1116,10 +1131,10 @@ const Section = ({
     cols === 1
       ? "grid-cols-1"
       : cols === 2
-      ? "grid-cols-1 md:grid-cols-2"
-      : cols === 3
-      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-      : "grid-cols-1";
+        ? "grid-cols-1 md:grid-cols-2"
+        : cols === 3
+          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          : "grid-cols-1";
 
   return (
     <>
@@ -1140,7 +1155,7 @@ interface TagInputProps {
   onRemove: (field: "focusAreas" | "examList", index: number) => void;
   onKeyDown: (
     field: "focusAreas" | "examList",
-    event: KeyboardEvent<HTMLInputElement>
+    event: KeyboardEvent<HTMLInputElement>,
   ) => void;
   suggestions?: string[];
   onSuggestionClick?: (value: string) => void;
@@ -1217,8 +1232,8 @@ const TagInput = ({
             variant === "purple"
               ? "bg-[#ede9fe] text-[#4c1d95]"
               : variant === "teal"
-              ? "bg-teal-50 text-teal-700"
-              : "bg-gray-100 text-gray-700"
+                ? "bg-teal-50 text-teal-700"
+                : "bg-gray-100 text-gray-700"
           }`}
         >
           {item}

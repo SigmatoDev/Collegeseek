@@ -18,7 +18,7 @@ interface ShortlistFormProps {
 }
 
 const ShortlistForm: React.FC<ShortlistFormProps> = ({ college, onSuccess }) => {
-  const { user } = useUserStore();
+  const { user, token } = useUserStore(); // ✅ FIXED
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -33,11 +33,11 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college, onSuccess }) => 
   const [loading, setLoading] = useState(false);
 
   const collegeId = college?.id || college?._id;
-  const userId = user?.id || (user as any)?._id;
+  const userId = user?._id;
 
   useEffect(() => {
     if (!user || !collegeId || !userId) {
-      router.push("/user/auth/signUp");
+      router.push("/user/auth/logIn");
     }
   }, [user, college, collegeId, userId, router]);
 
@@ -59,7 +59,7 @@ const ShortlistForm: React.FC<ShortlistFormProps> = ({ college, onSuccess }) => 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.token}`,
+          Authorization: `Bearer ${token}`, // ✅ FIXED
         },
         body: JSON.stringify({
           ...formData,

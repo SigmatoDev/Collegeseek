@@ -52,7 +52,7 @@ const SpecializationDropdown: React.FC<SpecializationDropdownProps> = ({
           value={value}
           onChange={onChange}
           required={required}      // pass required here
-          className="p-2 border rounded w-full mt-2"
+          className="p-2 border rounded w-full"
         >
           <option value="">Select {label}</option>
           {specializations.map((option) => (

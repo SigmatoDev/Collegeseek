@@ -21,6 +21,16 @@ const CourseSchema = new mongoose.Schema(
       required: true,
     },
 
+    state: {
+      type: String,
+      required: true,
+    },
+
+    city: {
+      type: String,
+      required: true,
+    },
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CoursesList",
@@ -136,7 +146,7 @@ const CourseSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 CourseSchema.index({ college_id: 1 });

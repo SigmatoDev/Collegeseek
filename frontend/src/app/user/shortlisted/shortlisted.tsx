@@ -1,13 +1,305 @@
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { api_url, img_url } from "@/utils/apiCall";
+// import Link from "next/link";
+// import { TrashIcon } from "@heroicons/react/24/outline";
+
+// interface Course {
+//   name: string;
+// }
+
+// interface CollegeData {
+//   courses?: any[];
+//   name: string;
+//   location?: string;
+//   state?: string;
+//   city?: string;
+//   image?: string;
+//   _id?: string;
+//   slug?: string;
+// }
+
+// interface ShortlistedCollege {
+//   _id: string;
+//   collegeId: CollegeData;
+//   courses: any[];
+// }
+
+// interface User {
+//   id: string;
+//   name: string;
+//   email: string;
+//   token: string;
+// }
+
+// const ShortListColleges: React.FC = () => {
+//   const [user, setUser] = useState<User | null>(null);
+//   const [shortlistedColleges, setShortlistedColleges] = useState<
+//     ShortlistedCollege[]
+//   >([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string>("");
+
+//   useEffect(() => {
+//     const storedUser = sessionStorage.getItem("user_store");
+
+//     if (storedUser) {
+//       try {
+//         const parsed = JSON.parse(storedUser);
+//         const userFromSession = parsed?.state?.user;
+
+//         if (userFromSession?.token) {
+//           setUser(userFromSession);
+//         } else {
+//           setLoading(false);
+//         }
+//       } catch (err) {
+//         setError("Invalid user session.");
+//         setLoading(false);
+//       }
+//     } else {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     if (user?.token) {
+//       fetchShortlistedColleges(user.id, user.token);
+//     }
+//   }, [user]);
+
+//   const fetchShortlistedColleges = async (userId: string, token: string) => {
+//     setLoading(true);
+
+//     try {
+//       const endpoint = `${api_url}get/user/shortlistedClg/by/${userId}`;
+//       const res = await fetch(endpoint, {
+//         method: "GET",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${token}`,
+//         },
+//       });
+
+//       const data = await res.json();
+
+//       if (!res.ok && data?.message !== "No shortlisted colleges found.") {
+//         throw new Error(
+//           "Failed to fetch shortlisted colleges. " + (data?.message || "")
+//         );
+//       }
+
+//       setShortlistedColleges(data?.data || []);
+//     } catch (err: any) {
+//       setError(err.message || "Something went wrong while fetching data.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const removeCollege = async (shortlistId: string) => {
+//     if (!user?.token) return;
+
+//     try {
+//       const endpoint = `${api_url}delete/user/shortlistedClg/${user.id}/${shortlistId}`;
+
+//       const res = await fetch(endpoint, {
+//         method: "DELETE",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${user.token}`,
+//         },
+//       });
+
+//       if (!res.ok) {
+//         const errorText = await res.text();
+//         throw new Error("Failed to remove college. " + errorText);
+//       }
+
+//       setShortlistedColleges((prev) =>
+//         prev.filter((college) => college._id !== shortlistId)
+//       );
+//     } catch (err: any) {
+//       setError(err.message || "Error removing the college.");
+//     }
+//   };
+
+//   const normalizeCourses = (rawCourses: any[]) => {
+//     return rawCourses.map((c: any) => {
+//       const categoryName = c?.category?.name || c?.category?.code || null;
+//       const specializationName =
+//         c?.specialization?.name || c?.specialization?.description || null;
+
+//       const finalName =
+//         categoryName && specializationName
+//           ? `${categoryName} (${specializationName})`
+//           : categoryName || specializationName || "Unknown Course";
+
+//       return {
+//         name: finalName,
+//         category: categoryName,
+//         specialization: specializationName,
+//       };
+//     });
+//   };
+
+//   const getUniqueCourses = (courses: any[]) => {
+//     const seen = new Set();
+//     return courses.filter((c) => {
+//       const key = c.name.toLowerCase();
+//       if (seen.has(key)) return false;
+//       seen.add(key);
+//       return true;
+//     });
+//   };
+
+//   return (
+//     <div className="max-w-7xl mx-auto p-6">
+//       <h1 className="text-4xl font-extrabold mb-10 text-gray-900 tracking-tight">
+//         Your Shortlisted Colleges
+//         <span className="block h-1 w-24 bg-blue-600 mt-2 rounded-full"></span>
+//       </h1>
+
+//       {loading && (
+//         <p className="text-gray-500">Loading shortlisted colleges...</p>
+//       )}
+//       {error && <p className="text-red-600">{error}</p>}
+
+//       {!loading && shortlistedColleges.length > 0 ? (
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+//           {shortlistedColleges.map((college) => {
+//             const rawCourses = college.courses || [];
+//             const courses = normalizeCourses(rawCourses);
+//             const uniqueCourses = getUniqueCourses(courses);
+//             const topCourses = uniqueCourses.slice(0, 3);
+
+//             const imageFromDB = college.collegeId?.image || "";
+//             const cleanedImage = imageFromDB.replace(/^\/?uploads\//, "");
+//             const imageUrl = cleanedImage
+//               ? `${img_url.replace(/\/$/, "")}/uploads/${cleanedImage}`
+//               : "/image/fallback-image.webp";
+
+//             return (
+//               <Link
+//                 key={college._id}
+//                 href={`/colleges/${college.collegeId?.slug}`}
+//                 className="block"
+//               >
+//                 <div
+//                   className="
+//                 rounded-2xl border border-gray-200 bg-white
+//                 shadow-sm hover:shadow-xl
+//                 transition-all duration-300
+//                 overflow-hidden group
+//               "
+//                 >
+//                   <div className="relative h-48 w-full overflow-hidden">
+//                     <img
+//                       src={imageUrl}
+//                       alt={college.collegeId?.name}
+//                       className="
+//                       object-cover w-full h-full
+//                       transition-transform duration-700
+//                       group-hover:scale-110
+//                     "
+//                       onError={(e) => {
+//                         e.currentTarget.src = "/image/fallback-image.webp";
+//                       }}
+//                     />
+
+//                     <button
+//                       onClick={(e) => {
+//                         e.preventDefault();
+//                         e.stopPropagation();
+//                         removeCollege(college._id);
+//                       }}
+//                       className="
+//                       absolute top-3 right-3
+//                       bg-white/90 backdrop-blur-xl
+//                       p-2 rounded-full shadow-md
+//                       border border-red-300
+//                       text-red-500 hover:bg-red-600
+//                       hover:text-white transition
+//                     "
+//                     >
+//                       <TrashIcon className="h-5 w-5" />
+//                     </button>
+
+//                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0"></div>
+//                   </div>
+
+//                   <div className="p-6">
+//                     <h2 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition">
+//                       {college.collegeId?.name}
+//                     </h2>
+
+//                     <p className="text-gray-600 text-sm mt-2 flex items-center gap-1">
+//                       <span className="text-blue-600">📍</span>
+
+//                       {college.collegeId?.state && college.collegeId?.city
+//                         ? `${college.collegeId.state}, ${college.collegeId.city}`
+//                         : college.collegeId?.state
+//                         ? college.collegeId.state
+//                         : college.collegeId?.city
+//                         ? college.collegeId.city
+//                         : "Location not available"}
+//                     </p>
+
+//                     {uniqueCourses.length > 0 && (
+//                       <div className="mt-4">
+//                         <p className="font-semibold text-gray-700 mb-3 text-sm">
+//                           Top Courses
+//                         </p>
+
+//                         <div className="flex flex-wrap gap-2">
+//                           {topCourses.map((course, index) => (
+//                             <span
+//                               key={index}
+//                               className="
+//                               px-3 py-1 text-xs font-medium
+//                               bg-blue-50 text-blue-700
+//                               rounded-full border border-blue-200
+//                               shadow-sm
+//                             "
+//                             >
+//                               {course.name}
+//                             </span>
+//                           ))}
+//                         </div>
+
+//                         {uniqueCourses.length > 3 && (
+//                           <p className="text-blue-600 text-xs mt-4 underline font-medium">
+//                             View all {rawCourses.length} courses →
+//                           </p>
+//                         )}
+//                       </div>
+//                     )}
+//                   </div>
+//                 </div>
+//               </Link>
+//             );
+//           })}
+//         </div>
+//       ) : (
+//         !loading && (
+//           <div className="text-center text-gray-500 mt-16 text-lg">
+//             You haven’t shortlisted any colleges yet.
+//           </div>
+//         )
+//       )}
+//     </div>
+//   );
+// };
+
+// export default ShortListColleges;
 "use client";
 
 import { useEffect, useState } from "react";
 import { api_url, img_url } from "@/utils/apiCall";
 import Link from "next/link";
 import { TrashIcon } from "@heroicons/react/24/outline";
-
-interface Course {
-  name: string;
-}
+import { useUserStore } from "@/Store/userStore";
 
 interface CollegeData {
   courses?: any[];
@@ -19,77 +311,35 @@ interface CollegeData {
   _id?: string;
   slug?: string;
 }
-
 interface ShortlistedCollege {
   _id: string;
   collegeId: CollegeData;
   courses: any[];
 }
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  token: string;
-}
-
 const ShortListColleges: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [shortlistedColleges, setShortlistedColleges] = useState<
-    ShortlistedCollege[]
-  >([]);
+  const { user, token, isHydrated } = useUserStore();
+  const [shortlistedColleges, setShortlistedColleges] = useState<ShortlistedCollege[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user_store");
-
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        const userFromSession = parsed?.state?.user;
-
-        if (userFromSession?.token) {
-          setUser(userFromSession);
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        setError("Invalid user session.");
-        setLoading(false);
-      }
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (user?.token) {
-      fetchShortlistedColleges(user.id, user.token);
-    }
-  }, [user]);
+    if (!isHydrated) return;
+    if (!user || !token) { setLoading(false); return; }
+    fetchShortlistedColleges(user._id, token);
+  }, [user, token, isHydrated]);
 
   const fetchShortlistedColleges = async (userId: string, token: string) => {
     setLoading(true);
-
     try {
-      const endpoint = `${api_url}get/user/shortlistedClg/by/${userId}`;
-      const res = await fetch(endpoint, {
+      const res = await fetch(`${api_url}get/user/shortlistedClg/by/${userId}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
-
       if (!res.ok && data?.message !== "No shortlisted colleges found.") {
-        throw new Error(
-          "Failed to fetch shortlisted colleges. " + (data?.message || "")
-        );
+        throw new Error(data?.message || "Failed to fetch shortlisted colleges.");
       }
-
       setShortlistedColleges(data?.data || []);
     } catch (err: any) {
       setError(err.message || "Something went wrong while fetching data.");
@@ -99,50 +349,28 @@ const ShortListColleges: React.FC = () => {
   };
 
   const removeCollege = async (shortlistId: string) => {
-    if (!user?.token) return;
-
+    if (!user || !token) return;
     try {
-      const endpoint = `${api_url}delete/user/shortlistedClg/${user.id}/${shortlistId}`;
-
-      const res = await fetch(endpoint, {
+      const res = await fetch(`${api_url}delete/user/shortlistedClg/${user._id}/${shortlistId}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error("Failed to remove college. " + errorText);
-      }
-
-      setShortlistedColleges((prev) =>
-        prev.filter((college) => college._id !== shortlistId)
-      );
+      if (!res.ok) throw new Error(await res.text());
+      setShortlistedColleges((prev) => prev.filter((c) => c._id !== shortlistId));
     } catch (err: any) {
       setError(err.message || "Error removing the college.");
     }
   };
 
-  const normalizeCourses = (rawCourses: any[]) => {
-    return rawCourses.map((c: any) => {
+  const normalizeCourses = (rawCourses: any[]) =>
+    rawCourses.map((c: any) => {
       const categoryName = c?.category?.name || c?.category?.code || null;
-      const specializationName =
-        c?.specialization?.name || c?.specialization?.description || null;
-
-      const finalName =
-        categoryName && specializationName
-          ? `${categoryName} (${specializationName})`
-          : categoryName || specializationName || "Unknown Course";
-
-      return {
-        name: finalName,
-        category: categoryName,
-        specialization: specializationName,
-      };
+      const specializationName = c?.specialization?.name || c?.specialization?.description || null;
+      const finalName = categoryName && specializationName
+        ? `${categoryName} (${specializationName})`
+        : categoryName || specializationName || "Unknown Course";
+      return { name: finalName, category: categoryName, specialization: specializationName };
     });
-  };
 
   const getUniqueCourses = (courses: any[]) => {
     const seen = new Set();
@@ -155,138 +383,126 @@ const ShortListColleges: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-4xl font-extrabold mb-10 text-gray-900 tracking-tight">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+
+      <h1 className="font-extrabold text-gray-900 tracking-tight mb-6 sm:mb-10 text-2xl sm:text-4xl">
         Your Shortlisted Colleges
-        <span className="block h-1 w-24 bg-blue-600 mt-2 rounded-full"></span>
+        <span className="block h-1 w-16 sm:w-24 bg-blue-600 mt-2 rounded-full" />
       </h1>
 
       {loading && (
-        <p className="text-gray-500">Loading shortlisted colleges...</p>
+        <div className="grid gap-5 sm:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden animate-pulse">
+              <div className="h-40 sm:h-48 w-full bg-gray-200" />
+              <div className="p-4 sm:p-6 space-y-3">
+                <div className="h-5 w-3/4 bg-gray-200 rounded-full" />
+                <div className="h-3 w-1/2 bg-gray-100 rounded-full" />
+                <div className="flex gap-2 mt-2">
+                  <div className="h-6 w-20 bg-blue-100 rounded-full" />
+                  <div className="h-6 w-24 bg-blue-100 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
-      {error && <p className="text-red-600">{error}</p>}
 
-      {!loading && shortlistedColleges.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      {!loading && shortlistedColleges.length > 0 && (
+        <div className="grid gap-5 sm:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {shortlistedColleges.map((college) => {
             const rawCourses = college.courses || [];
-            const courses = normalizeCourses(rawCourses);
-            const uniqueCourses = getUniqueCourses(courses);
+            const uniqueCourses = getUniqueCourses(normalizeCourses(rawCourses));
             const topCourses = uniqueCourses.slice(0, 3);
 
-            const imageFromDB = college.collegeId?.image || "";
-            const cleanedImage = imageFromDB.replace(/^\/?uploads\//, "");
+            const cleanedImage = (college.collegeId?.image || "").replace(/^\/?uploads\//, "");
             const imageUrl = cleanedImage
               ? `${img_url.replace(/\/$/, "")}/uploads/${cleanedImage}`
               : "/image/fallback-image.webp";
 
             return (
-              <Link
-                key={college._id}
-                href={`/colleges/${college.collegeId?.slug}`}
-                className="block"
-              >
-                <div
-                  className="
-                rounded-2xl border border-gray-200 bg-white 
-                shadow-sm hover:shadow-xl
-                transition-all duration-300 
-                overflow-hidden group
-              "
+              // ── Outer div holds key + delete button + Link ──
+              // Delete is a sibling of Link, NOT nested inside it.
+              // This ensures touch events on the button never bubble to Link.
+              <div key={college._id} className="relative group">
+
+                {/* Delete button — absolute, z-20, fully outside <Link> */}
+                <button
+                  type="button"
+                  aria-label="Remove college"
+                  className="absolute top-2 right-2 sm:top-3 sm:right-3 z-20
+                    bg-white/90 backdrop-blur-xl rounded-full shadow-md
+                    border border-red-300 text-red-500
+                    hover:bg-red-600 hover:text-white
+                    active:bg-red-600 active:text-white
+                    transition p-1.5 sm:p-2"
+                  onClick={() => removeCollege(college._id)}
                 >
-                  <div className="relative h-48 w-full overflow-hidden">
+                  <TrashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+
+                {/* Card — Link wraps everything else */}
+                <Link
+                  href={`/colleges/${college.collegeId?.slug}`}
+                  className="block rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  {/* Image */}
+                  <div className="relative w-full overflow-hidden h-36 sm:h-48">
                     <img
                       src={imageUrl}
                       alt={college.collegeId?.name}
-                      className="
-                      object-cover w-full h-full 
-                      transition-transform duration-700 
-                      group-hover:scale-110
-                    "
-                      onError={(e) => {
-                        e.currentTarget.src = "/image/fallback-image.webp";
-                      }}
+                      className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+                      onError={(e) => { e.currentTarget.src = "/image/fallback-image.webp"; }}
                     />
-
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        removeCollege(college._id);
-                      }}
-                      className="
-                      absolute top-3 right-3 
-                      bg-white/90 backdrop-blur-xl 
-                      p-2 rounded-full shadow-md 
-                      border border-red-300
-                      text-red-500 hover:bg-red-600 
-                      hover:text-white transition
-                    "
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0" />
                   </div>
 
-                  <div className="p-6">
-                    <h2 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition">
+                  {/* Content */}
+                  <div className="p-4 sm:p-6">
+                    <h2 className="font-bold text-gray-900 leading-snug group-hover:text-blue-700 transition text-base sm:text-xl">
                       {college.collegeId?.name}
                     </h2>
 
-                    <p className="text-gray-600 text-sm mt-2 flex items-center gap-1">
+                    <p className="text-gray-600 flex items-center gap-1 mt-1.5 sm:mt-2 text-xs sm:text-sm">
                       <span className="text-blue-600">📍</span>
-
                       {college.collegeId?.state && college.collegeId?.city
                         ? `${college.collegeId.state}, ${college.collegeId.city}`
-                        : college.collegeId?.state
-                        ? college.collegeId.state
-                        : college.collegeId?.city
-                        ? college.collegeId.city
-                        : "Location not available"}
+                        : college.collegeId?.state || college.collegeId?.city || "Location not available"}
                     </p>
 
                     {uniqueCourses.length > 0 && (
-                      <div className="mt-4">
-                        <p className="font-semibold text-gray-700 mb-3 text-sm">
+                      <div className="mt-3 sm:mt-4">
+                        <p className="font-semibold text-gray-700 mb-2 sm:mb-3 text-xs sm:text-sm">
                           Top Courses
                         </p>
-
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           {topCourses.map((course, index) => (
-                            <span
-                              key={index}
-                              className="
-                              px-3 py-1 text-xs font-medium
-                              bg-blue-50 text-blue-700 
-                              rounded-full border border-blue-200
-                              shadow-sm
-                            "
-                            >
+                            <span key={index} className="font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200 shadow-sm px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-xs">
                               {course.name}
                             </span>
                           ))}
                         </div>
-
                         {uniqueCourses.length > 3 && (
-                          <p className="text-blue-600 text-xs mt-4 underline font-medium">
+                          <p className="text-blue-600 font-medium underline mt-2 sm:mt-4 text-[11px] sm:text-xs">
                             View all {rawCourses.length} courses →
                           </p>
                         )}
                       </div>
                     )}
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             );
           })}
         </div>
-      ) : (
-        !loading && (
-          <div className="text-center text-gray-500 mt-16 text-lg">
-            You haven’t shortlisted any colleges yet.
-          </div>
-        )
+      )}
+
+      {!loading && shortlistedColleges.length === 0 && (
+        <div className="text-center text-gray-500 mt-12 sm:mt-16 text-sm sm:text-lg">
+          You haven't shortlisted any colleges yet.
+        </div>
       )}
     </div>
   );

@@ -3,42 +3,68 @@
 import { useUserStore } from "@/Store/userStore";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const ProfileDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, isLoggedIn, logout } = useUserStore();
   const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Handles logout
   const handleLogout = () => {
     logout();
-    window.location.reload(); // ensures full refresh of UI state
+
+    // ✅ smooth redirect
+    router.replace("/user/auth/logIn");
   };
 
-  // ✅ Common helper: saves current page before navigating
   const saveRedirectAndNavigate = (path: string, label: string) => {
     const currentPath = window.location.pathname + window.location.search;
     sessionStorage.setItem("redirectAfterLogin", currentPath);
-    console.log(`💾 Saved redirectAfterLogin from dropdown (${label}):`, currentPath);
+    console.log(
+      `💾 Saved redirectAfterLogin from dropdown (${label}):`,
+      currentPath,
+    );
     router.push(path);
   };
 
-  // ✅ Login redirect
-  const handleLoginRedirect = () => saveRedirectAndNavigate("/user/auth/logIn", "login");
+  const handleLoginRedirect = () =>
+    saveRedirectAndNavigate("/user/auth/logIn", "login");
+  const handleSignupRedirect = () =>
+    saveRedirectAndNavigate("/user/auth/signUp", "signup");
 
-  // ✅ Signup redirect
-  const handleSignupRedirect = () => saveRedirectAndNavigate("/user/auth/signUp", "signup");
+  // Close on outside tap/click — needed for mobile touch
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       {/* Profile Icon + Label */}
       <div
         className={`flex border-[2px] border-gray-200 hover:border-[#D35C42] rounded-full items-center space-x-2 pr-3 sm:space-x-1 transition-all duration-200 ease-in-out ${
           isLoggedIn ? "pr-3 cursor-pointer" : ""
         }`}
-        onMouseEnter={() => setIsOpen(true)}
+        // Desktop: hover to open | Mobile: tap to toggle
+        onMouseEnter={() => {
+          if (typeof window !== "undefined" && window.innerWidth >= 768) {
+            setIsOpen(true);
+          }
+        }}
         onClick={() => {
           if (isLoggedIn) setIsOpen((prev) => !prev);
         }}
@@ -53,17 +79,17 @@ const ProfileDropdown = () => {
         }}
       >
         <span className="relative flex items-center justify-center p-1 rounded-full border border-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-105 hover:border-[#D35C42]">
-          <UserCircleIcon className="h-8 w-8 text-gray-700 hover:text-[#D35C42]" />
+          <UserCircleIcon className="h-6 w-6 md:h-8 md:w-8 text-gray-700 hover:text-[#D35C42]" />
         </span>
 
         {isLoggedIn ? (
-          <span className="text-gray-700 font-semibold text-[12px] tracking-tight">
+          <span className="text-gray-700 font-semibold text-[10px] md:text-[12px] tracking-tight">
             {user?.name || "User"}
           </span>
         ) : (
           <button
             onClick={handleLoginRedirect}
-            className="text-gray-700 font-semibold text-[12px] tracking-tight"
+            className="text-gray-700 font-semibold text-[10px] md:text-[12px] tracking-tight"
           >
             Login / Signup
           </button>
@@ -73,13 +99,32 @@ const ProfileDropdown = () => {
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg p-4 z-50 transition-all duration-300 ease-out transform opacity-100"
-          onMouseEnter={() => setIsOpen(true)}
-          onMouseLeave={() => setIsOpen(false)}
+          className="
+            mt-2 z-50
+            transition-all duration-300 ease-out transform opacity-100
+
+            /* Mobile: full-width anchored to right edge, won't overflow */
+            right-0 w-[calc(100vw-2rem)] max-w-[280px]
+
+            /* Desktop: fixed anchored right — unchanged */
+            md:right-0 md:w-72
+
+            bg-white shadow-lg rounded-lg p-4
+          "
+          // Desktop: keep open on hover | Mobile: stay open until outside tap
+          onMouseEnter={() => {
+            if (typeof window !== "undefined" && window.innerWidth >= 768) {
+              setIsOpen(true);
+            }
+          }}
+          onMouseLeave={() => {
+            if (typeof window !== "undefined" && window.innerWidth >= 768) {
+              setIsOpen(false);
+            }
+          }}
         >
           {!isLoggedIn ? (
             <>
-              {/* Login Button */}
               <button
                 onClick={handleLoginRedirect}
                 className="w-full bg-[#D35C42] text-white py-2 rounded-md hover:bg-[#c14e36] transition-colors duration-200"
@@ -87,7 +132,6 @@ const ProfileDropdown = () => {
                 Login to your account
               </button>
 
-              {/* Info Section */}
               <div className="mt-4 text-sm text-gray-600">
                 <p className="font-semibold text-[#582445]">
                   By creating an account you can
@@ -98,7 +142,6 @@ const ProfileDropdown = () => {
                 </ul>
               </div>
 
-              {/* Signup Button */}
               <button
                 onClick={handleSignupRedirect}
                 className="w-full mt-3 border border-[#D35C42] text-[#D35C42] py-2 rounded-md hover:bg-[#F9E0D4] transition-all duration-200 ease-in"
@@ -108,19 +151,16 @@ const ProfileDropdown = () => {
             </>
           ) : (
             <>
-              {/* Greeting */}
               <div className="text-gray-800 font-semibold mb-2">
                 Hi, {user?.name || "User"} 👋
               </div>
 
-              {/* Dashboard */}
               <Link href="/user/profile">
                 <button className="w-full bg-[#D35C42] text-white py-2 rounded-md hover:bg-[#c14e36] transition-colors duration-200">
                   Go to Dashboard
                 </button>
               </Link>
 
-              {/* Logout */}
               <button
                 onClick={handleLogout}
                 className="w-full mt-3 border border-[#D35C42] text-[#D35C42] py-2 rounded-md hover:bg-[#F9E0D4] transition-all duration-200 ease-in"

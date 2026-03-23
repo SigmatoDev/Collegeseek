@@ -39,6 +39,8 @@ export interface CourseListFilters {
   feeRanges?: { min?: number; max?: number }[];
   courseTypes?: string[];
   durations?: { min?: number; max?: number }[];
+   states?: string[];   // ✅ new
+  cities?: string[];   // ✅ new
 }
 
 interface CoursesListProps {
@@ -82,6 +84,15 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
     if (filters?.durations?.length) {
       payload.push({ field: "duration", value: filters.durations });
     }
+ // ✅ STATE FILTER
+  if (filters?.states?.length) {
+    payload.push({ field: "state", value: filters.states });
+  }
+
+  // ✅ CITY FILTER
+  if (filters?.cities?.length) {
+    payload.push({ field: "city", value: filters.cities });
+  }
 
     return payload;
   }, [filters]);
@@ -96,22 +107,19 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
     [searchTerm]
   );
 
- const fetchCourses = async (
+const fetchCourses = async (
   pageNumber: number,
   filterPayload: { field: string; value: unknown }[]
 ) => {
   setLoading(true);
   setError(null);
 
-  // 🔍 Log request info
-  console.log("📤 Fetching courses");
-  console.log("➡️ Page:", pageNumber);
-  console.log("➡️ Limit:", limit);
-  console.log("➡️ Filters Payload:", filterPayload);
+  const timerLabel = `⏱ API Load Time (Page ${pageNumber})`;
+
+
 
   try {
     const url = `${api_url}courses/filter/by/specializationpage?page=${pageNumber}&limit=${limit}`;
-    console.log("🌐 API URL:", url);
 
     const response = await fetch(url, {
       method: "POST",
@@ -119,7 +127,6 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
       body: JSON.stringify({ filters: filterPayload }),
     });
 
-    console.log("📥 Response status:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -129,10 +136,7 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
 
     const data = await response.json();
 
-    // ✅ Log response data
-    console.log("✅ API Response:", data);
-    console.log("📚 Courses count:", data?.courses?.length || 0);
-    console.log("📄 Total pages:", data?.totalPages);
+ 
 
     setCourses(data.courses || []);
     setTotalPages(data.totalPages || 1);
@@ -141,10 +145,8 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
     setError(err instanceof Error ? err.message : "An error occurred");
   } finally {
     setLoading(false);
-    console.log("⏹ Fetch completed");
   }
 };
-
 
   useEffect(() => {
     setPage(1);
@@ -171,7 +173,27 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
       return combined.includes(normalizedSearch);
     });
   }, [courses, normalizedSearch]);
+const maxVisible = 5;
 
+const visiblePages = useMemo(() => {
+  let start = Math.max(1, page - Math.floor(maxVisible / 2));
+  let end = start + maxVisible - 1;
+
+  if (end > totalPages) {
+    end = totalPages;
+    start = Math.max(1, end - maxVisible + 1);
+  }
+
+  const pages = [];
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+}, [page, totalPages]);
+
+const showLeftEllipsis = visiblePages[0] > 1;
+const showRightEllipsis = visiblePages[visiblePages.length - 1] < totalPages;
   return (
     <div className="w-full rounded-3xl border border-transparent bg-[#f6f6f6cf] p-4 shadow-sm">
       {loading ? (
@@ -224,41 +246,49 @@ const CoursesList: React.FC<CoursesListProps> = ({ filters, searchTerm }) => {
         </div>
       )}
 
-      {totalPages > 1 && !loading && visibleCourses.length > 0 && (
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-          <button
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 disabled:opacity-40"
-            onClick={() => handlePageChange(page - 1)}
-            disabled={page === 1}
-          >
-            Prev
-          </button>
-          {[...Array(totalPages)].map((_, index) => {
-            const pageNumber = index + 1;
-            const isActive = page === pageNumber;
-            return (
-              <button
-                key={pageNumber}
-                onClick={() => handlePageChange(pageNumber)}
-                className={`rounded-full px-4 py-1 text-sm font-medium transition ${
-                  isActive
-                    ? "bg-[#635dc1] text-white shadow"
-                    : "border border-slate-200 bg-white text-slate-700"
-                }`}
-              >
-                {pageNumber}
-              </button>
-            );
-          })}
-          <button
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 disabled:opacity-40"
-            onClick={() => handlePageChange(page + 1)}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
+    {totalPages > 1 && !loading && visibleCourses.length > 0 && (
+  <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+    
+    <button
+      className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 disabled:opacity-40"
+      onClick={() => handlePageChange(page - 1)}
+      disabled={page === 1}
+    >
+      Prev
+    </button>
+
+    {showLeftEllipsis && <span className="px-2">...</span>}
+
+    {visiblePages.map((pageNumber) => {
+      const isActive = page === pageNumber;
+
+      return (
+        <button
+          key={pageNumber}
+          onClick={() => handlePageChange(pageNumber)}
+          className={`rounded-full px-4 py-1 text-sm font-medium transition ${
+            isActive
+              ? "bg-[#635dc1] text-white shadow"
+              : "border border-slate-200 bg-white text-slate-700"
+          }`}
+        >
+          {pageNumber}
+        </button>
+      );
+    })}
+
+    {showRightEllipsis && <span className="px-2">...</span>}
+
+    <button
+      className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 disabled:opacity-40"
+      onClick={() => handlePageChange(page + 1)}
+      disabled={page === totalPages}
+    >
+      Next
+    </button>
+
+  </div>
+)}
     </div>
   );
 };

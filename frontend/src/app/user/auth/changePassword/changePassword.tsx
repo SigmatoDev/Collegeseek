@@ -3,7 +3,7 @@ import { api_url } from '@/utils/apiCall';
 import { useState } from 'react';
 
 const ChangePassword = () => {
-  const { user } = useUserStore();
+  const { user, token } = useUserStore(); // ✅ get token separately
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,10 +31,9 @@ const ChangePassword = () => {
       setIsSuccess(false);
       return;
     }
-
-    if (!user?.token) {
-      console.error('🚫 No token found in user state.');
-      setMessage('You are not logged in.');
+ // ✅ FIXED: use token instead of user.token
+    if (!token) {
+      setMessage("You are not logged in.");
       setIsSuccess(false);
       return;
     }
@@ -49,7 +48,7 @@ const ChangePassword = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${token}`, // ✅ FIXED
         },
         body: JSON.stringify({
           currentPassword,

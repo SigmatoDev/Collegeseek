@@ -2,30 +2,28 @@
 
 import { useUserStore } from "@/Store/userStore";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-const withUserAuth = <P extends { children: React.ReactNode }>(
+const withUserAuth = <P extends object>(
   WrappedComponent: React.ComponentType<P>
 ) => {
   return function UserAuthWrapper(props: P) {
     const router = useRouter();
-    const { isLoggedIn } = useUserStore((state) => state);
-    const [hydrated, setHydrated] = useState(false);
 
-    // Wait for Zustand to rehydrate from localStorage
-    useEffect(() => {
-      setHydrated(true);
-    }, []);
+    const { isLoggedIn, isHydrated } = useUserStore((state) => ({
+      isLoggedIn: state.isLoggedIn,
+      isHydrated: state.isHydrated,
+    }));
 
-    // Redirect only after hydration
+    // ✅ Redirect after hydration
     useEffect(() => {
-      if (hydrated && !isLoggedIn) {
+      if (isHydrated && !isLoggedIn) {
         router.replace("/user/auth/logIn");
       }
-    }, [hydrated, isLoggedIn, router]);
+    }, [isHydrated, isLoggedIn, router]);
 
-    // Wait until hydration is complete
-    if (!hydrated) {
+    // ✅ Wait for hydration
+    if (!isHydrated) {
       return (
         <div className="flex items-center justify-center min-h-screen text-gray-600">
           Loading...
@@ -33,12 +31,9 @@ const withUserAuth = <P extends { children: React.ReactNode }>(
       );
     }
 
-    // Show nothing if redirecting
-    if (!isLoggedIn) {
-      return null;
-    }
+    // ✅ Prevent flicker
+    if (!isLoggedIn) return null;
 
-    // Render component when logged in
     return <WrappedComponent {...props} />;
   };
 };
