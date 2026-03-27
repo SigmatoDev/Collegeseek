@@ -16,7 +16,7 @@ const Breadcrumb = ({ items }: { items: { label: string; href?: string }[] }) =>
                 {item.label}
               </a>
             ) : (
-              <span className="text-gray-800">{item.label}</span>
+              <span className="text-[#352e77]">{item.label}</span>
             )}
             {index < items.length - 1 && <span className="mx-2">/</span>}
           </li>

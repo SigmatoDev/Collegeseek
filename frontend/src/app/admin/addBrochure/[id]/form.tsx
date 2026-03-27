@@ -1,6 +1,6 @@
 import { api_url } from "@/utils/apiCall";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 interface College {
@@ -15,6 +15,8 @@ interface UploadFile {
   college_id: string | { $oid: string };
 }
 
+const PAGE_SIZE = 20;
+
 export default function UploadForm() {
   const params = useParams();
   const fileId = params?.id;
@@ -22,40 +24,58 @@ export default function UploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [collegeId, setCollegeId] = useState("");
   const [colleges, setColleges] = useState<College[]>([]);
+  const [total, setTotal] = useState(0);
   const [existingFile, setExistingFile] = useState<UploadFile | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchingFile, setFetchingFile] = useState(true);
 
+  // Dropdown state
+  const [ddOpen, setDdOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const ddRef = useRef<HTMLDivElement>(null);
+
   const router = useRouter();
 
-  // Fetch colleges on mount
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ddRef.current && !ddRef.current.contains(e.target as Node)) {
+        setDdOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // ✅ Fetch colleges (SERVER SIDE)
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await axios.get(`${api_url}get/colleges`);
+        const response = await axios.get(
+          `${api_url}get/colleges?page=${page}&limit=${PAGE_SIZE}&search=${search}`
+        );
+
         setColleges(response.data.data || []);
+        setTotal(response.data.total || 0);
       } catch (error) {
         console.error("Error fetching colleges:", error);
       }
     };
-    fetchColleges();
-  }, []);
 
-  // Fetch file details if fileId exists
+    fetchColleges();
+  }, [page, search]);
+
+  // Fetch file details
   useEffect(() => {
     const fetchFileDetails = async () => {
       if (!fileId || fileId === "new") {
         setFetchingFile(false);
         return;
       }
-
       setFetchingFile(true);
       try {
-        const baseUrl = api_url.endsWith("/") ? api_url : `${api_url}/`;
-        const url = `${baseUrl}id/brochure/${fileId}`;
-        console.log("fileId:", fileId);
-
-        const response = await axios.get(url);
+        const response = await axios.get(`${api_url}id/brochure/${fileId}`);
         const fileData = response.data?.data;
         if (fileData) {
           setExistingFile(fileData);
@@ -71,77 +91,63 @@ export default function UploadForm() {
         setFetchingFile(false);
       }
     };
-
     fetchFileDetails();
   }, [fileId]);
 
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const selectedCollege = colleges.find((c) => c._id === collegeId);
+
+  const handleSelect = (college: College) => {
+    setCollegeId(college._id);
+    setDdOpen(false);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1); // reset page on search
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] || null;
-    setFile(selectedFile);
+    setFile(e.target.files?.[0] || null);
   };
 
-  const handleCollegeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCollegeId(e.target.value);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    if (file) formData.append("file", file);
+    formData.append("college_id", collegeId);
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    setLoading(true);
+    try {
+      let response;
+      if (existingFile && fileId) {
+        response = await axios.put(
+          `${api_url}brochure-update/${fileId}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+      } else {
+        response = await axios.post(
+          `${api_url}brochure-post`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+      }
 
-  console.log("🟡 Submit started");
-  console.log("File ID:", fileId);
-  console.log("Selected file:", file);
-  console.log("College ID:", collegeId);
-
-  const formData = new FormData();
-  if (file) {
-    formData.append("file", file);
-    console.log("📎 File appended:", file.name, file.size);
-  }
-  formData.append("college_id", collegeId);
-
-  setLoading(true);
-
-  try {
-    let response;
-
-    if (existingFile && fileId) {
-      console.log("🟠 Updating file...");
-      response = await axios.put(
-        `${api_url}brochure-update/${fileId}`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-    } else {
-      console.log("🟢 Creating new file...");
-      response = await axios.post(
-        `${api_url}brochure-post`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      alert(response.data.message);
+      router.push("/admin/addBrochure");
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("File upload/update failed");
+    } finally {
+      setLoading(false);
     }
-
-    console.log("✅ Response:", response.data);
-    alert(response.data.message);
-    router.push("/admin/addBrochure");
-  } catch (error: any) {
-    console.error("❌ Upload failed");
-    console.error("Status:", error?.response?.status);
-    console.error("Data:", error?.response?.data);
-    console.error(error);
-    alert("File upload/update failed");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleCancel = () => {
-    // Clear form
     setFile(null);
     setCollegeId("");
     setExistingFile(null);
-
-    // Navigate back
     router.push("/admin/addBrochure");
   };
 
@@ -155,45 +161,103 @@ export default function UploadForm() {
 
   return (
     <div className="max-w-[1580px] mx-auto bg-white shadow-lg rounded-2xl p-8 border border-gray-200">
-      <form
-        onSubmit={handleSubmit}
-        className="p-4 border rounded shadow space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="p-4 border rounded shadow space-y-4">
+        
         {existingFile && (
           <div className="mb-4">
             <p className="text-sm text-gray-600">Current File:</p>
-
-            {existingFile.fileName}
+            <p className="font-medium">{existingFile.fileName}</p>
           </div>
         )}
 
         <label className="block">
           <span className="text-gray-700">
-            Select File (optional for Only PDF, DOC, DOCX, and TXT are allowed.) 
+            Select File (optional — PDF, DOC, DOCX, TXT only)
           </span>
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="mt-1 block w-full"
-          />
+          <input type="file" onChange={handleFileChange} className="mt-1 block w-full" />
         </label>
 
-        <label className="block">
-          <select
-            name="college_id"
-            value={collegeId}
-            onChange={handleCollegeChange}
-            className="mt-1 p-2 border rounded w-full"
+        {/* Dropdown */}
+        <div className="relative" ref={ddRef}>
+          <button
+            type="button"
+            onClick={() => setDdOpen((o) => !o)}
+            className="w-full mt-1 p-2 border rounded flex justify-between items-center bg-white text-left"
           >
-            <option value="">Select College</option>
-            {colleges.map((college) => (
-              <option key={college._id} value={college._id}>
-                {college.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            <span className={selectedCollege ? "text-gray-900" : "text-gray-400"}>
+              {selectedCollege ? selectedCollege.name : "Select College"}
+            </span>
+            <span className="text-gray-400 text-xs">▼</span>
+          </button>
 
+          {ddOpen && (
+            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
+              
+              {/* Search */}
+              <div className="p-2 border-b">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={handleSearchChange}
+                  placeholder="Search colleges..."
+                  className="w-full px-3 py-1.5 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+
+              {/* List */}
+              <ul className="max-h-48 overflow-y-auto">
+                {colleges.length > 0 ? (
+                  colleges.map((college) => (
+                    <li
+                      key={college._id}
+                      onClick={() => handleSelect(college)}
+                      className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
+                        college._id === collegeId ? "text-blue-600 font-medium" : ""
+                      }`}
+                    >
+                      {college.name}
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-3 py-2 text-sm text-gray-400">No colleges found</li>
+                )}
+              </ul>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-3 py-2 border-t text-xs text-gray-500">
+                  <span>
+                    Page {page} of {totalPages}
+                  </span>
+
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="px-2 py-1 border rounded disabled:opacity-40"
+                    >
+                      ←
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                      className="px-2 py-1 border rounded disabled:opacity-40"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+        </div>
+
+        {/* Buttons */}
         <div className="flex space-x-4">
           <button
             type="submit"
@@ -201,12 +265,8 @@ export default function UploadForm() {
             disabled={loading}
           >
             {loading
-              ? existingFile
-                ? "Updating..."
-                : "Uploading..."
-              : existingFile
-              ? "Update"
-              : "Upload"}
+              ? existingFile ? "Updating..." : "Uploading..."
+              : existingFile ? "Update" : "Upload"}
           </button>
 
           <button
@@ -218,6 +278,7 @@ export default function UploadForm() {
             Cancel
           </button>
         </div>
+
       </form>
     </div>
   );

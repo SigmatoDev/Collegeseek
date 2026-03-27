@@ -288,11 +288,26 @@ const createCollege = async (req, res) => {
 // ✅ Get All Colleges
 const getallColleges = async (req, res) => {
   try {
-    const colleges = await College.find();
-    res.status(200).json({ success: true, data: colleges });
+    const { page = 1, limit = 10, search = "" } = req.query;
+
+    const query = {
+      name: { $regex: search, $options: "i" },
+    };
+
+    const total = await College.countDocuments(query);
+
+    const colleges = await College.find(query)
+      .select("name")
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    res.json({
+      success: true,
+      data: colleges,
+      total, // 🔥 IMPORTANT
+    });
   } catch (error) {
-    // console.error("Error fetching colleges:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch colleges" });
+    res.status(500).json({ success: false });
   }
 };
 const getStateColleges = async (req, res) => {
