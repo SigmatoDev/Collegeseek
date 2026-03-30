@@ -288,26 +288,38 @@ const createCollege = async (req, res) => {
 // ✅ Get All Colleges
 const getallColleges = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "" } = req.query;
+    let { page = 1, limit = 10, search = "" } = req.query;
 
-    const query = {
-      name: { $regex: search, $options: "i" },
+    page = Number(page);
+    limit = Number(limit);
+
+    // ✅ Escape regex special characters
+    const escapeRegex = (text) => {
+      return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     };
+
+    const safeSearch = search ? escapeRegex(search.trim()) : "";
+
+    const query = safeSearch
+      ? { name: { $regex: safeSearch, $options: "i" } }
+      : {};
 
     const total = await College.countDocuments(query);
 
     const colleges = await College.find(query)
       .select("name")
       .skip((page - 1) * limit)
-      .limit(Number(limit));
+      .limit(limit);
 
     res.json({
       success: true,
       data: colleges,
-      total, // 🔥 IMPORTANT
+      total,
     });
+
   } catch (error) {
-    res.status(500).json({ success: false });
+    console.error("❌ Error fetching colleges:", error); // 🔥 IMPORTANT LOG
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 const getStateColleges = async (req, res) => {
