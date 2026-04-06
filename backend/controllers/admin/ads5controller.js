@@ -1,21 +1,33 @@
 const Ad = require('../../models/admin/ads5Model');
 const multer = require('multer');
 const path = require('path');
+const AWS = require("@aws-sdk/client-s3");
+const multerS3 = require('multer-s3');
 
-// Multer config for storing uploaded images locally in /uploads folder
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // make sure this folder exists or create it
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  }
+// Initialize S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,     // from your .env
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // from your .env
+  region: process.env.AWS_REGION                  // e.g., 'ap-south-1'
 });
 
-const upload = multer({ storage });
-
+// Multer S3 storage config
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    // acl: 'public-read',  <-- REMOVE this line
+    metadata: (req, file, cb) => {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      cb(null, `ads/${file.fieldname}-${uniqueSuffix}${ext}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
+});
 // Get all ads
 const getAllAds = async (req, res) => {
   try {
@@ -60,31 +72,46 @@ const createAd = async (req, res) => {
 // Update an existing ad with optional image upload
 const updateAd = async (req, res) => {
   try {
-    const { link } = req.body;  // Only link now
+    const { link } = req.body;
+    const adId = req.params.id;
 
-    let updateFields = { link };  // Removed alt, keep only link
-
-    if (req.file) {
-      updateFields.src = '/uploads/' + req.file.filename; // Use new image if provided
-    }
-
-    const updatedAd = await Ad.findByIdAndUpdate(
-      req.params.id,
-      updateFields,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedAd) {
+    // Find the existing ad
+    const existingAd = await Ad.findById(adId);
+    if (!existingAd) {
       return res.status(404).json({ message: "Ad not found" });
     }
 
+    let updateFields = { link };
+
+    // If a new file is uploaded, update src and delete old S3 image
+    if (req.file) {
+      // Delete old image from S3 if exists
+      if (existingAd.src) {
+        // Extract key from S3 URL
+        const oldKey = existingAd.src.split('.amazonaws.com/')[1];
+        if (oldKey) {
+          await s3
+            .deleteObject({ Bucket: process.env.AWS_BUCKET_NAME, Key: oldKey })
+            .promise()
+            .catch(err => console.error("S3 delete error:", err));
+        }
+      }
+
+      // Set new image URL
+      updateFields.src = req.file.location; // multer-s3 provides .location
+    }
+
+    const updatedAd = await Ad.findByIdAndUpdate(adId, updateFields, {
+      new: true,
+      runValidators: true,
+    });
+
     res.status(200).json(updatedAd);
   } catch (error) {
+    console.error("Update ad error:", error);
     res.status(500).json({ message: "Failed to update ad", error });
   }
 };
-
-
 
 // Delete an ad
 const deleteAd = async (req, res) => {

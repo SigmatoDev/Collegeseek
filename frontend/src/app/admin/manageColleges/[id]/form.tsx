@@ -123,77 +123,62 @@ const ActualCollegeForm = () => {
     fetchApiKey();
   }, []);
 
-  useEffect(() => {
-    const fetchCollegeData = async () => {
-      if (!collegeId || collegeId === "new") return;
+useEffect(() => {
+  const fetchCollegeData = async () => {
+    if (!collegeId || collegeId === "new") return;
 
-      try {
-        // console.log(`📡 Fetching college data for collegeId: ${collegeId}`);
-        const response = await axios.get(`${api_url}colleges/${collegeId}`);
-        // console.log("✅ Fetched College Data:", response.data);
+    try {
+      const response = await axios.get(`${api_url}colleges/${collegeId}`);
+      const data = response.data.data;
 
-        const data = response.data.data;
-        setCollegeData({
-          name: data.name || "",
-          description: data.description || "",
-          state: data.state || "",
-          city: data.city || "",
-          stream: data.stream || [],
-          approvel: data.approvel || [],
-          affiliatedby: data.affiliatedby || "",
-          examExpected: data.examExpected || [],
-          ownership: data.ownership || "",
-          address: data.address || "",
-          location: data.location || "",
-          latitude: data.latitude || "",
-          longitude: data.longitude || "",
-          rank: data.rank ? String(data.rank) : "",
-          fees: data.fees ? String(data.fees) : "",
-          avgPackage: data.avgPackage ? String(data.avgPackage) : "",
-          established: data.established ? String(data.established) : "",
-          about: data.about || "",
-          website: data.website || "",
-          contactNumbers: Array.isArray(data.contactNumbers)
-            ? data.contactNumbers
-            : data.contact
-            ? [{ type: "Mobile", number: data.contact }] // ✅ fallback if old API returns single `contact`
-            : [{ type: "Mobile", number: "" }],
-          contactEmail: data.contactEmail || "",
-          tabs: data.tabs || [],
-          featured: data.featured || "", // Add the featured status
-          image: null,
-          imageGallery: [],
-        });
-        // console.log(
-        //   "Featured prop passed to FeaturedComponent:",
-        //   data.featured
-        // );
+      setCollegeData({
+        name: data.name || "",
+        description: data.description || "",
+        state: data.state || "",
+        city: data.city || "",
+        stream: data.stream || [],
+        approvel: data.approvel || [],
+        affiliatedby: data.affiliatedby || "",
+        examExpected: data.examExpected || [],
+        ownership: data.ownership || "",
+        address: data.address || "",
+        location: data.location || "",
+        latitude: data.latitude || "",
+        longitude: data.longitude || "",
+        rank: data.rank ? String(data.rank) : "",
+        fees: data.fees ? String(data.fees) : "",
+        avgPackage: data.avgPackage ? String(data.avgPackage) : "",
+        established: data.established ? String(data.established) : "",
+        about: data.about || "",
+        website: data.website || "",
+        contactNumbers: Array.isArray(data.contactNumbers)
+          ? data.contactNumbers
+          : data.contact
+          ? [{ type: "Mobile", number: data.contact }]
+          : [{ type: "Mobile", number: "" }],
+        contactEmail: data.contactEmail || "",
+        tabs: data.tabs || [],
+        featured: data.featured || "",
+        image: null,
+        imageGallery: [],
+      });
 
-        // ✅ Update Image Previews
-        setImagePreview(
-          data.image
-            ? `${img_url}uploads/${data.image.replace(/^\/?uploads\//, "")}`
-            : null
-        );
+      // ✅ Use S3 URLs directly
+      setImagePreview(data.image || null);
 
-        setGalleryPreview(
-          Array.isArray(data.imageGallery)
-            ? data.imageGallery.map(
-                (img: string) =>
-                  `${img_url}uploads/${img.replace(/^\/?uploads\//, "")}`
-              )
-            : []
-        );
-      } catch (err: any) {
-        console.error("❌ Fetch error:", err.response?.data || err.message);
-        setError("Failed to fetch college data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      setGalleryPreview(
+        Array.isArray(data.imageGallery) ? data.imageGallery : []
+      );
+    } catch (err: any) {
+      console.error("❌ Fetch error:", err.response?.data || err.message);
+      setError("Failed to fetch college data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchCollegeData();
-  }, [collegeId]);
+  fetchCollegeData();
+}, [collegeId]);
 
   const handleEditorChange = (value: string) => {
     setCollegeData((prev) => ({
@@ -439,15 +424,18 @@ const ActualCollegeForm = () => {
       formData.append("tabs", JSON.stringify(collegeData.tabs));
     }
 
-    if (collegeData.image && collegeData.image instanceof File) {
-      formData.append("image", collegeData.image);
-    }
+  if (collegeData.image instanceof File) {
+  // New image file → append to formData
+  formData.append("image", collegeData.image);
+}
 
-    if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
-      collegeData.imageGallery.forEach((file) => {
-        if (file instanceof File) formData.append("imageGallery", file);
-      });
+if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
+  collegeData.imageGallery.forEach((item) => {
+    if (item instanceof File) {
+      formData.append("imageGallery", item);
     }
+  });
+}
 
     // ---------------------------------------
     // 📡 API REQUEST (AS IS)

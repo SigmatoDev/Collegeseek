@@ -27,33 +27,37 @@ const Footer = () => {
   const [contactInfo, setContactInfo] = useState(DEFAULT_CONTACT);
   const [socialLinks, setSocialLinks] = useState(DEFAULT_SOCIAL_LINKS);
 
-  useEffect(() => {
-    setIsMounted(true);
-    const fetchLogo = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}settings`);
-        setSiteLogo(
-          data.siteLogo
-            ? `${img_url.replace(/\/$/, "")}${data.siteLogo}`
-            : "/default-logo.png",
-        );
-        setContactInfo({
-          phone: data.contactPhone || DEFAULT_CONTACT.phone,
-          email: data.contactEmail || DEFAULT_CONTACT.email,
-          address: data.contactAddress || DEFAULT_CONTACT.address,
-        });
-        setSocialLinks({
-          ...DEFAULT_SOCIAL_LINKS,
-          ...(data.socialLinks || {}),
-        });
-      } catch (error) {
-        setSiteLogo("/logo/logo.jpg");
-        setContactInfo(DEFAULT_CONTACT);
-        setSocialLinks(DEFAULT_SOCIAL_LINKS);
-      }
-    };
-    fetchLogo();
-  }, []);
+ useEffect(() => {
+  setIsMounted(true);
+
+  const fetchLogo = async () => {
+    try {
+      const { data } = await axios.get(`${api_url}settings`);
+
+      // Use the full S3 URL directly
+      setSiteLogo(data.siteLogo || "/default-logo.png");
+
+      setContactInfo({
+        phone: data.contactPhone || DEFAULT_CONTACT.phone,
+        email: data.contactEmail || DEFAULT_CONTACT.email,
+        address: data.contactAddress || DEFAULT_CONTACT.address,
+      });
+
+      setSocialLinks({
+        ...DEFAULT_SOCIAL_LINKS,
+        ...(data.socialLinks || {}),
+      });
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+
+      setSiteLogo("/logo/logo.jpg");
+      setContactInfo(DEFAULT_CONTACT);
+      setSocialLinks(DEFAULT_SOCIAL_LINKS);
+    }
+  };
+
+  fetchLogo();
+}, []);;
 
   if (!isMounted) return null;
 

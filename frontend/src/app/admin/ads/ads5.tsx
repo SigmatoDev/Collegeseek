@@ -1,12 +1,12 @@
 'use client';
 
-import { api_url, img_url } from '@/utils/apiCall';
+import { api_url } from '@/utils/apiCall';
 import { useEffect, useState } from 'react';
 
 interface Ad {
   _id: string;
-  src?: string;
-  link?: string; // Added link field here
+  src?: string; // S3 URL
+  link?: string;
 }
 
 interface UpdateAdFormProps {
@@ -16,7 +16,7 @@ interface UpdateAdFormProps {
 
 function UpdateAdForm({ ad, onUpdated }: UpdateAdFormProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [link, setLink] = useState(ad.link || ''); // Added state for link
+  const [link, setLink] = useState(ad.link || '');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -25,7 +25,6 @@ function UpdateAdForm({ ad, onUpdated }: UpdateAdFormProps) {
     setLoading(true);
     setMessage('');
 
-    // You can remove the check for file if updating link only is allowed
     if (!file && !link) {
       setMessage('Please select an image or enter a link to update.');
       setLoading(false);
@@ -33,10 +32,8 @@ function UpdateAdForm({ ad, onUpdated }: UpdateAdFormProps) {
     }
 
     const formData = new FormData();
-    if (file) {
-      formData.append('image', file);
-    }
-    formData.append('link', link); // Append link in form data
+    if (file) formData.append('image', file);
+    formData.append('link', link);
 
     try {
       const url = `${api_url}/update/ads5/${ad._id}`;
@@ -54,21 +51,20 @@ function UpdateAdForm({ ad, onUpdated }: UpdateAdFormProps) {
 
       if (res.ok) {
         setMessage('Ad updated successfully!');
-        onUpdated();
         setFile(null);
+        onUpdated();
       } else {
         setMessage(result.message || 'Update failed');
       }
-    } catch {
+    } catch (err) {
       setMessage('Error submitting form');
     } finally {
       setLoading(false);
     }
   };
 
-  const imageSrc = ad.src
-    ? `${img_url.replace(/\/$/, '')}/${ad.src.replace(/^\//, '')}`
-    : '';
+  // Show new uploaded image if selected, otherwise existing ad image
+  const imageSrc = file ? URL.createObjectURL(file) : ad.src || '';
 
   return (
     <form
@@ -87,6 +83,7 @@ function UpdateAdForm({ ad, onUpdated }: UpdateAdFormProps) {
           No Image
         </div>
       )}
+
       <p className="text-xs text-gray-500 mb-3">
         Required dimensions: <strong>387x120</strong> pixels.
       </p>
@@ -181,23 +178,18 @@ export default function AdsManager() {
     setLoading(true);
     setFetchError('');
     try {
-      const res = await fetch(`${api_url}get/ads5`);
+      const res = await fetch(`${api_url}/get/ads5`);
 
-      if (!res.ok) {
-        throw new Error(`Error fetching ads: ${res.statusText}`);
-      }
+      if (!res.ok) throw new Error(`Error fetching ads: ${res.statusText}`);
 
       const data = await res.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid ads data received');
-      }
+      if (!Array.isArray(data)) throw new Error('Invalid ads data received');
 
       setAds(
         data.map((ad: any) => ({
-          ...ad,
-          image: ad.src,
-          link: ad.link, // Make sure link is set here too
+          _id: ad._id,
+          src: ad.src,
+          link: ad.link || '',
         }))
       );
     } catch (error: any) {

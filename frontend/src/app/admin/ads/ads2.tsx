@@ -176,8 +176,9 @@ export default function AdminCollegePage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [ad, setAd] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [link, setLink] = useState('');  // <-- New state for link
+  const [link, setLink] = useState('');
 
+  // Handle image selection and validate dimensions
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -202,20 +203,23 @@ export default function AdminCollegePage() {
     };
   };
 
+  // Remove selected image
   const handleImageRemove = () => {
     setImage(null);
     setPreview(null);
   };
 
+  // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ad?._id) return toast.error('Ad ID not found.');
+    if (!image && !link) return toast.error('Nothing to update.');
 
     try {
       setLoading(true);
       const formData = new FormData();
       if (image) formData.append('image', image);
-      formData.append('link', link); // <-- Append link to formData
+      formData.append('link', link);
 
       const res = await fetch(`${api_url}update-ad-image2/${ad._id}`, {
         method: 'PUT',
@@ -230,20 +234,21 @@ export default function AdminCollegePage() {
       setPreview(null);
       toast.success('Ad updated successfully!');
     } catch (error: any) {
-      console.error(error);
+      console.error('Error updating ad:', error);
       toast.error(error.message || 'Failed to update ad.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch ad from backend
   const fetchAd = async () => {
     try {
       const res = await fetch(`${api_url}ads2`);
       const data = await res.json();
       if (res.ok && data.ads.length > 0) {
         setAd(data.ads[0]);
-        setLink(data.ads[0]?.link || '');  // <-- Initialize link state on fetch
+        setLink(data.ads[0]?.link || '');
       }
     } catch (err) {
       console.error('Failed to fetch ad:', err);
@@ -279,11 +284,12 @@ export default function AdminCollegePage() {
             </>
           ) : ad?.image ? (
             <img
-              src={`${api_url.replace(/api\/?$/, '')}${ad.image.replace(/\\/g, '/')}`}
+              src={ad.image}
               alt="Current Ad"
               className="w-full h-full object-cover"
               onError={(e) =>
-                (e.currentTarget.src = 'https://via.placeholder.com/600x800?text=No+Image')
+                (e.currentTarget.src =
+                  'https://via.placeholder.com/600x800?text=No+Image')
               }
             />
           ) : (
@@ -297,7 +303,9 @@ export default function AdminCollegePage() {
         {/* Form Section */}
         <div className="flex-1 space-y-4 flex flex-col justify-center">
           <div>
-            <label className="block font-medium text-gray-700">Upload New Image</label>
+            <label className="block font-medium text-gray-700">
+              Upload New Image
+            </label>
             <input
               type="file"
               accept="image/*"
@@ -309,9 +317,10 @@ export default function AdminCollegePage() {
             </p>
           </div>
 
-          {/* New Link Input Field */}
           <div>
-            <label className="block font-medium text-gray-700">Advertisement Link</label>
+            <label className="block font-medium text-gray-700">
+              Advertisement Link
+            </label>
             <input
               type="url"
               value={link}
@@ -323,11 +332,11 @@ export default function AdminCollegePage() {
 
           <button
             type="submit"
-            disabled={loading || !image}
+            disabled={loading || (!image && !link)}
             className="inline-flex items-center bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {loading ? 'Updating...' : 'Update Image'}
+            {loading ? 'Updating...' : 'Update Ad'}
           </button>
         </div>
       </form>

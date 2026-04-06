@@ -97,27 +97,32 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
     return () => { document.body.style.overflow = ""; };
   }, [mobileMenuOpen]);
 
-  useEffect(() => {
-    setIsMounted(true);
-    const fetchLogo = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}settings`);
-        setSiteLogo(
-          data.siteLogo ? `${img_url.replace(/\/$/, "")}${data.siteLogo}` : "/default-logo.png"
-        );
-        setContactInfo({
-          phone: data.contactPhone || DEFAULT_CONTACT_INFO.phone,
-          email: data.contactEmail || DEFAULT_CONTACT_INFO.email,
-        });
-        setSocialLinks({ ...DEFAULT_SOCIAL_LINKS, ...(data.socialLinks || {}) });
-      } catch {
-        setSiteLogo("/default-logo.png");
-        setContactInfo(DEFAULT_CONTACT_INFO);
-        setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
-      }
-    };
-    fetchLogo();
-  }, []);
+useEffect(() => {
+  setIsMounted(true);
+
+  const fetchLogo = async () => {
+    try {
+      const { data } = await axios.get(`${api_url}settings`);
+
+      // Use full S3 URL directly
+      setSiteLogo(data.siteLogo || "/default-logo.png");
+
+      setContactInfo({
+        phone: data.contactPhone || DEFAULT_CONTACT_INFO.phone,
+        email: data.contactEmail || DEFAULT_CONTACT_INFO.email,
+      });
+
+      setSocialLinks({ ...DEFAULT_SOCIAL_LINKS, ...(data.socialLinks || {}) });
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      setSiteLogo("/default-logo.png");
+      setContactInfo(DEFAULT_CONTACT_INFO);
+      setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
+    }
+  };
+
+  fetchLogo();
+}, []);
 
   if (!isMounted) return null;
 

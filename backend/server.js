@@ -1,48 +1,31 @@
 require("dotenv").config();
 
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
 const connectDB = require("./config/db");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+/* =====================================================
+   🚀 MIDDLEWARE
+===================================================== */
+
+// CORS (single clean config)
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, // or '*' if public
+    origin: process.env.CLIENT_URL || "*",
     credentials: true,
   })
 );
-// app.use(express.json());
+
+// Body parsers
+app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Ensure Uploads Folder Exists
-const uploadDir = path.join(__dirname, "./uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Serve Static Files (for uploaded images)
-// app.use("/uploads", express.static("uploads"));
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
-
-
-
-//new for pages
-// Allow larger JSON payloads up to 50MB (for base64 encoded data, etc.)
-app.use(express.json({ limit: "100mb" }));
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-
-
-// Connect to MongoDB
+/* =====================================================
+   🚀 DATABASE CONNECTION
+===================================================== */
 connectDB();
 
 
@@ -98,3 +81,49 @@ app.use("/api", require("./routes/admin/categoryFilterRoutes"));
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
+// require("dotenv").config();
+
+// const express = require("express");
+// const mongoose = require("mongoose");
+// const cors = require("cors");
+// const path = require("path");
+// const fs = require("fs");
+// const connectDB = require("./config/db");
+
+// const app = express();
+// const PORT = process.env.PORT || 5000;
+
+// // Middleware
+// app.use(cors());
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_URL, // or '*' if public
+//     credentials: true,
+//   })
+// );
+// // app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// // Ensure Uploads Folder Exists
+// const uploadDir = path.join(__dirname, "./uploads");
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir, { recursive: true });
+// }
+
+// // Serve Static Files (for uploaded images)
+// // app.use("/uploads", express.static("uploads"));
+// // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// // app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
+
+
+
+// //new for pages
+// // Allow larger JSON payloads up to 50MB (for base64 encoded data, etc.)
+// app.use(express.json({ limit: "100mb" }));
+
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+
+// // Connect to MongoDB
+// connectDB();

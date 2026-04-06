@@ -1,36 +1,39 @@
 const express = require("express");
 const multer = require("multer");
+const multerS3 = require("multer-s3");
 const path = require("path");
-const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
+const s3 = require("../../utils/s3"); // your existing s3 client
 
 const { getSettings, updateSettings } = require("../../controllers/admin/settingsController");
 
 const router = express.Router();
 
-// ✅ Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const uploadDir = path.join(__dirname, "../../uploads/settings");
-    fs.mkdirSync(uploadDir, { recursive: true }); // Ensure the folder exists
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueFilename = uuidv4() + path.extname(file.originalname);
-    cb(null, uniqueFilename);
-  },
-});
-
-// ✅ Multer configuration
+// ✅ Multer-S3 storage configuration
 const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (_req, file, cb) => {
+      const uniqueKey = `settings/${uuidv4()}${path.extname(file.originalname)}`;
+      cb(null, uniqueKey);
+    },
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"), false);
+    }
+  },
 }).fields([
   { name: "siteLogo", maxCount: 1 },
   { name: "favicon", maxCount: 1 },
 ]);
 
-// ✅ Middleware to handle file upload errors
+// ✅ Error handling middleware
 const uploadHandler = (req, res, next) => {
   upload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
@@ -42,8 +45,7 @@ const uploadHandler = (req, res, next) => {
   });
 };
 
-// ✅ Routes
 router.get("/settings", getSettings);
-router.put("/settings", uploadHandler, updateSettings);
+router.put("/setting", uploadHandler, updateSettings);
 
 module.exports = router;

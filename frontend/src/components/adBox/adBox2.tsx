@@ -5,6 +5,8 @@ import { api_url } from "@/utils/apiCall";
 import Image from "next/image";
 import toast from "react-hot-toast";
 
+const FALLBACK_IMAGE = "/logo/logo1.png"; // fallback if no ad image
+
 const AdBox1 = () => {
   const [ad, setAd] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -12,11 +14,11 @@ const AdBox1 = () => {
   // Fetch the advertisement data
   const fetchAd = async () => {
     try {
-      const res = await fetch(`${api_url}ads2`); // Your API URL to fetch ads
+      const res = await fetch(`${api_url}ads2`); // API to fetch ads
       const data = await res.json();
 
       if (res.ok && data.ads.length > 0) {
-        setAd(data.ads[0]); // Assuming you're fetching the first ad
+        setAd(data.ads[0]); // Use the first ad
       } else {
         toast.error("No ads available");
       }
@@ -32,51 +34,64 @@ const AdBox1 = () => {
     fetchAd();
   }, []);
 
+  // Resolve full image URL
+  const getImageUrl = (image: string) => {
+    if (!image) return FALLBACK_IMAGE;
+
+    // Already a full URL (S3)
+    if (image.startsWith("http") || image.startsWith("https")) {
+      return image;
+    }
+
+    // Local upload
+    return `${api_url.replace(/api\/?$/, "")}${image.replace(/\\/g, "/")}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-100 p-4 w-[300px] h-[400px] mx-[2px] mt-[1px] rounded-lg flex items-center justify-center">
+        <p className="text-center">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!ad) {
+    return (
+      <div className="bg-gray-100 p-4 w-[300px] h-[400px] mx-[2px] mt-[1px] rounded-lg flex items-center justify-center">
+        <p className="text-center">No ad available</p>
+      </div>
+    );
+  }
+
+  const imageUrl = getImageUrl(ad.image);
+
   return (
     <div className="bg-gray-100 p-4 w-[300px] h-[400px] mx-[2px] mt-[1px] rounded-lg flex flex-col items-center">
-      {loading ? (
-        <p className="text-center">Loading...</p>
+      {ad.link ? (
+        <a
+          href={ad.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full h-full relative rounded-lg overflow-hidden block"
+        >
+          <Image
+            src={imageUrl}
+            alt={ad.description || "Advertisement"}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
+            className="rounded-lg object-cover"
+          />
+        </a>
       ) : (
-        <>
-          <></>
-          {ad?.image ? (
-            // If link exists, wrap in anchor tag with target _blank, else just div
-            ad.link ? (
-              <a
-                href={ad.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-0 w-full h-full relative rounded-lg overflow-hidden block"
-              >
-                <Image
-                  src={`${api_url.replace(/api\/?$/, "")}${ad.image.replace(
-                    /\\/g,
-                    "/"
-                  )}`}
-                  alt="Advertisement 1"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  priority
-                  className="rounded-lg object-cover"
-                />
-              </a>
-            ) : (
-              <div className="mt-4 w-full h-full relative rounded-lg overflow-hidden">
-                <Image
-                  src={`${api_url.replace(/api\/?$/, "")}${ad.image.replace(
-                    /\\/g,
-                    "/"
-                  )}`}
-                  alt="Advertisement 1"
-                  fill
-                  className="rounded-lg object-cover"
-                />
-              </div>
-            )
-          ) : (
-            <p className="text-center mt-4">No image available</p>
-          )}
-        </>
+        <div className="w-full h-full relative rounded-lg overflow-hidden">
+          <Image
+            src={imageUrl}
+            alt={ad.description || "Advertisement"}
+            fill
+            className="rounded-lg object-cover"
+          />
+        </div>
       )}
     </div>
   );

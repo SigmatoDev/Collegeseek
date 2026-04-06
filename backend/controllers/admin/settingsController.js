@@ -51,7 +51,10 @@ const storage = multer.diskStorage({
     cb(null, "uploads/settings/");
   },
   filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
+    cb(
+      null,
+      file.fieldname + "-" + Date.now() + path.extname(file.originalname),
+    );
   },
 });
 
@@ -85,8 +88,8 @@ const updateSettings = async (req, res) => {
       youtube,
     } = req.body;
 
-    const siteLogo = req.files["siteLogo"] ? req.files["siteLogo"][0].filename : null;
-    const favicon = req.files["favicon"] ? req.files["favicon"][0].filename : null;
+    const siteLogo = req.files?.["siteLogo"]?.[0]?.location ?? null; // S3 URL
+    const favicon = req.files?.["favicon"]?.[0]?.location ?? null; // S3 URL
 
     let settings = await Settings.findOne();
     if (!settings) {
@@ -118,8 +121,8 @@ const updateSettings = async (req, res) => {
       }
     });
 
-    if (siteLogo) settings.siteLogo = `/uploads/settings/${siteLogo}`;
-    if (favicon) settings.favicon = `/uploads/settings/${favicon}`;
+    if (siteLogo) settings.siteLogo = siteLogo;
+    if (favicon) settings.favicon = favicon;
 
     await settings.save();
 
@@ -133,7 +136,6 @@ const updateSettings = async (req, res) => {
   }
 };
 
-
 // ================================
 // 🚀 GET SETTINGS CONTROLLER
 // ================================
@@ -146,7 +148,6 @@ const getSettings = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 // ================================
 // 🚀 EXPORT CONTROLLERS

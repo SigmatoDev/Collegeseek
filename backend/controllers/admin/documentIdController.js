@@ -1,74 +1,82 @@
-const path = require("path");
-const fs = require("fs");
 const Upload = require("../../models/admin/documentModel");
-const { ObjectId } = require("mongoose").Types;
+const s3 = require("../../utils/s3");
+
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const getUploadFileByCollegeId = async (req, res) => {
   try {
     const { collegeId } = req.params;
 
-    console.log("--------------------------------------------------");
-    console.log("Download request received");
-    console.log("College ID from params:", collegeId);
-
-    if (!ObjectId.isValid(collegeId)) {
-      console.error("❌ Invalid College ID");
-      return res.status(400).json({ message: "Invalid College ID" });
-    }
+    console.log("📥 Download request for college:", collegeId);
+    console.log("Request method:", req.method);
 
     const file = await Upload.findOne({ college_id: collegeId });
 
-    console.log("📄 File record from DB:", file);
-
     if (!file) {
-      console.error("❌ No document found for this college");
-      return res
-        .status(404)
-        .json({ message: "Brochure not found for this college" });
+      return res.status(404).json({ message: "Brochure not found" });
     }
 
-    console.log("📁 filePath from DB:", file.filePath);
-    console.log("📎 fileName from DB:", file.fileName);
+    console.log("📄 Found file:", file.fileName);
 
-    const sanitizedPath = file.filePath.replace(/^\/+/, "");
+    /* =====================================================
+       ✅ EXTRACT S3 KEY
+    ===================================================== */
+    let key = file.s3Key;
 
-    console.log("🧹 Sanitized filePath:", sanitizedPath);
-
-   const filePath = path.resolve(
-  __dirname,
-  "../../uploads/documents",
-  file.fileName
-);
-
-    console.log("📍 Absolute resolved path:", filePath);
-
-    // Check parent directory
-    const dirPath = path.dirname(filePath);
-    console.log("📂 Directory being checked:", dirPath);
-
-    if (!fs.existsSync(dirPath)) {
-      console.error("❌ Directory does not exist:", dirPath);
-    } else {
-      console.log("✅ Directory exists");
-      console.log(
-        "📂 Files in directory:",
-        fs.readdirSync(dirPath)
-      );
+    if (!key && file.filePath?.startsWith("http")) {
+      try {
+        const url = new URL(file.filePath);
+        // Remove leading slash and decode URI
+        key = decodeURIComponent(url.pathname.replace(/^\/+/, ""));
+      } catch (err) {
+        console.error("❌ Invalid filePath URL:", file.filePath, err);
+      }
     }
 
-    if (!fs.existsSync(filePath)) {
-      console.error("❌ File not found on disk:", filePath);
-      return res.status(404).json({ message: "File not found on server" });
+    if (!key) {
+      console.error("❌ Missing S3 key and filePath for file:", file);
+      return res.status(400).json({
+        message: "File is not stored in S3 properly",
+      });
     }
 
-    console.log("⬇️ File exists, starting download...");
-    res.download(filePath, file.fileName);
+    console.log("🔑 Using S3 Key:", key);
+
+    /* =====================================================
+       🚀 GENERATE SIGNED URL
+    ===================================================== */
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: key,
+    });
+
+    const signedUrl = await getSignedUrl(s3, command, {
+      expiresIn: 60 * 5, // URL valid for 5 minutes
+    });
+
+    /* =====================================================
+       ✅ HEAD request: no body
+    ===================================================== */
+    if (req.method === "HEAD") {
+      return res.status(200).end();
+    }
+
+    /* =====================================================
+       ✅ GET request: return signed URL
+    ===================================================== */
+    return res.status(200).json({
+      success: true,
+      url: signedUrl,
+      fileName: file.fileName,
+    });
 
   } catch (error) {
-    console.error("🔥 Error fetching file:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("❌ Download error:", error);
+    return res.status(500).json({ message: "Failed to download file" });
   }
 };
 
-module.exports = { getUploadFileByCollegeId };
-
+module.exports = {
+  getUploadFileByCollegeId,
+};

@@ -59,47 +59,39 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}settings`);
-        const mergedSocial: SocialLinksState = {
-          ...DEFAULT_SOCIAL_LINKS,
-          ...(data.socialLinks || {}),
-        };
+useEffect(() => {
+  const fetchSettings = async () => {
+    try {
+      const { data } = await axios.get(`${api_url}settings`);
+      const mergedSocial: SocialLinksState = {
+        ...DEFAULT_SOCIAL_LINKS,
+        ...(data.socialLinks || {}),
+      };
 
-        setSettings({
-          siteName: data.siteName || "",
-          siteLogo: data.siteLogo
-            ? `${img_url.replace(/\/$/, "")}${data.siteLogo}`
-            : "",
-          favicon: data.favicon
-            ? `${img_url.replace(/\/$/, "")}${data.favicon}`
-            : "",
-          tinymceApiKey: data.tinymceApiKey || "",
-          contactPhone: data.contactPhone || DEFAULT_CONTACT.phone,
-          contactEmail: data.contactEmail || DEFAULT_CONTACT.email,
-          contactAddress: data.contactAddress || DEFAULT_CONTACT.address,
-          socialLinks: mergedSocial,
-        });
+      setSettings({
+        siteName: data.siteName || "",
+        siteLogo: data.siteLogo || "", // S3 URL is already full path
+        favicon: data.favicon || "",
+        tinymceApiKey: data.tinymceApiKey || "",
+        contactPhone: data.contactPhone || DEFAULT_CONTACT.phone,
+        contactEmail: data.contactEmail || DEFAULT_CONTACT.email,
+        contactAddress: data.contactAddress || DEFAULT_CONTACT.address,
+        socialLinks: mergedSocial,
+      });
 
-        setPreviews({
-          siteLogo: data.siteLogo
-            ? `${img_url.replace(/\/$/, "")}${data.siteLogo}`
-            : "",
-          favicon: data.favicon
-            ? `${img_url.replace(/\/$/, "")}${data.favicon}`
-            : "",
-        });
-      } catch (error) {
-        console.error("Error fetching settings:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setPreviews({
+        siteLogo: data.siteLogo || "",
+        favicon: data.favicon || "",
+      });
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchSettings();
-  }, []);
+  fetchSettings();
+}, []);
 
   useEffect(() => {
     return () => {
@@ -136,82 +128,83 @@ const Settings = () => {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  console.log("📤 Submitting settings form...");
 
-    const phone = settings.contactPhone.trim();
-    const email = settings.contactEmail.trim();
-    const address = settings.contactAddress.trim();
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phone = settings.contactPhone.trim();
+  const email = settings.contactEmail.trim();
+  const address = settings.contactAddress.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!phone || !email || !address) {
-      setFormError("Phone, email, and address are required fields.");
-      return;
-    }
+  // Validation
+  if (!phone || !email || !address) {
+    setFormError("Phone, email, and address are required fields.");
+    return;
+  }
 
-    if (!emailPattern.test(email)) {
-      setFormError("Please provide a valid email address.");
-      return;
-    }
+  if (!emailPattern.test(email)) {
+    setFormError("Please provide a valid email address.");
+    return;
+  }
 
-    setFormError(null);
+  setFormError(null);
 
-    const formData = new FormData();
-    formData.append("siteName", settings.siteName);
-    formData.append("tinymceApiKey", settings.tinymceApiKey);
-    formData.append("contactPhone", settings.contactPhone);
-    formData.append("contactEmail", settings.contactEmail);
-    formData.append("contactAddress", settings.contactAddress);
-    Object.entries(settings.socialLinks).forEach(([key, value]) => {
-      formData.append(key, value || "");
+  const formData = new FormData();
+  formData.append("siteName", settings.siteName);
+  formData.append("tinymceApiKey", settings.tinymceApiKey);
+  formData.append("contactPhone", settings.contactPhone);
+  formData.append("contactEmail", settings.contactEmail);
+  formData.append("contactAddress", settings.contactAddress);
+
+  Object.entries(settings.socialLinks).forEach(([key, value]) => {
+    formData.append(key, value || "");
+  });
+
+  // Only append if user uploaded a new file (File object)
+  if (settings.siteLogo && settings.siteLogo instanceof File) {
+    console.log("🖼 Appending new siteLogo file", settings.siteLogo);
+    formData.append("siteLogo", settings.siteLogo);
+  }
+
+  if (settings.favicon && settings.favicon instanceof File) {
+    console.log("🖼 Appending new favicon file", settings.favicon);
+    formData.append("favicon", settings.favicon);
+  }
+
+  try {
+    const { data } = await axios.put(`${api_url}setting`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     });
 
-    if (settings.siteLogo && typeof settings.siteLogo !== "string") {
-      formData.append("siteLogo", settings.siteLogo);
-    }
-    if (settings.favicon && typeof settings.favicon !== "string") {
-      formData.append("favicon", settings.favicon);
-    }
+    console.log("✅ API response received:", data);
 
-    try {
-      const { data } = await axios.put(`${api_url}settings`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    // Use returned S3 URLs directly
+    setSettings({
+      siteName: data.settings.siteName,
+      siteLogo: data.settings.siteLogo || "", // S3 URL
+      favicon: data.settings.favicon || "",   // S3 URL
+      tinymceApiKey: data.settings.tinymceApiKey,
+      contactPhone: data.settings.contactPhone || DEFAULT_CONTACT.phone,
+      contactEmail: data.settings.contactEmail || DEFAULT_CONTACT.email,
+      contactAddress: data.settings.contactAddress || DEFAULT_CONTACT.address,
+      socialLinks: {
+        ...DEFAULT_SOCIAL_LINKS,
+        ...(data.settings.socialLinks || {}),
+      },
+    });
 
-      setSettings({
-        siteName: data.settings.siteName,
-        siteLogo: data.settings.siteLogo
-          ? `${img_url.replace(/\/$/, "")}${data.settings.siteLogo}`
-          : "",
-        favicon: data.settings.favicon
-          ? `${img_url.replace(/\/$/, "")}${data.settings.favicon}`
-          : "",
-        tinymceApiKey: data.settings.tinymceApiKey,
-        contactPhone: data.settings.contactPhone || DEFAULT_CONTACT.phone,
-        contactEmail: data.settings.contactEmail || DEFAULT_CONTACT.email,
-        contactAddress:
-          data.settings.contactAddress || DEFAULT_CONTACT.address,
-        socialLinks: {
-          ...DEFAULT_SOCIAL_LINKS,
-          ...(data.settings.socialLinks || {}),
-        } as SocialLinksState,
-      });
+    setPreviews({
+      siteLogo: data.settings.siteLogo || "",
+      favicon: data.settings.favicon || "",
+    });
 
-      setPreviews({
-        siteLogo: data.settings.siteLogo
-          ? `${img_url.replace(/\/$/, "")}${data.settings.siteLogo}`
-          : "",
-        favicon: data.settings.favicon
-          ? `${img_url.replace(/\/$/, "")}${data.settings.favicon}`
-          : "",
-      });
-
-      toast.success("Settings updated successfully!");
-    } catch (error) {
-      console.error("Error updating settings:", error);
-      toast.error("Failed to update settings. Please try again.");
-    }
-  };
+    toast.success("Settings updated successfully!");
+  } catch (error) {
+    console.error("❌ Error updating settings:", error);
+    toast.error("Failed to update settings. Please try again.");
+  }
+};
 
   const removeImage = (name: "siteLogo" | "favicon") => {
     setSettings((prev) => ({ ...prev, [name]: "" }));

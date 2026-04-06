@@ -1,57 +1,81 @@
 const express = require("express");
 const multer = require("multer");
 const mongoose = require("mongoose");
-const fs = require("fs");
-const path = require("path");
+
+const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const s3 = require("../../utils/s3"); // ✅ centralized config
+const multerS3 = require("multer-s3");
 
 const College = require("../../models/admin/collegemodel");
 const Upload = require("../../models/admin/documentModel");
-const compressPdf = require("../../utils/compressPdf");
 
 const router = express.Router();
 
 /* =====================================================
-   1️⃣ DEFINE UPLOAD ROOT
+   🌍 ENV VARIABLES
 ===================================================== */
-const UPLOAD_ROOT = path.join(__dirname, "../../uploads/documents");
+const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 
-// Ensure the folder exists
-if (!fs.existsSync(UPLOAD_ROOT)) {
-  console.log("📁 Upload folder missing. Creating:", UPLOAD_ROOT);
-  fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
+if (!BUCKET_NAME) {
+  console.error("❌ AWS_BUCKET_NAME is missing in .env");
 }
 
 /* =====================================================
-   2️⃣ MULTER CONFIGURATION
+   🚀 1️⃣ FILE FILTER
 ===================================================== */
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_ROOT),
-  filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
-});
-
 const fileFilter = (req, file, cb) => {
+  console.log("📄 Incoming file:", file.originalname);
+  console.log("📄 File type:", file.mimetype);
+
   const allowedTypes = [
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "text/plain",
   ];
-  if (allowedTypes.includes(file.mimetype)) cb(null, true);
-  else cb(new Error("Invalid file type. Only PDF, DOC, DOCX, TXT allowed"), false);
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    console.error("❌ Invalid file type:", file.mimetype);
+    cb(new Error("Invalid file type"), false);
+  }
 };
 
-// Increase file size limit safely to 50MB
+/* =====================================================
+   🚀 2️⃣ MULTER S3 CONFIG
+===================================================== */
 const upload = multer({
-  storage,
+  storage: multerS3({
+    s3,
+    bucket: BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      console.log("📦 Generating S3 key...");
+      console.log("📌 college_id:", req.body.college_id);
+
+      if (!req.body.college_id) {
+        return cb(new Error("college_id is required"), null);
+      }
+
+      const fileName = `colleges/${req.body.college_id}/${Date.now()}-${file.originalname}`;
+
+      console.log("📦 S3 Key:", fileName);
+
+      cb(null, fileName);
+    },
+  }),
   fileFilter,
   limits: { fileSize: 50 * 1024 * 1024 },
 });
+
 /* =====================================================
    ✅ 3. GET ALL FILES (PAGINATED)
 ===================================================== */
-
 const getUploadFiles = async (req, res) => {
   try {
+    console.log("📥 Fetching uploaded files...");
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -63,6 +87,8 @@ const getUploadFiles = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    console.log(`✅ Found ${files.length} files`);
+
     res.status(200).json({
       total,
       page,
@@ -70,7 +96,7 @@ const getUploadFiles = async (req, res) => {
       files,
     });
   } catch (error) {
-    console.error("Error fetching uploaded files:", error);
+    console.error("❌ Fetch files error:", error);
     res.status(500).json({ message: "Failed to fetch uploaded files" });
   }
 };
@@ -78,161 +104,171 @@ const getUploadFiles = async (req, res) => {
 /* =====================================================
    ✅ 4. GET FILE BY ID
 ===================================================== */
-
 const getUploadFileById = async (req, res) => {
   try {
+    console.log("📥 Fetching file by ID:", req.params.id);
+
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.error("❌ Invalid ObjectId:", id);
       return res.status(400).json({ message: "Invalid file ID" });
     }
 
     const file = await Upload.findById(id).lean();
 
     if (!file) {
+      console.error("❌ File not found");
       return res.status(404).json({ message: "File not found" });
     }
 
     res.status(200).json({ success: true, data: file });
   } catch (error) {
-    console.error("Error fetching file:", error);
+    console.error("❌ Get file error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 /* =====================================================
-   ✅ 5. CREATE FILE (UPLOAD + PDF COMPRESSION)
+   🚀 5. CREATE FILE (UPLOAD TO S3)
 ===================================================== */
-
 const createUploadFile = async (req, res) => {
+  console.log("📥 Incoming upload request...");
+
   upload.single("file")(req, res, async (err) => {
     if (err) {
-      return res.status(400).json({ message: err.code === "LIMIT_FILE_SIZE" ? "Max upload size is 50MB" : err.message });
+      console.error("❌ Multer Error:", err);
+
+      return res.status(400).json({
+        message:
+          err.code === "LIMIT_FILE_SIZE"
+            ? "Max upload size is 50MB"
+            : err.message,
+      });
     }
 
+    console.log("📦 Uploaded File:", req.file);
+    console.log("📌 Body:", req.body);
+
     if (!req.file || !req.body.college_id) {
-      return res.status(400).json({ message: "File and College ID are required" });
+      console.error("❌ Missing file or college_id");
+      return res.status(400).json({
+        message: "File and College ID are required",
+      });
     }
 
     try {
-      let finalName = req.file.filename;
-      let finalPath = req.file.path;
-
-      // Always compress PDFs
-      if (req.file.mimetype === "application/pdf") {
-        try {
-          const compressedPath = await compressPdf(req.file.path);
-
-          // Replace original with compressed
-          fs.unlinkSync(req.file.path);
-          finalName = path.basename(compressedPath);
-          finalPath = compressedPath;
-        } catch (err) {
-          console.warn("⚠️ PDF compression failed, using original file");
-        }
-      }
-
       const uploadDoc = new Upload({
-        fileName: finalName,
-        filePath: `/uploads/documents/${finalName}`,
+        fileName: req.file.originalname,
+        filePath: req.file.location, // S3 URL
+        s3Key: req.file.key,         // IMPORTANT
         college_id: req.body.college_id,
       });
 
       await uploadDoc.save();
 
-      res.status(201).json({ message: "File uploaded successfully", upload: uploadDoc });
+      console.log("✅ File saved to DB:", uploadDoc);
+
+      res.status(201).json({
+        success: true,
+        message: "File uploaded successfully",
+        upload: uploadDoc,
+      });
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("❌ Upload DB error:", error);
       res.status(500).json({ message: "Upload failed" });
     }
   });
 };
 
-
 /* =====================================================
-   ✅ 6. UPDATE FILE
+   🚀 6. UPDATE FILE
 ===================================================== */
-
 const updateUploadFile = async (req, res) => {
+  console.log("📥 Update file request:", req.params.id);
+
   upload.single("file")(req, res, async (err) => {
     if (err) {
-      return res.status(400).json({ message: err.code === "LIMIT_FILE_SIZE" ? "Max upload size is 50MB" : err.message });
+      console.error("❌ Multer update error:", err);
+      return res.status(400).json({ message: err.message });
     }
 
     try {
       const { id } = req.params;
-      const { college_id } = req.body;
 
-      const existingFile = await Upload.findById(id);
-      if (!existingFile) return res.status(404).json({ message: "File not found" });
+      const file = await Upload.findById(id);
+      if (!file) {
+        console.error("❌ File not found");
+        return res.status(404).json({ message: "File not found" });
+      }
 
-      // Update college if provided
-      if (college_id) {
-        const college = await College.findById(college_id);
-        if (!college) return res.status(404).json({ message: "College not found" });
-        existingFile.college_id = college_id;
+      if (req.body.college_id) {
+        const college = await College.findById(req.body.college_id);
+        if (!college) {
+          console.error("❌ College not found");
+          return res.status(404).json({ message: "College not found" });
+        }
+
+        file.college_id = req.body.college_id;
       }
 
       if (req.file) {
-        // Remove old file
-        const oldPath = path.join(UPLOAD_ROOT, path.basename(existingFile.filePath));
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        console.log("📦 Updating file in S3");
 
-        let finalName = req.file.filename;
-        let finalPath = req.file.path;
-
-        // Always compress PDFs
-        if (req.file.mimetype === "application/pdf") {
-          try {
-            const compressedPath = await compressPdf(req.file.path);
-            fs.unlinkSync(req.file.path);
-            finalName = path.basename(compressedPath);
-            finalPath = compressedPath;
-          } catch (err) {
-            console.warn("⚠️ PDF compression failed, using original file");
-          }
-        }
-
-        existingFile.fileName = finalName;
-        existingFile.filePath = `/uploads/documents/${finalName}`;
+        file.fileName = req.file.originalname;
+        file.filePath = req.file.location;
+        file.s3Key = req.file.key;
       }
 
-      await existingFile.save();
-      res.status(200).json({ message: "File updated successfully", upload: existingFile });
+      await file.save();
+
+      console.log("✅ File updated:", file);
+
+      res.status(200).json({
+        success: true,
+        message: "File updated successfully",
+        upload: file,
+      });
     } catch (error) {
-      console.error("Update error:", error);
+      console.error("❌ Update error:", error);
       res.status(500).json({ message: "Failed to update file" });
     }
   });
 };
 
 /* =====================================================
-   ✅ 7. DELETE FILE
+   🚀 7. DELETE FILE (FROM S3)
 ===================================================== */
-
 const deleteUploadFile = async (req, res) => {
   try {
+    console.log("📥 Delete request:", req.params.id);
+
     const file = await Upload.findById(req.params.id);
 
     if (!file) {
+      console.error("❌ File not found");
       return res.status(404).json({ message: "File not found" });
     }
 
-    const fullPath = path.join(
-      __dirname,
-      "../../uploads/documents",
-      file.fileName,
-    );
+    console.log("🗑 Deleting from S3:", file.s3Key);
 
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-    }
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: file.s3Key,
+      })
+    );
 
     await Upload.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({ message: "File deleted successfully" });
+    console.log("✅ File deleted successfully");
+
+    res.status(200).json({
+      success: true,
+      message: "File deleted from S3 successfully",
+    });
   } catch (error) {
-    console.error("Delete error:", error);
+    console.error("❌ Delete error:", error);
     res.status(500).json({ message: "Failed to delete file" });
   }
 };

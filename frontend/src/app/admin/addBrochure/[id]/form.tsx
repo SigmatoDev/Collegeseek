@@ -52,46 +52,50 @@ export default function UploadForm() {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
-        const response = await axios.get(
+        const res = await axios.get(
           `${api_url}get/colleges?page=${page}&limit=${PAGE_SIZE}&search=${search}`
         );
-
-        setColleges(response.data.data || []);
-        setTotal(response.data.total || 0);
-      } catch (error) {
-        console.error("Error fetching colleges:", error);
+        setColleges(res.data.data || []);
+        setTotal(res.data.total || 0);
+      } catch (err) {
+        console.error("❌ Fetch colleges error:", err);
       }
     };
 
     fetchColleges();
   }, [page, search]);
 
+
   // Fetch file details
   useEffect(() => {
-    const fetchFileDetails = async () => {
+    const fetchFile = async () => {
       if (!fileId || fileId === "new") {
         setFetchingFile(false);
         return;
       }
-      setFetchingFile(true);
+
       try {
-        const response = await axios.get(`${api_url}id/brochure/${fileId}`);
-        const fileData = response.data?.data;
+        const res = await axios.get(`${api_url}id/brochure/${fileId}`);
+        const fileData = res.data?.data;
+
         if (fileData) {
           setExistingFile(fileData);
-          const extractedCollegeId =
+
+          const id =
             typeof fileData.college_id === "object"
               ? fileData.college_id.$oid
               : fileData.college_id;
-          setCollegeId(extractedCollegeId || "");
+
+          setCollegeId(id || "");
         }
-      } catch (error) {
-        console.error("Error fetching file details:", error);
+      } catch (err) {
+        console.error("❌ Fetch file error:", err);
       } finally {
         setFetchingFile(false);
       }
     };
-    fetchFileDetails();
+
+    fetchFile();
   }, [fileId]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -111,34 +115,65 @@ export default function UploadForm() {
     setFile(e.target.files?.[0] || null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log("🚀 Submit triggered");
+
+    if (!collegeId) {
+      alert("Please select a college");
+      return;
+    }
+
+    if (!existingFile && !file) {
+      alert("Please select a file");
+      return;
+    }
+
     const formData = new FormData();
-    if (file) formData.append("file", file);
+
+    // ✅ IMPORTANT FIX → order matters
     formData.append("college_id", collegeId);
 
+    if (file) {
+      formData.append("file", file);
+    }
+
+    // DEBUG
+    for (let pair of formData.entries()) {
+      console.log("📦", pair[0], pair[1]);
+    }
+
     setLoading(true);
+
     try {
-      let response;
+      let res;
+
       if (existingFile && fileId) {
-        response = await axios.put(
+        console.log("✏️ Updating...");
+        res = await axios.put(
           `${api_url}brochure-update/${fileId}`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
+          formData
         );
       } else {
-        response = await axios.post(
+        console.log("📤 Uploading...");
+        res = await axios.post(
           `${api_url}brochure-post`,
-          formData,
-          { headers: { "Content-Type": "multipart/form-data" } }
+          formData
         );
       }
 
-      alert(response.data.message);
+      alert(res.data.message);
       router.push("/admin/addBrochure");
-    } catch (error) {
-      console.error("Upload failed", error);
-      alert("File upload/update failed");
+    } catch (err: any) {
+      console.error("❌ Upload error:", err);
+
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Upload failed";
+
+      alert(msg);
     } finally {
       setLoading(false);
     }

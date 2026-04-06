@@ -47,20 +47,20 @@ const Sidebar = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchLogo = async () => {
-      try {
-        const { data } = await axios.get(`${api_url}settings`);
-        if (data.siteLogo) {
-          setLogo(`${img_url.replace(/\/$/, "")}${data.siteLogo}`);
-        }
-      } catch (error) {
-        console.error("Error fetching site logo:", error);
+ useEffect(() => {
+  const fetchLogo = async () => {
+    try {
+      const { data } = await axios.get(`${api_url}settings`);
+      if (data.siteLogo) {
+        setLogo(data.siteLogo); // S3 URL already complete
       }
-    };
+    } catch (error) {
+      console.error("Error fetching site logo:", error);
+    }
+  };
 
-    fetchLogo();
-  }, []);
+  fetchLogo();
+}, []);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 

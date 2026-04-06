@@ -1,3 +1,5 @@
+// Replace these imports/setup at the top:
+
 const mongoose = require("mongoose");
 const College = require("../../models/admin/collegemodel");
 const Course = require("../../models/admin/courseModel");
@@ -5,29 +7,30 @@ const Upload = require("../../models/admin/documentModel");
 const AffiliatedBy = require("../../models/admin/affiliatedBy");
 
 const multer = require("multer");
+const multerS3 = require("multer-s3");
 const path = require("path");
-const fs = require("fs");
-const slugify = require("slugify");
+const { v4: uuidv4 } = require("uuid");
+const s3 = require("../../utils/s3"); // your existing s3 client
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, "../../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer Storage
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
+// Remove the fs/uploadDir block entirely, then replace the storage + upload config:
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (_req, file, cb) => {
+      const uniqueKey = `colleges/${uuidv4()}${path.extname(file.originalname)}`;
+      cb(null, uniqueKey);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"), false);
+    }
+  },
 }).fields([
   { name: "image", maxCount: 1 },
   { name: "imageGallery", maxCount: 5 },
@@ -133,7 +136,8 @@ const createCollege = async (req, res) => {
 
     const missingFields = Object.entries(requiredFields)
       .filter(
-        ([key, value]) => !value || (Array.isArray(value) && value.length === 0)
+        ([key, value]) =>
+          !value || (Array.isArray(value) && value.length === 0),
       )
       .map(([key]) => key);
 
@@ -216,29 +220,33 @@ const createCollege = async (req, res) => {
     // ---------- STREAM, APPROVAL, EXAM PARSING ----------
     const parsedStream = parseArray(stream)
       .map((id) =>
-        mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null
+        mongoose.Types.ObjectId.isValid(id)
+          ? new mongoose.Types.ObjectId(id)
+          : null,
       )
       .filter(Boolean);
 
     const parsedApprovel = parseArray(approvel)
       .map((id) =>
-        mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null
+        mongoose.Types.ObjectId.isValid(id)
+          ? new mongoose.Types.ObjectId(id)
+          : null,
       )
       .filter(Boolean);
 
     const parsedExamExpected = parseArray(examExpected)
       .map((id) =>
-        mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null
+        mongoose.Types.ObjectId.isValid(id)
+          ? new mongoose.Types.ObjectId(id)
+          : null,
       )
       .filter(Boolean);
 
     // ---------- IMAGES ----------
-    const image = req.files?.["image"]?.[0]?.filename
-      ? `/uploads/${req.files["image"][0].filename}`
-      : "";
+    const image = req.files?.["image"]?.[0]?.location ?? "";
 
     const imageGallery = req.files?.["imageGallery"]
-      ? req.files["imageGallery"].map((file) => `/uploads/${file.filename}`)
+      ? req.files["imageGallery"].map((file) => file.location)
       : [];
 
     // ---------- SAVE COLLEGE ----------
@@ -284,7 +292,6 @@ const createCollege = async (req, res) => {
   }
 };
 
-
 // ✅ Get All Colleges
 const getallColleges = async (req, res) => {
   try {
@@ -316,7 +323,6 @@ const getallColleges = async (req, res) => {
       data: colleges,
       total,
     });
-
   } catch (error) {
     console.error("❌ Error fetching colleges:", error); // 🔥 IMPORTANT LOG
     res.status(500).json({ success: false, message: "Server error" });
@@ -364,7 +370,7 @@ const getCollege = async (req, res) => {
   try {
     const colleges = await College.find({})
       .select(
-        "state city rank ownership affiliatedby approvel examExpected stream"
+        "state city rank ownership affiliatedby approvel examExpected stream",
       )
       .populate("ownership", "name") // _id included by default
       .populate("affiliatedby", "code name")
@@ -589,7 +595,8 @@ const updateCollege = async (req, res) => {
         requiredFields[key] === undefined ||
         requiredFields[key] === null ||
         requiredFields[key] === "" ||
-        (Array.isArray(requiredFields[key]) && requiredFields[key].length === 0)
+        (Array.isArray(requiredFields[key]) &&
+          requiredFields[key].length === 0),
     );
 
     if (missingFields.length > 0) {
@@ -610,7 +617,8 @@ const updateCollege = async (req, res) => {
     if (tabs) {
       try {
         parsedTabs = typeof tabs === "string" ? JSON.parse(tabs) : tabs;
-        if (!Array.isArray(parsedTabs)) throw new Error("Tabs must be an array.");
+        if (!Array.isArray(parsedTabs))
+          throw new Error("Tabs must be an array.");
       } catch (err) {
         return res.status(400).json({
           success: false,
@@ -624,7 +632,8 @@ const updateCollege = async (req, res) => {
     let parsedCourses = [];
     if (courses) {
       try {
-        parsedCourses = typeof courses === "string" ? JSON.parse(courses) : courses;
+        parsedCourses =
+          typeof courses === "string" ? JSON.parse(courses) : courses;
         if (!Array.isArray(parsedCourses))
           throw new Error("Courses must be an array.");
       } catch (err) {
@@ -650,7 +659,8 @@ const updateCollege = async (req, res) => {
 
       parsedContacts = parsedContacts.filter((c) => {
         if (!c?.type || !c?.number) return false;
-        if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number)) return false;
+        if (c.type === "Mobile" && !/^(\+?\d{10,15})$/.test(c.number))
+          return false;
         if (c.type === "Landline" && !/^(\d{2,5}[- ]?\d{6,8})$/.test(c.number))
           return false;
         return true;
@@ -670,15 +680,16 @@ const updateCollege = async (req, res) => {
         typeof stream === "string"
           ? JSON.parse(stream)
           : Array.isArray(stream)
-          ? stream
-          : [];
-      if (!Array.isArray(tempStream)) throw new Error("Stream must be an array.");
+            ? stream
+            : [];
+      if (!Array.isArray(tempStream))
+        throw new Error("Stream must be an array.");
 
       parsedStream = tempStream
         .map((id) =>
           mongoose.Types.ObjectId.isValid(id)
             ? new mongoose.Types.ObjectId(id)
-            : null
+            : null,
         )
         .filter((id) => id);
     } catch (err) {
@@ -696,15 +707,16 @@ const updateCollege = async (req, res) => {
         typeof approvel === "string"
           ? JSON.parse(approvel)
           : Array.isArray(approvel)
-          ? approvel
-          : [];
-      if (!Array.isArray(tempApprovel)) throw new Error("Approvel must be an array.");
+            ? approvel
+            : [];
+      if (!Array.isArray(tempApprovel))
+        throw new Error("Approvel must be an array.");
 
       parsedApprovel = tempApprovel
         .map((id) =>
           mongoose.Types.ObjectId.isValid(id)
             ? new mongoose.Types.ObjectId(id)
-            : null
+            : null,
         )
         .filter((id) => id);
     } catch (err) {
@@ -722,8 +734,8 @@ const updateCollege = async (req, res) => {
         typeof examExpected === "string"
           ? JSON.parse(examExpected)
           : Array.isArray(examExpected)
-          ? examExpected
-          : [];
+            ? examExpected
+            : [];
       if (!Array.isArray(tempExamExpected))
         throw new Error("ExamExpected must be an array.");
 
@@ -731,7 +743,7 @@ const updateCollege = async (req, res) => {
         .map((id) =>
           mongoose.Types.ObjectId.isValid(id)
             ? new mongoose.Types.ObjectId(id)
-            : null
+            : null,
         )
         .filter((id) => id);
     } catch (err) {
@@ -743,13 +755,11 @@ const updateCollege = async (req, res) => {
     }
 
     // ✅ Handle images
-    const image = req.files?.["image"]?.[0]?.filename
-      ? `/uploads/${req.files["image"][0].filename}`
-      : undefined;
+   const image = req.files?.["image"]?.[0]?.location ?? undefined;
 
-    const imageGallery = req.files?.["imageGallery"]
-      ? req.files["imageGallery"].map((file) => `/uploads/${file.filename}`)
-      : undefined;
+const imageGallery = req.files?.["imageGallery"]
+  ? req.files["imageGallery"].map((file) => file.location)
+  : undefined;
 
     // ✅ Build update data
     const updateData = {
@@ -785,7 +795,7 @@ const updateCollege = async (req, res) => {
     const updatedCollege = await College.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!updatedCollege) {
@@ -808,7 +818,6 @@ const updateCollege = async (req, res) => {
     });
   }
 };
-
 
 const getCollegeDependencySummary = async (req, res) => {
   try {
@@ -919,7 +928,6 @@ const getFeaturedColleges = async (req, res) => {
   }
 };
 
-// Export functions (CommonJS)
 module.exports = {
   createCollege,
   getallColleges,
@@ -932,4 +940,5 @@ module.exports = {
   deleteCollege,
   getCollegeBySlug,
   getFeaturedColleges,
+  uploadMiddleware, // ✅ export so routes can use it
 };
