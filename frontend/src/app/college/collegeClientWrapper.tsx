@@ -263,6 +263,7 @@
 //   );
 // }
 "use client";
+
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import FilterCollegeCard from "@/components/college/collegeCard/filterCollgedata";
@@ -296,8 +297,13 @@ export default function CollegesClientWrapper() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isMounted, setIsMounted] = useState(false);
   const limit = 10;
   const lastFilterKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const parseSearchParams = () => {
     const result: { [key: string]: string[] } = {};
@@ -355,24 +361,32 @@ export default function CollegesClientWrapper() {
     (filters: { [key: string]: string[] }) => {
       const newQuery = buildQueryParams(filters);
       if (newQuery !== searchParams.toString()) {
-        setTimeout(() => { router.push(`?${newQuery}`); }, 0);
+        setTimeout(() => {
+          router.push(`?${newQuery}`);
+        }, 0);
       }
     },
     [router, searchParams]
   );
 
   const selectedFilters = parseSearchParams();
-  const activeFilterChips = Object.entries(selectedFilters)
-    .filter(([key]) => key !== "page")
-    .flatMap(([key, values]) =>
-      values.map((value) => ({ key, value, label: FILTER_LABELS[key] || key }))
-    );
+
+  const activeFilterChips = isMounted
+    ? Object.entries(selectedFilters)
+        .filter(([key]) => key !== "page")
+        .flatMap(([key, values]) =>
+          values.map((value) => ({ key, value, label: FILTER_LABELS[key] || key }))
+        )
+    : [];
 
   const handleRemoveFilter = (section: string, value: string) => {
     const updatedFilters = parseSearchParams();
     const nextValues = (updatedFilters[section] || []).filter((item) => item !== value);
-    if (nextValues.length) { updatedFilters[section] = nextValues; }
-    else { delete updatedFilters[section]; }
+    if (nextValues.length) {
+      updatedFilters[section] = nextValues;
+    } else {
+      delete updatedFilters[section];
+    }
     updatedFilters.page = ["1"];
     handleFilterChange(updatedFilters);
   };
@@ -393,8 +407,6 @@ export default function CollegesClientWrapper() {
   };
 
   const visiblePages = getVisiblePages();
-  const showLeftEllipsis = visiblePages[1] > 2;
-  const showRightEllipsis = visiblePages[visiblePages.length - 2] < totalPages - 1;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
@@ -411,13 +423,12 @@ export default function CollegesClientWrapper() {
       {/* Main content */}
       <div className="flex-1 space-y-4 sm:space-y-6 order-first lg:order-none min-w-0">
 
-        {/* Ad banner + AdBox — mobile: banner then 2-col adboxes | desktop: banner only */}
+        {/* Ad banner */}
         <div className="rounded-2xl">
           <AdBanner />
         </div>
-       
 
-        {/* Mobile filter button — sits right above college cards */}
+        {/* Mobile filter button */}
         <div className="lg:hidden">
           <FilterSidebarNew
             filters={filters}
@@ -426,21 +437,15 @@ export default function CollegesClientWrapper() {
           />
         </div>
 
-        {/* Active filter chips */}
-        {activeFilterChips.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 shadow-sm
-            p-2 text-xs
-            sm:p-3
-          ">
+        {/* Active filter chips — only rendered after mount to avoid hydration mismatch */}
+        {isMounted && activeFilterChips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/90 shadow-sm p-2 text-xs sm:p-3">
             <span className="font-semibold text-slate-600 text-[11px] sm:text-xs">Active filters:</span>
             {activeFilterChips.map((chip) => (
               <button
                 key={`${chip.key}-${chip.value}`}
                 onClick={() => handleRemoveFilter(chip.key, chip.value)}
-                className="inline-flex items-center gap-1 rounded-full border border-[#cbc4ff] bg-[#f6f5ff] text-[#44368a] hover:border-[#7a6be7]
-                  px-2 py-0.5 text-[10px]
-                  sm:px-3 sm:py-1 sm:text-[11px]
-                "
+                className="inline-flex items-center gap-1 rounded-full border border-[#cbc4ff] bg-[#f6f5ff] text-[#44368a] hover:border-[#7a6be7] px-2 py-0.5 text-[10px] sm:px-3 sm:py-1 sm:text-[11px]"
               >
                 <span className="text-[9px] sm:text-[10px] uppercase text-[#8b7ed9]">{chip.label}:</span>
                 <span className="max-w-[80px] truncate sm:max-w-none">{chip.value}</span>
@@ -469,11 +474,9 @@ export default function CollegesClientWrapper() {
               <FilterCollegeCard key={college._id} college={college} />
             ))}
 
-            {/* Pagination — compact on mobile */}
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6
-                text-xs sm:text-sm
-              ">
+              <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-4 sm:mt-6 text-xs sm:text-sm">
                 {/* Prev */}
                 <button
                   className="px-3 py-1.5 border rounded bg-white text-black disabled:opacity-40 text-xs sm:text-sm"
@@ -534,7 +537,7 @@ export default function CollegesClientWrapper() {
         )}
       </div>
 
-      {/* AdBox sidebar — hidden on mobile, visible on desktop */}
+      {/* AdBox sidebar — desktop only */}
       <div className="hidden lg:block w-[320px] space-y-4 shrink-0 lg:sticky lg:top-6 h-fit">
         <AdBox1 />
         <AdBox2 />

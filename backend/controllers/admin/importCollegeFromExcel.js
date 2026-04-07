@@ -255,12 +255,336 @@
 //   }
 // };
 
+// const ExcelJS = require("exceljs");
+// const fs = require("fs");
+// const path = require("path");
+// const slugify = require("slugify");
+// const { v4: uuidv4 } = require("uuid");
+// const mongoose = require("mongoose");
+
+// const College = require("../../models/admin/collegemodel");
+// const AffiliatedBy = require("../../models/admin/affiliatedBy");
+// const Ownership = require("../../models/admin/ownerShip");
+// const Stream = require("../../models/admin/streams");
+// const Approval = require("../../models/admin/approvels");
+// const ExamsAccepted = require("../../models/admin/examExpected");
+
+// // Generate unique slug
+// const generateUniqueSlug = async (name) => {
+//   let baseSlug = slugify(name, { lower: true, strict: true });
+//   let slug = baseSlug;
+//   let count = 1;
+//   while (await College.findOne({ slug })) {
+//     slug = `${baseSlug}-${count++}`;
+//   }
+//   return slug;
+// };
+
+// // Format image gallery string to array
+// const formatImages = (imagesStr) => {
+//   if (!imagesStr) return [];
+//   return imagesStr.split("|").map((img) => img.trim());
+// };
+
+// // Resolve single reference field
+// const resolveFieldId = async (Model, name, createIfNotFound = true) => {
+//   if (!name || typeof name !== "string") return null;
+//   const normalized = name.trim();
+//   let doc = await Model.findOne({ name: new RegExp(`^${normalized}$`, "i") });
+
+//   if (!doc && createIfNotFound) {
+//     doc = new Model({
+//       name: normalized,
+//       code: slugify(normalized, { lower: true, strict: true }),
+//     });
+//     await doc.save();
+//   }
+//   return doc?._id || null;
+// };
+
+// // Resolve multiple reference fields
+// const resolveMultipleFieldIds = async (Model, values, createIfNotFound = true) => {
+//   if (!values) return [];
+//   let parts = [];
+
+//   try {
+//     if (typeof values === "string" && values.trim().startsWith("[")) {
+//       parts = JSON.parse(values);
+//     } else if (typeof values === "string") {
+//       parts = values.split("|");
+//     } else if (Array.isArray(values)) {
+//       parts = values;
+//     }
+//   } catch {
+//     parts = values.split("|");
+//   }
+
+//   const ids = [];
+//   for (const name of parts.map((v) => v.trim()).filter(Boolean)) {
+//     const id = await resolveFieldId(Model, name, createIfNotFound);
+//     if (id) ids.push(id);
+//   }
+//   return ids;
+// };
+
+// const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+// // Extract email
+// const extractEmail = (val) => {
+//   if (!val) return "";
+//   if (typeof val === "string") return val.trim();
+//   if (typeof val === "object") {
+//     if (val.text) return val.text.trim();
+//     if (val.richText && Array.isArray(val.richText)) {
+//       return val.richText.map((t) => t.text).join("").trim();
+//     }
+//     if (val.result) return val.result.trim();
+//   }
+//   return "";
+// };
+
+// // Parse contact numbers with validation
+// const parseContactNumbers = (contactStr) => {
+//   if (!contactStr) return [];
+
+//   return contactStr
+//     .split(/\||,/)
+//     .map((item) => {
+//       const [typeRaw, numberRaw] = item.split(":").map((v) => v.trim());
+//       if (!typeRaw || !numberRaw) return null;
+
+//       const type = ["Mobile", "Landline"].includes(typeRaw) ? typeRaw : "Mobile";
+//       const number = numberRaw;
+
+//       const mobileRegex = /^(\+?\d{10,15})$/;
+//       const landlineRegex = /^(\d{2,5}[- ]?\d{6,8})$/;
+
+//       if ((type === "Mobile" && !mobileRegex.test(number)) ||
+//           (type === "Landline" && !landlineRegex.test(number))) {
+//         console.warn(`Invalid ${type} number skipped: ${number}`);
+//         return null;
+//       }
+
+//       return { type, number };
+//     })
+//     .filter(Boolean);
+// };
+
+// // Strip HTML tags
+// const stripHtml = (html) => {
+//   if (!html) return "";
+//   return html.replace(/<[^>]*>/g, "").trim();
+// };
+
+// // --- New Safe Helpers for Website Handling ---
+
+// const extractWebsiteValue = (val) => {
+//   if (val === undefined || val === null) return "";
+//   if (typeof val === "string") return val.trim();
+//   if (typeof val === "number") return String(val);
+//   if (typeof val === "object") {
+//     if (typeof val.text === "string") return val.text.trim();
+//     if (typeof val.result === "string") return val.result.trim();
+//     if (Array.isArray(val.richText)) {
+//       try {
+//         return val.richText.map((t) => (typeof t.text === "string" ? t.text : "")).join("").trim();
+//       } catch {
+//         return "";
+//       }
+//     }
+//     if (typeof val.value === "string") return val.value.trim();
+//     if (typeof val.toString === "function") {
+//       try {
+//         return String(val.toString()).trim();
+//       } catch {
+//         return "";
+//       }
+//     }
+//   }
+//   return "";
+// };
+
+// const normalizeWebsite = (rawUrl) => {
+//   const url = extractWebsiteValue(rawUrl);
+//   if (!url) return undefined;
+
+//   const placeholderSet = new Set(["-", "na", "n/a", "none", "null", ""]);
+//   if (placeholderSet.has(url.trim().toLowerCase())) return undefined;
+
+//   let site = url.trim();
+
+//   // Add https:// if missing
+//   if (!/^https?:\/\//i.test(site) && /^www\./i.test(site)) {
+//     site = `https://${site}`;
+//   } else if (!/^https?:\/\//i.test(site) && /^[\w-]+(\.[\w-]+)+/.test(site)) {
+//     site = `https://${site}`;
+//   }
+
+//   const regex = /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./?%&=-]*)?$/i;
+//   return regex.test(site) ? site : undefined;
+// };
+
+// // Controller
+// const importCollegeFromExcel = async (req, res) => {
+//   console.log("▶️ Hit importCollegeFromExcel API");
+
+//   try {
+//     if (!req.file) return res.status(400).json({ error: "No Excel file uploaded." });
+
+//     const workbook = new ExcelJS.Workbook();
+//     await workbook.xlsx.readFile(req.file.path);
+//     const sheet = workbook.worksheets[0];
+//     console.log(`📘 Loaded sheet: ${sheet.name}`);
+
+//     const imageMap = new Map();
+//     const folderPath = path.join(__dirname, "../../uploads");
+//     if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+
+//     // Extract images
+//     sheet.getImages().forEach((img) => {
+//       const image = workbook.model.media.find((media) => media.index === img.imageId);
+//       if (image && image.buffer) {
+//         const extension = image.type?.split("/")[1] || "webp";
+//         const filename = `${uuidv4()}.${extension}`;
+//         const filePath = path.join(folderPath, filename);
+//         fs.writeFileSync(filePath, image.buffer);
+//         const rowNumber = img.range.tl.nativeRow + 1;
+//         imageMap.set(rowNumber, `/uploads/${filename}`);
+//       }
+//     });
+
+//     const headerRow = sheet.getRow(1);
+//     const rows = [];
+
+//     sheet.eachRow((row, rowNumber) => {
+//       if (rowNumber === 1) return;
+//       const data = {};
+//       headerRow.eachCell((cell, colNumber) => {
+//         const header = cell.text.trim();
+//         const value = row.getCell(colNumber).value;
+//         data[header] = value;
+//       });
+//       if (data["Name"] && String(data["Name"]).trim() !== "") rows.push({ ...data, rowNumber });
+//     });
+
+//     console.log(`🧾 Found ${rows.length} data rows in Excel`);
+
+//     const imported = [];
+//     const failed = [];
+
+//     for (const row of rows) {
+//       try {
+//         const safe = (val, fallback = "-") => {
+//           if (typeof val === "string" && val.trim()) return val.trim();
+//           if (typeof val === "number" && !isNaN(val)) return val;
+//           return fallback;
+//         };
+
+//         let inputId = row["Mongo ID"];
+//         let normalizedId = null;
+
+//         if (typeof inputId === "string") {
+//           try {
+//             const parsed = JSON.parse(inputId);
+//             if (parsed && parsed.$oid && isValidObjectId(parsed.$oid)) normalizedId = parsed.$oid;
+//             else if (isValidObjectId(inputId)) normalizedId = inputId;
+//           } catch {
+//             if (isValidObjectId(inputId)) normalizedId = inputId; 
+//           }
+//         }
+
+//         const affiliatedById = await resolveFieldId(AffiliatedBy, row["Affiliated By"]);
+//         const ownershipId = await resolveFieldId(Ownership, row["Ownership"]);
+//         const streamIds = await resolveMultipleFieldIds(Stream, row["Streams"], false);
+//         const approvalIds = await resolveMultipleFieldIds(Approval, row["Approvals"], false);
+//         const examIds = await resolveMultipleFieldIds(ExamsAccepted, row["Exam Expected"], false);
+
+//         if (!affiliatedById || !ownershipId) {
+//           failed.push({ college: row["Name"], error: `${!affiliatedById ? "Affiliated By" : "Ownership"} not found.` });
+//           continue;
+//         }
+
+//         const imagePath = imageMap.get(row.rowNumber) || safe(row["Image"], "");
+//         const email = extractEmail(row["Contact Email"]);
+
+//         const contactNumbers = parseContactNumbers(row["Contact Numbers"]);
+//         console.log(`Contact numbers for college "${row["Name"]}":`, contactNumbers);
+
+//         const collegeData = {
+//           name: safe(row["Name"]),
+//           description: stripHtml(safe(row["Description"], "")),
+//           about: stripHtml(safe(row["About"], "")),
+//           state: safe(row["State"]),
+//           city: safe(row["City"]),
+//           address: safe(row["Address"]),
+//           location: safe(row["Location"]),
+//           rank: Number(row["Rank"]) || 0,
+//           fees: Number(row["Fees"]) || 0,
+//           avgPackage: Number(row["Avg Package"]) || 0,
+//           image: imagePath,
+//           imageGallery: formatImages(row["Image Gallery"]),
+//           website: normalizeWebsite(row["Website"]), // ✅ Updated safe website normalization
+//           contactNumbers,
+//           contactEmail: /^\S+@\S+\.\S+$/.test(email) ? email : undefined,
+//           affiliatedby: affiliatedById,
+//           ownership: ownershipId,
+//           stream: streamIds,
+//           approvel: approvalIds,
+//           examExpected: examIds,
+//           featured: ["true", "1", "yes"].includes(String(row["Featured"]).toLowerCase()),
+//         };
+
+//         console.log(`🌐 Website for "${row["Name"]}":`, collegeData.website);
+
+//         if (normalizedId) {
+//           const existing = await College.findById(normalizedId);
+//           if (existing) {
+//             collegeData.slug = existing.slug;
+//             const updated = await College.findByIdAndUpdate(normalizedId, collegeData, { new: true });
+//             imported.push(updated);
+//             console.log(`🔄 Updated existing college: ${updated.name}`);
+//             continue;
+//           } else {
+//             failed.push({ college: normalizedId, error: "No college found with provided _id." });
+//             continue;
+//           }
+//         }
+
+//         collegeData.slug = await generateUniqueSlug(row["Name"]);
+//         const newCollege = new College(collegeData);
+//         await newCollege.save();
+//         imported.push(newCollege);
+//         console.log(`✅ Created new college: ${newCollege.name}`);
+//       } catch (err) {
+//         failed.push({ college: row["Name"] || `Row ${row.rowNumber}`, error: err.message });
+//       }
+//     }
+
+//     fs.unlinkSync(req.file.path);
+//     console.log("🧹 Temporary file deleted after import.");
+
+//     console.log(`✅ Import finished! Created: ${imported.length}, Failed: ${failed.length}`);
+
+//     res.status(201).json({
+//       message: "Import completed.",
+//       successCount: imported.length,
+//       failedCount: failed.length,
+//       failedColleges: failed,
+//     });
+//   } catch (err) {
+//     console.error("❌ Excel import error:", err);
+//     res.status(500).json({ error: "Failed to import colleges", details: err.message });
+//   }
+// };
+
+// module.exports = { importCollegeFromExcel };
 const ExcelJS = require("exceljs");
 const fs = require("fs");
-const path = require("path");
 const slugify = require("slugify");
 const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
+
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 const College = require("../../models/admin/collegemodel");
 const AffiliatedBy = require("../../models/admin/affiliatedBy");
@@ -269,28 +593,82 @@ const Stream = require("../../models/admin/streams");
 const Approval = require("../../models/admin/approvels");
 const ExamsAccepted = require("../../models/admin/examExpected");
 
-// Generate unique slug
+// ------------------- S3 CONFIG -------------------
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+const uploadToS3 = async (buffer, fileName, mimeType) => {
+  const key = `uploads/${fileName}`;
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key,
+    Body: buffer,
+    ContentType: mimeType,
+  });
+
+  await s3.send(command);
+
+  return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+};
+
+// ------------------- HELPERS -------------------
+
 const generateUniqueSlug = async (name) => {
   let baseSlug = slugify(name, { lower: true, strict: true });
   let slug = baseSlug;
   let count = 1;
+
   while (await College.findOne({ slug })) {
     slug = `${baseSlug}-${count++}`;
   }
+
   return slug;
 };
 
-// Format image gallery string to array
-const formatImages = (imagesStr) => {
+const uploadGalleryImages = async (imagesStr) => {
   if (!imagesStr) return [];
-  return imagesStr.split("|").map((img) => img.trim());
+
+  const urls = imagesStr.split("|").map((img) => img.trim());
+  const uploaded = [];
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url);
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const filename = `${uuidv4()}.jpg`;
+
+      const s3Url = await uploadToS3(
+        buffer,
+        filename,
+        "image/jpeg"
+      );
+
+      uploaded.push(s3Url);
+    } catch (err) {
+      console.warn("Gallery image upload failed:", url);
+    }
+  }
+
+  return uploaded;
 };
 
-// Resolve single reference field
 const resolveFieldId = async (Model, name, createIfNotFound = true) => {
   if (!name || typeof name !== "string") return null;
+
   const normalized = name.trim();
-  let doc = await Model.findOne({ name: new RegExp(`^${normalized}$`, "i") });
+
+  let doc = await Model.findOne({
+    name: new RegExp(`^${normalized}$`, "i"),
+  });
 
   if (!doc && createIfNotFound) {
     doc = new Model({
@@ -299,12 +677,13 @@ const resolveFieldId = async (Model, name, createIfNotFound = true) => {
     });
     await doc.save();
   }
+
   return doc?._id || null;
 };
 
-// Resolve multiple reference fields
 const resolveMultipleFieldIds = async (Model, values, createIfNotFound = true) => {
   if (!values) return [];
+
   let parts = [];
 
   try {
@@ -320,87 +699,34 @@ const resolveMultipleFieldIds = async (Model, values, createIfNotFound = true) =
   }
 
   const ids = [];
+
   for (const name of parts.map((v) => v.trim()).filter(Boolean)) {
     const id = await resolveFieldId(Model, name, createIfNotFound);
     if (id) ids.push(id);
   }
+
   return ids;
 };
 
-const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
-
-// Extract email
-const extractEmail = (val) => {
-  if (!val) return "";
-  if (typeof val === "string") return val.trim();
-  if (typeof val === "object") {
-    if (val.text) return val.text.trim();
-    if (val.richText && Array.isArray(val.richText)) {
-      return val.richText.map((t) => t.text).join("").trim();
-    }
-    if (val.result) return val.result.trim();
-  }
-  return "";
-};
-
-// Parse contact numbers with validation
-const parseContactNumbers = (contactStr) => {
-  if (!contactStr) return [];
-
-  return contactStr
-    .split(/\||,/)
-    .map((item) => {
-      const [typeRaw, numberRaw] = item.split(":").map((v) => v.trim());
-      if (!typeRaw || !numberRaw) return null;
-
-      const type = ["Mobile", "Landline"].includes(typeRaw) ? typeRaw : "Mobile";
-      const number = numberRaw;
-
-      const mobileRegex = /^(\+?\d{10,15})$/;
-      const landlineRegex = /^(\d{2,5}[- ]?\d{6,8})$/;
-
-      if ((type === "Mobile" && !mobileRegex.test(number)) ||
-          (type === "Landline" && !landlineRegex.test(number))) {
-        console.warn(`Invalid ${type} number skipped: ${number}`);
-        return null;
-      }
-
-      return { type, number };
-    })
-    .filter(Boolean);
-};
-
-// Strip HTML tags
 const stripHtml = (html) => {
   if (!html) return "";
   return html.replace(/<[^>]*>/g, "").trim();
 };
 
-// --- New Safe Helpers for Website Handling ---
-
 const extractWebsiteValue = (val) => {
   if (val === undefined || val === null) return "";
+
   if (typeof val === "string") return val.trim();
   if (typeof val === "number") return String(val);
+
   if (typeof val === "object") {
     if (typeof val.text === "string") return val.text.trim();
     if (typeof val.result === "string") return val.result.trim();
     if (Array.isArray(val.richText)) {
-      try {
-        return val.richText.map((t) => (typeof t.text === "string" ? t.text : "")).join("").trim();
-      } catch {
-        return "";
-      }
-    }
-    if (typeof val.value === "string") return val.value.trim();
-    if (typeof val.toString === "function") {
-      try {
-        return String(val.toString()).trim();
-      } catch {
-        return "";
-      }
+      return val.richText.map((t) => t.text || "").join("").trim();
     }
   }
+
   return "";
 };
 
@@ -408,66 +734,76 @@ const normalizeWebsite = (rawUrl) => {
   const url = extractWebsiteValue(rawUrl);
   if (!url) return undefined;
 
-  const placeholderSet = new Set(["-", "na", "n/a", "none", "null", ""]);
-  if (placeholderSet.has(url.trim().toLowerCase())) return undefined;
-
   let site = url.trim();
 
-  // Add https:// if missing
-  if (!/^https?:\/\//i.test(site) && /^www\./i.test(site)) {
-    site = `https://${site}`;
-  } else if (!/^https?:\/\//i.test(site) && /^[\w-]+(\.[\w-]+)+/.test(site)) {
+  if (!/^https?:\/\//i.test(site)) {
     site = `https://${site}`;
   }
 
-  const regex = /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./?%&=-]*)?$/i;
-  return regex.test(site) ? site : undefined;
+  return site;
 };
 
-// Controller
+// ------------------- CONTROLLER -------------------
+
 const importCollegeFromExcel = async (req, res) => {
   console.log("▶️ Hit importCollegeFromExcel API");
 
   try {
-    if (!req.file) return res.status(400).json({ error: "No Excel file uploaded." });
+    if (!req.file) {
+      return res.status(400).json({ error: "No Excel file uploaded." });
+    }
 
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(req.file.path);
+
     const sheet = workbook.worksheets[0];
     console.log(`📘 Loaded sheet: ${sheet.name}`);
 
     const imageMap = new Map();
-    const folderPath = path.join(__dirname, "../../uploads");
-    if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
 
-    // Extract images
-    sheet.getImages().forEach((img) => {
-      const image = workbook.model.media.find((media) => media.index === img.imageId);
+    // Upload Excel images to S3
+    const images = sheet.getImages();
+
+    for (const img of images) {
+      const image = workbook.model.media.find(
+        (media) => media.index === img.imageId
+      );
+
       if (image && image.buffer) {
         const extension = image.type?.split("/")[1] || "webp";
         const filename = `${uuidv4()}.${extension}`;
-        const filePath = path.join(folderPath, filename);
-        fs.writeFileSync(filePath, image.buffer);
+
+        const s3Url = await uploadToS3(
+          image.buffer,
+          filename,
+          image.type
+        );
+
         const rowNumber = img.range.tl.nativeRow + 1;
-        imageMap.set(rowNumber, `/uploads/${filename}`);
+        imageMap.set(rowNumber, s3Url);
       }
-    });
+    }
 
     const headerRow = sheet.getRow(1);
     const rows = [];
 
     sheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
+
       const data = {};
+
       headerRow.eachCell((cell, colNumber) => {
         const header = cell.text.trim();
         const value = row.getCell(colNumber).value;
         data[header] = value;
       });
-      if (data["Name"] && String(data["Name"]).trim() !== "") rows.push({ ...data, rowNumber });
+
+      if (data["Name"] && String(data["Name"]).trim() !== "") {
+        rows.push({ ...data, rowNumber });
+      }
     });
 
-    console.log(`🧾 Found ${rows.length} data rows in Excel`);
+    console.log(`🧾 Found ${rows.length} rows`);
 
     const imported = [];
     const failed = [];
@@ -480,100 +816,89 @@ const importCollegeFromExcel = async (req, res) => {
           return fallback;
         };
 
-        let inputId = row["Mongo ID"];
-        let normalizedId = null;
+        const affiliatedById = await resolveFieldId(
+          AffiliatedBy,
+          row["Affiliated By"]
+        );
 
-        if (typeof inputId === "string") {
-          try {
-            const parsed = JSON.parse(inputId);
-            if (parsed && parsed.$oid && isValidObjectId(parsed.$oid)) normalizedId = parsed.$oid;
-            else if (isValidObjectId(inputId)) normalizedId = inputId;
-          } catch {
-            if (isValidObjectId(inputId)) normalizedId = inputId; 
-          }
-        }
+        const ownershipId = await resolveFieldId(
+          Ownership,
+          row["Ownership"]
+        );
 
-        const affiliatedById = await resolveFieldId(AffiliatedBy, row["Affiliated By"]);
-        const ownershipId = await resolveFieldId(Ownership, row["Ownership"]);
-        const streamIds = await resolveMultipleFieldIds(Stream, row["Streams"], false);
-        const approvalIds = await resolveMultipleFieldIds(Approval, row["Approvals"], false);
-        const examIds = await resolveMultipleFieldIds(ExamsAccepted, row["Exam Expected"], false);
+        const streamIds = await resolveMultipleFieldIds(
+          Stream,
+          row["Streams"],
+          false
+        );
+
+        const approvalIds = await resolveMultipleFieldIds(
+          Approval,
+          row["Approvals"],
+          false
+        );
+
+        const examIds = await resolveMultipleFieldIds(
+          ExamsAccepted,
+          row["Exam Expected"],
+          false
+        );
 
         if (!affiliatedById || !ownershipId) {
-          failed.push({ college: row["Name"], error: `${!affiliatedById ? "Affiliated By" : "Ownership"} not found.` });
+          failed.push({
+            college: row["Name"],
+            error: "Missing required references",
+          });
           continue;
         }
 
-        const imagePath = imageMap.get(row.rowNumber) || safe(row["Image"], "");
-        const email = extractEmail(row["Contact Email"]);
-
-        const contactNumbers = parseContactNumbers(row["Contact Numbers"]);
-        console.log(`Contact numbers for college "${row["Name"]}":`, contactNumbers);
+        const imagePath =
+          imageMap.get(row.rowNumber) || safe(row["Image"], "");
 
         const collegeData = {
           name: safe(row["Name"]),
           description: stripHtml(safe(row["Description"], "")),
-          about: stripHtml(safe(row["About"], "")),
           state: safe(row["State"]),
           city: safe(row["City"]),
-          address: safe(row["Address"]),
-          location: safe(row["Location"]),
-          rank: Number(row["Rank"]) || 0,
-          fees: Number(row["Fees"]) || 0,
-          avgPackage: Number(row["Avg Package"]) || 0,
           image: imagePath,
-          imageGallery: formatImages(row["Image Gallery"]),
-          website: normalizeWebsite(row["Website"]), // ✅ Updated safe website normalization
-          contactNumbers,
-          contactEmail: /^\S+@\S+\.\S+$/.test(email) ? email : undefined,
+          imageGallery: await uploadGalleryImages(row["Image Gallery"]),
+          website: normalizeWebsite(row["Website"]),
           affiliatedby: affiliatedById,
           ownership: ownershipId,
           stream: streamIds,
           approvel: approvalIds,
           examExpected: examIds,
-          featured: ["true", "1", "yes"].includes(String(row["Featured"]).toLowerCase()),
+          slug: await generateUniqueSlug(row["Name"]),
         };
 
-        console.log(`🌐 Website for "${row["Name"]}":`, collegeData.website);
-
-        if (normalizedId) {
-          const existing = await College.findById(normalizedId);
-          if (existing) {
-            collegeData.slug = existing.slug;
-            const updated = await College.findByIdAndUpdate(normalizedId, collegeData, { new: true });
-            imported.push(updated);
-            console.log(`🔄 Updated existing college: ${updated.name}`);
-            continue;
-          } else {
-            failed.push({ college: normalizedId, error: "No college found with provided _id." });
-            continue;
-          }
-        }
-
-        collegeData.slug = await generateUniqueSlug(row["Name"]);
         const newCollege = new College(collegeData);
         await newCollege.save();
+
         imported.push(newCollege);
-        console.log(`✅ Created new college: ${newCollege.name}`);
+        console.log(`✅ Created: ${newCollege.name}`);
       } catch (err) {
-        failed.push({ college: row["Name"] || `Row ${row.rowNumber}`, error: err.message });
+        failed.push({
+          college: row["Name"],
+          error: err.message,
+        });
       }
     }
 
     fs.unlinkSync(req.file.path);
-    console.log("🧹 Temporary file deleted after import.");
-
-    console.log(`✅ Import finished! Created: ${imported.length}, Failed: ${failed.length}`);
 
     res.status(201).json({
-      message: "Import completed.",
+      message: "Import completed",
       successCount: imported.length,
       failedCount: failed.length,
-      failedColleges: failed,
+      failed,
     });
   } catch (err) {
-    console.error("❌ Excel import error:", err);
-    res.status(500).json({ error: "Failed to import colleges", details: err.message });
+    console.error("❌ Import Error:", err);
+
+    res.status(500).json({
+      error: "Failed to import colleges",
+      details: err.message,
+    });
   }
 };
 

@@ -1,22 +1,34 @@
-const mongoose = require("mongoose"); // ✅ Import mongoose
-const Blog = require("../../models/admin/blogModel"); // ✅ Use correct model
+const mongoose = require("mongoose");
+const Blog = require("../../models/admin/blogModel");
 const multer = require("multer");
 const slugify = require("slugify");
 const path = require("path");
 
-// ✅ Configure Multer Storage for Image Uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // ✅ Ensure `uploads/` directory exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+// ✅ AWS SDK v3
+const { S3Client, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const multerS3 = require("multer-s3");
+
+// ✅ Initialize S3
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
+// ✅ Multer S3 Storage
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // ✅ Limit file size to 5MB
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      const fileName = `uploads/${Date.now()}-${file.originalname}`;
+      cb(null, fileName);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
     if (allowedTypes.includes(file.mimetype)) {
@@ -25,27 +37,21 @@ const upload = multer({
       cb(new Error("Invalid file type. Only JPG, PNG, and WEBP are allowed."), false);
     }
   },
-}).single("image"); // ✅ Accept only a single image
+}).single("image");
 
-// ✅ Create a new blog
+
+// ✅ Create Blog
 const createBlog = async (req, res) => {
   upload(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
-    }
+    if (err) return res.status(400).json({ message: err.message });
 
     try {
-      console.log("📥 Incoming Request:", { body: req.body, file: req.file });
-
-      // ✅ Destructure request body
       const { title, content, author, category, publishedDate } = req.body;
 
-      // ✅ Validate required fields with clearer error
       const missingFields = [];
-      if (!title || !title.trim()) missingFields.push("title");
-      if (!content || !content.trim()) missingFields.push("content");
-      if (!author || !author.trim()) missingFields.push("author");
-      // if (!category || !category.trim()) missingFields.push("category");
+      if (!title?.trim()) missingFields.push("title");
+      if (!content?.trim()) missingFields.push("content");
+      if (!author?.trim()) missingFields.push("author");
 
       if (missingFields.length > 0) {
         return res.status(400).json({
@@ -53,123 +59,102 @@ const createBlog = async (req, res) => {
         });
       }
 
-      // ✅ Handle Image Upload
-      const image = req.file ? `/uploads/${req.file.filename}` : null;
+      // ✅ S3 URL
+      const image = req.file ? req.file.location : null;
 
-      // ✅ Generate slug from title
       let baseSlug = slugify(title, { lower: true, strict: true });
       let slug = baseSlug;
       let count = 1;
 
-      // ✅ Ensure slug is unique
       while (await Blog.findOne({ slug })) {
         slug = `${baseSlug}-${count++}`;
       }
 
-      // ✅ Create a new blog post
       const blog = new Blog({
         title,
         content,
         author,
-        // category,
         publishedDate: publishedDate || new Date(),
         image,
         slug,
       });
 
-      // ✅ Save to database
       await blog.save();
 
-      console.log("✅ Blog successfully created:", blog);
       res.status(201).json({ message: "Blog created successfully", blog });
     } catch (error) {
-      console.error("❌ Error creating blog:", error);
       res.status(500).json({ error: "Failed to create blog", details: error.message });
     }
   });
 };
 
 
-
-
-// ✅ Get all blogs
+// ✅ Get All Blogs
 const getAllBlogs = async (req, res) => {
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 });
     res.status(200).json(blogs);
   } catch (error) {
-    console.error("❌ Error fetching blogs:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+
+// ✅ Paginated Blogs
 const getAllBlog = async (req, res) => {
   try {
-    // Extract page and limit from query parameters (defaults if not provided)
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
-    // Calculate the skip value based on the page and limit
     const skip = (page - 1) * limit;
 
-    // Fetch blogs with pagination
     const blogs = await Blog.find()
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    // Count total blogs for pagination metadata
     const totalBlogs = await Blog.countDocuments();
 
-    // Send response with pagination info
     res.status(200).json({
       blogs,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalBlogs / limit),
-        totalBlogs
-      }
+        totalBlogs,
+      },
     });
   } catch (error) {
-    console.error("❌ Error fetching blogs:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 
-// ✅ Get a single blog by ID
+// ✅ Get Blog By ID
 const getBlogById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // ✅ Validate ID format before querying
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid blog ID" });
     }
 
     const blog = await Blog.findById(id);
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
 
     res.status(200).json(blog);
   } catch (error) {
-    console.error("❌ Error fetching blog:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// ✅ Update a blog
-// ✅ Update a blog
+
+// ✅ Update Blog
 const updateBlog = async (req, res) => {
   upload(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
-    }
+    if (err) return res.status(400).json({ message: err.message });
 
     try {
       const { title, content, author, category, tags, publishedDate } = req.body;
-      
+
       let updatedFields = {
         title,
         content,
@@ -179,14 +164,27 @@ const updateBlog = async (req, res) => {
         publishedDate,
       };
 
-      // ✅ Generate and update slug
       if (title) {
         updatedFields.slug = slugify(title, { lower: true, strict: true });
       }
 
-      // ✅ Handle Image Update
+      // ✅ If new image uploaded
       if (req.file) {
-        updatedFields.image = `/uploads/${req.file.filename}`;
+        const oldBlog = await Blog.findById(req.params.id);
+
+        // 🔥 Delete old image from S3
+        if (oldBlog?.image) {
+          const oldKey = oldBlog.image.split(".amazonaws.com/")[1];
+
+          await s3.send(
+            new DeleteObjectCommand({
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: oldKey,
+            })
+          );
+        }
+
+        updatedFields.image = req.file.location;
       }
 
       const updatedBlog = await Blog.findByIdAndUpdate(
@@ -201,28 +199,24 @@ const updateBlog = async (req, res) => {
 
       res.status(200).json(updatedBlog);
     } catch (error) {
-      console.error("❌ Error updating blog:", error);
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
 };
+
+
+// ✅ Get Blog By Slug
 const getBlogBySlug = async (req, res) => {
   try {
     const { slug } = req.query;
 
-    // Validate that slug is provided and is not empty
-    if (!slug || typeof slug !== 'string' || slug.trim() === "") {
-      return res.status(400).json({ message: "Slug is required and must be a non-empty string" });
+    if (!slug || typeof slug !== "string" || slug.trim() === "") {
+      return res.status(400).json({ message: "Slug is required" });
     }
 
-    // Fetch the blog using the slug
     const blog = await Blog.findOne({ slug });
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
 
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    // Return the blog details as response
     res.status(200).json({
       id: blog._id,
       title: blog.title,
@@ -234,31 +228,40 @@ const getBlogBySlug = async (req, res) => {
       createdAt: blog.createdAt,
     });
   } catch (error) {
-    console.error("❌ Error fetching blog by slug:", error.message);
-
-    // Handle different error cases
-    if (error instanceof mongoose.Error) {
-      return res.status(500).json({ message: "Database error", details: error.message });
-    }
-
     res.status(500).json({ message: "Server error", details: error.message });
   }
 };
 
 
-// ✅ Delete a blog
+// ✅ Delete Blog
 const deleteBlog = async (req, res) => {
   try {
-    const deletedBlog = await Blog.findByIdAndDelete(req.params.id);
-    if (!deletedBlog) return res.status(404).json({ message: "Blog not found" });
+    const blog = await Blog.findById(req.params.id);
+
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
+
+    // 🔥 Delete image from S3
+    if (blog.image) {
+      const key = blog.image.split(".amazonaws.com/")[1];
+
+      await s3.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: key,
+        })
+      );
+    }
+
+    await Blog.findByIdAndDelete(req.params.id);
+
     res.status(200).json({ message: "Blog deleted successfully" });
   } catch (error) {
-    console.error("❌ Error deleting blog:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// ✅ Export functions
+
+// ✅ Export
 module.exports = {
   createBlog,
   getAllBlogs,

@@ -260,9 +260,11 @@ const BlogDetails: React.FC<BlogDetailsProps> = ({ slug }) => {
   const plainTextDescription =
     blog.content.replace(/<[^>]+>/g, "").slice(0, 150) + "...";
 
-  const blogImage = blog.image
-    ? `${img_url}${blog.image.replace(/^\/uploads\//, "uploads/")}`
-    : "/uploads/default-placeholder.png";
+const blogImage = blog.image
+  ? blog.image.startsWith("http")
+    ? blog.image // ✅ S3
+    : `${img_url}${blog.image}` // ✅ old local
+  : "/default-placeholder.png";
 
   const formattedDate = blog.createdAt
     ? new Date(blog.createdAt).toLocaleDateString("en-US", {

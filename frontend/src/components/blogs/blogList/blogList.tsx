@@ -33,14 +33,15 @@ export default function BlogList() {
     fetchBlogs();
   }, []);
 
-  const getImage = (blog: any, index: number) => {
-    if (imageFallbacks[index]) return imageFallbacks[index];
-    const baseURL = api_url.replace("/api", "");
-    if (blog.image && blog.image.trim())
-      return `${baseURL}${blog.image.replace(/^\/+/, "")}`;
-    return fallbackImages[index % fallbackImages.length];
-  };
+const getImage = (blog: any, index: number) => {
+  if (imageFallbacks[index]) return imageFallbacks[index];
 
+  if (blog.image && blog.image.trim()) {
+    return blog.image; // ✅ Direct S3 URL
+  }
+
+  return fallbackImages[index % fallbackImages.length];
+};
   const onImgError = (index: number) =>
     setImageFallbacks((prev) => ({
       ...prev,

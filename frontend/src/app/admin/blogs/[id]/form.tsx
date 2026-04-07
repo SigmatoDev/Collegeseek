@@ -81,8 +81,10 @@ const ActualBlogForm = () => {
         });
         setImageSrc(
           data.image
-            ? `${img_url}${data.image.replace(/^\/uploads\//, "uploads/")}`
-            : "/default-placeholder.png"
+            ? data.image.startsWith("http")
+              ? data.image // S3 URL
+              : `${img_url}${data.image}` // fallback for old local images
+            : "/default-placeholder.png",
         );
       } catch (err: any) {
         setError("Failed to fetch blog data. Please try again.");
@@ -95,7 +97,7 @@ const ActualBlogForm = () => {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setBlogData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     },
-    []
+    [],
   );
 
   const handleEditorChange = (content: string) => {
@@ -242,6 +244,25 @@ const ActualBlogForm = () => {
                 "anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount",
               toolbar:
                 "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat",
+              file_picker_types: "image",
+              file_picker_callback: (
+                callback: (arg0: string, arg1: { title: string }) => void,
+                _value: any,
+                meta: { filetype: string },
+              ) => {
+                if (meta.filetype === "image") {
+                  const input = document.createElement("input");
+                  input.setAttribute("type", "file");
+                  input.setAttribute("accept", "image/*");
+                  input.onchange = () => {
+                    const file = input.files?.[0];
+                    if (!file) return;
+                    const objectUrl = URL.createObjectURL(file);
+                    callback(objectUrl, { title: file.name });
+                  };
+                  input.click();
+                }
+              },
             }}
             onEditorChange={handleEditorChange}
           />

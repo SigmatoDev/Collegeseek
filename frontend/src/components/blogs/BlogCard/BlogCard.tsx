@@ -24,11 +24,13 @@ export default function BlogCard({
   const router = useRouter();
   const [id, setId] = useState<string | undefined>(propId);
   const [loading, setLoading] = useState(!propId);
-  const [imageSrc, setImageSrc] = useState(
-    image
-      ? `${img_url}${image.replace(/^\/uploads\//, "uploads/")}`
-      : "/default-placeholder.png"
-  );
+ const [imageSrc, setImageSrc] = useState(
+  image
+    ? image.startsWith("http")
+      ? image // ✅ S3 URL
+      : `${img_url}${image}` // ✅ old local fallback
+    : "/default-placeholder.png"
+);
 
   // Fetch blog ID if not passed in as prop
   useEffect(() => {
