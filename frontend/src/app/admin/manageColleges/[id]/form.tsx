@@ -123,62 +123,62 @@ const ActualCollegeForm = () => {
     fetchApiKey();
   }, []);
 
-useEffect(() => {
-  const fetchCollegeData = async () => {
-    if (!collegeId || collegeId === "new") return;
+  useEffect(() => {
+    const fetchCollegeData = async () => {
+      if (!collegeId || collegeId === "new") return;
 
-    try {
-      const response = await axios.get(`${api_url}colleges/${collegeId}`);
-      const data = response.data.data;
+      try {
+        const response = await axios.get(`${api_url}colleges/${collegeId}`);
+        const data = response.data.data;
 
-      setCollegeData({
-        name: data.name || "",
-        description: data.description || "",
-        state: data.state || "",
-        city: data.city || "",
-        stream: data.stream || [],
-        approvel: data.approvel || [],
-        affiliatedby: data.affiliatedby || "",
-        examExpected: data.examExpected || [],
-        ownership: data.ownership || "",
-        address: data.address || "",
-        location: data.location || "",
-        latitude: data.latitude || "",
-        longitude: data.longitude || "",
-        rank: data.rank ? String(data.rank) : "",
-        fees: data.fees ? String(data.fees) : "",
-        avgPackage: data.avgPackage ? String(data.avgPackage) : "",
-        established: data.established ? String(data.established) : "",
-        about: data.about || "",
-        website: data.website || "",
-        contactNumbers: Array.isArray(data.contactNumbers)
-          ? data.contactNumbers
-          : data.contact
-          ? [{ type: "Mobile", number: data.contact }]
-          : [{ type: "Mobile", number: "" }],
-        contactEmail: data.contactEmail || "",
-        tabs: data.tabs || [],
-        featured: data.featured || "",
-        image: null,
-        imageGallery: [],
-      });
+        setCollegeData({
+          name: data.name || "",
+          description: data.description || "",
+          state: data.state || "",
+          city: data.city || "",
+          stream: data.stream || [],
+          approvel: data.approvel || [],
+          affiliatedby: data.affiliatedby || "",
+          examExpected: data.examExpected || [],
+          ownership: data.ownership || "",
+          address: data.address || "",
+          location: data.location || "",
+          latitude: data.latitude || "",
+          longitude: data.longitude || "",
+          rank: data.rank ? String(data.rank) : "",
+          fees: data.fees ? String(data.fees) : "",
+          avgPackage: data.avgPackage ? String(data.avgPackage) : "",
+          established: data.established ? String(data.established) : "",
+          about: data.about || "",
+          website: data.website || "",
+          contactNumbers: Array.isArray(data.contactNumbers)
+            ? data.contactNumbers
+            : data.contact
+              ? [{ type: "Mobile", number: data.contact }]
+              : [{ type: "Mobile", number: "" }],
+          contactEmail: data.contactEmail || "",
+          tabs: data.tabs || [],
+          featured: data.featured || "",
+          image: null,
+          imageGallery: [],
+        });
 
-      // ✅ Use S3 URLs directly
-      setImagePreview(data.image || null);
+        // ✅ Use S3 URLs directly
+        setImagePreview(data.image || null);
 
-      setGalleryPreview(
-        Array.isArray(data.imageGallery) ? data.imageGallery : []
-      );
-    } catch (err: any) {
-      console.error("❌ Fetch error:", err.response?.data || err.message);
-      setError("Failed to fetch college data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        setGalleryPreview(
+          Array.isArray(data.imageGallery) ? data.imageGallery : [],
+        );
+      } catch (err: any) {
+        console.error("❌ Fetch error:", err.response?.data || err.message);
+        setError("Failed to fetch college data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchCollegeData();
-}, [collegeId]);
+    fetchCollegeData();
+  }, [collegeId]);
 
   const handleEditorChange = (value: string) => {
     setCollegeData((prev) => ({
@@ -214,7 +214,7 @@ useEffect(() => {
         [name]: value,
       }));
     },
-    []
+    [],
   );
 
   /*** ✅ Handle Image Upload ***/
@@ -242,19 +242,19 @@ useEffect(() => {
           const existingFiles = prev.imageGallery || [];
           const newFiles = fileArray.filter(
             (file) =>
-              !existingFiles.some((existing) => existing.name === file.name)
+              !existingFiles.some((existing) => existing.name === file.name),
           );
 
           return { ...prev, imageGallery: [...existingFiles, ...newFiles] };
         });
 
         const newPreviewImages = fileArray.map((file) =>
-          URL.createObjectURL(file)
+          URL.createObjectURL(file),
         );
         setGalleryPreview((prev) => [...prev, ...newPreviewImages]);
       }
     },
-    []
+    [],
   );
 
   const removeGalleryImage = (index: number) => {
@@ -270,7 +270,7 @@ useEffect(() => {
   const handleTabChange = (
     index: number,
     field: "title" | "description",
-    value: string
+    value: string,
   ) => {
     setCollegeData((prev) => {
       const newTabs = [...prev.tabs];
@@ -334,7 +334,6 @@ useEffect(() => {
     // ---------------------------
 
     // Website
-    if (!collegeData.website?.trim()) newErrors.website = "Website is required";
 
     // Contact Email
     if (!collegeData.contactEmail?.trim())
@@ -409,7 +408,7 @@ useEffect(() => {
     if (collegeData.contactNumbers && collegeData.contactNumbers.length > 0) {
       formData.append(
         "contactNumbers",
-        JSON.stringify(collegeData.contactNumbers)
+        JSON.stringify(collegeData.contactNumbers),
       );
     }
 
@@ -424,18 +423,18 @@ useEffect(() => {
       formData.append("tabs", JSON.stringify(collegeData.tabs));
     }
 
-  if (collegeData.image instanceof File) {
-  // New image file → append to formData
-  formData.append("image", collegeData.image);
-}
-
-if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
-  collegeData.imageGallery.forEach((item) => {
-    if (item instanceof File) {
-      formData.append("imageGallery", item);
+    if (collegeData.image instanceof File) {
+      // New image file → append to formData
+      formData.append("image", collegeData.image);
     }
-  });
-}
+
+    if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
+      collegeData.imageGallery.forEach((item) => {
+        if (item instanceof File) {
+          formData.append("imageGallery", item);
+        }
+      });
+    }
 
     // ---------------------------------------
     // 📡 API REQUEST (AS IS)
@@ -459,7 +458,7 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
     } catch (err: any) {
       console.error(
         "❌ Error saving college:",
-        err.response?.data || err.message
+        err.response?.data || err.message,
       );
 
       const backendError = err.response?.data;
@@ -550,7 +549,8 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
             {Object.entries(fieldLabels).map(([field, label]) => (
               <div key={field} className="flex flex-col mb-4">
                 <label className="text-gray-700 font-medium">
-                  {label} <sup className="text-red-500">*</sup>
+                  {label}{" "}
+                  {field !== "website" && <sup className="text-red-500">*</sup>}
                 </label>
 
                 {/* ----------------------------------------------- */}
@@ -692,8 +692,8 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
                         field === "website"
                           ? "text" // ✅ FIXED (was: url)
                           : field === "contactEmail"
-                          ? "email"
-                          : "text"
+                            ? "email"
+                            : "text"
                       }
                       inputMode={field === "website" ? "url" : undefined} // ✅ Added
                       name={field}
@@ -831,7 +831,7 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
                 defaultSelected={collegeData?.approvel ?? []}
                 onSelectionChange={(selectedApprovels) => {
                   const approvelNames = selectedApprovels.map(
-                    (a: { _id: string }) => a._id
+                    (a: { _id: string }) => a._id,
                   ); // Convert Approval[] to string[]
                   setCollegeData((prevData) => ({
                     ...prevData,
@@ -854,7 +854,7 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
               defaultSelected={collegeData?.examExpected ?? []}
               onSelectionChange={(selectedExams) => {
                 const examNames = selectedExams.map(
-                  (e: { _id: string }) => e._id
+                  (e: { _id: string }) => e._id,
                 ); // Convert Exam[] to string[]
                 setCollegeData((prevData) => ({
                   ...prevData,
@@ -1049,9 +1049,9 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
               handleEditorChange(content); // content is the typed HTML
             }}
           />
-           {errors.description && (
-              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
-            )}
+          {errors.description && (
+            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+          )}
 
           {/* About Field */}
           <div className="flex flex-col space-y-1">
@@ -1068,7 +1068,7 @@ if (collegeData.imageGallery && Array.isArray(collegeData.imageGallery)) {
               onEditorChange={handleeditorChange}
               textareaName="about"
             />
-              {errors.about && (
+            {errors.about && (
               <p className="text-red-500 text-sm mt-1">{errors.about}</p>
             )}
           </div>

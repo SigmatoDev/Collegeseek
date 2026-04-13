@@ -78,8 +78,21 @@ const ProfileDropdown = () => {
           }
         }}
       >
-        <span className="relative flex items-center justify-center p-1 rounded-full border border-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-105 hover:border-[#D35C42]">
-          <UserCircleIcon className="h-6 w-6 md:h-8 md:w-8 text-gray-700 hover:text-[#D35C42]" />
+        <span className="relative flex items-center justify-center p-1 rounded-full border border-gray-200 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md hover:scale-105 hover:border-[#D35C42] overflow-hidden">
+          {user?.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt="Profile"
+              className="h-6 w-6 md:h-8 md:w-8 rounded-full object-cover"
+              onError={(e) => {
+                // fallback to icon if image fails
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+              }}
+            />
+          ) : (
+            <UserCircleIcon className="h-6 w-6 md:h-8 md:w-8 text-gray-700 hover:text-[#D35C42]" />
+          )}
         </span>
 
         {isLoggedIn ? (

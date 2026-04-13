@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface Admin {
-  _id: string;
+  id: string; // ✅ changed from _id to id
   name: string;
   email: string;
   phone: string;
@@ -24,7 +24,7 @@ export const useAdminStore = create<AdminStore>()(
       logout: () => set({ admin: null, isLoggedIn: false }),
     }),
     {
-      name: "admin_store", // sessionStorage key
+      name: "admin_store",
       storage: {
         getItem: (key) => {
           const value = sessionStorage.getItem(key);

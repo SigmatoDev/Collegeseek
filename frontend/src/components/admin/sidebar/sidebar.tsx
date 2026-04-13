@@ -25,6 +25,7 @@ import {
   Monitor,
   LogOut,
   Filter,
+  KeyRound,
 } from "lucide-react";
 import {
   BookOpenIcon,
@@ -47,23 +48,21 @@ const Sidebar = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
 
- useEffect(() => {
-  const fetchLogo = async () => {
-    try {
-      const { data } = await axios.get(`${api_url}settings`);
-      if (data.siteLogo) {
-        setLogo(data.siteLogo); // S3 URL already complete
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const { data } = await axios.get(`${api_url}settings`);
+        if (data.siteLogo) {
+          setLogo(data.siteLogo);
+        }
+      } catch (error) {
+        console.error("Error fetching site logo:", error);
       }
-    } catch (error) {
-      console.error("Error fetching site logo:", error);
-    }
-  };
-
-  fetchLogo();
-}, []);
+    };
+    fetchLogo();
+  }, []);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
-
   const toggleMenu = (menu: string) => {
     setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu));
   };
@@ -153,13 +152,12 @@ const Sidebar = () => {
         },
         {
           href: "/admin/categoryFilter",
-          icon: <Filter size={18} />, // You can choose another icon if you want
+          icon: <Filter size={18} />,
           text: "CategoryFilter",
           isOpen,
         },
       ],
     },
-
     {
       href: "#",
       icon: <BookOpenIcon className="h-5 w-5" />,
@@ -216,6 +214,12 @@ const Sidebar = () => {
           href: "/admin/settings",
           icon: <Settings size={18} />,
           text: "General Settings",
+          isOpen,
+        },
+        {
+          href: "/admin/changePassword", // ✅ Fixed: added leading slash
+          icon: <KeyRound size={18} />,
+          text: "Change Password",
           isOpen,
         },
         {
@@ -289,7 +293,7 @@ const Sidebar = () => {
           icon: <FileText size={18} />,
           text: "Meta",
           isOpen,
-        }, // ✅ New Meta submenu
+        },
       ],
     },
   ];
@@ -305,15 +309,9 @@ const Sidebar = () => {
         {isOpen && (
           <div className="flex items-center space-x-2">
             {logo ? (
-              <img
-                src={logo}
-                alt="Logo"
-                className="h-12 w-auto object-contain"
-              />
+              <img src={logo} alt="Logo" className="h-12 w-auto object-contain" />
             ) : (
-              <span className="text-sm font-semibold text-[#0a0536]">
-                Admin Panel
-              </span>
+              <span className="text-sm font-semibold text-[#0a0536]">Admin Panel</span>
             )}
           </div>
         )}
@@ -322,11 +320,7 @@ const Sidebar = () => {
           className="text-[#0a0536] text-xl p-2 rounded-full hover:bg-gray-100 transition"
           aria-label="Toggle sidebar"
         >
-          {isOpen ? (
-            <ArrowLeftCircle size={22} />
-          ) : (
-            <ArrowRightCircle size={22} />
-          )}
+          {isOpen ? <ArrowLeftCircle size={22} /> : <ArrowRightCircle size={22} />}
         </button>
       </div>
 
@@ -347,34 +341,20 @@ const Sidebar = () => {
                   {isOpen && (
                     <ChevronRight
                       size={18}
-                      className={`transition-transform ${
-                        activeMenu === text ? "rotate-90" : ""
-                      }`}
+                      className={`transition-transform ${activeMenu === text ? "rotate-90" : ""}`}
                     />
                   )}
                 </button>
                 {activeMenu === text && (
                   <div className="pl-8 mt-1 space-y-1">
                     {subMenu.map(({ href, icon, text }) => (
-                      <SidebarLink
-                        key={href}
-                        href={href}
-                        icon={icon}
-                        text={text}
-                        isOpen={isOpen}
-                      />
+                      <SidebarLink key={href} href={href} icon={icon} text={text} isOpen={isOpen} />
                     ))}
                   </div>
                 )}
               </>
             ) : (
-              <SidebarLink
-                key={href}
-                href={href}
-                icon={icon}
-                text={text}
-                isOpen={isOpen}
-              />
+              <SidebarLink key={href} href={href} icon={icon} text={text} isOpen={isOpen} />
             )}
           </div>
         ))}
@@ -395,9 +375,7 @@ const Sidebar = () => {
           <LogOut size={18} />
           {isOpen && <span>Logout</span>}
         </button>
-        <p className="text-center text-gray-300 text-xs">
-          © 2025 Collegeseek.in
-        </p>
+        <p className="text-center text-gray-300 text-xs">© 2025 Collegeseek.in</p>
       </div>
     </div>
   );

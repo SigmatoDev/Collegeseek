@@ -153,86 +153,85 @@
 //     </Link>
 //   )
 // }
-'use client'
+"use client";
 
-import { Home, User, Heart, LogOut } from 'lucide-react'
-import Link from 'next/link'
-import { useUserStore } from '@/Store/userStore'
-import { useRouter } from 'next/navigation'
-
-// ── Pure sidebar content — no mobile drawer logic here ──
-// Mobile drawer is handled by UserLayout
-// Desktop: renders as static left column
+import { Home, User, Heart, LogOut, KeyRound } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useUserStore } from "@/Store/userStore";
+import { useRouter } from "next/navigation";
 
 export default function UserSidebar() {
-  const router = useRouter()
-  const logout = useUserStore((state) => state.logout)
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, logout } = useUserStore();
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "U";
 
   const handleLogout = () => {
-    logout()
+    logout();
+    sessionStorage.removeItem("redirectAfterLogin");
+    sessionStorage.removeItem("pendingShortlistCollege");
+    router.replace("/user/auth/logIn");
+  };
 
-    // optional cleanup (if not already in store)
-    sessionStorage.removeItem("redirectAfterLogin")
-    sessionStorage.removeItem("pendingShortlistCollege")
+  const links = [
+    { href: "/", icon: <Home size={15} />, label: "Home" },
+    { href: "/user/profile", icon: <User size={15} />, label: "My Profile" },
+    { href: "/user/shortlisted", icon: <Heart size={15} />, label: "Shortlisted" },
+    { href: "/user/auth/changePassword", icon: <KeyRound size={15} />, label: "Change Password" },
+  ];
 
-    // ✅ correct redirect
-    router.replace('/user/auth/logIn')
-  }
   return (
-    <aside className="h-full bg-white border-[0.1px] shadow-sm flex flex-col rounded-xl overflow-hidden">
-
-      {/* Quick Tips */}
-      <div className="m-3 p-4 bg-gray-50 border rounded-xl shadow-sm">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase mb-1">
-          Quick Tips
-        </h3>
-        <p className="text-sm font-medium text-gray-800">
-          Keep your profile updated
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Completing your profile helps us tailor counselling, alerts, and
-          application reminders specifically for you.
-        </p>
+    <aside className="flex flex-col h-full bg-white rounded-xl border border-gray-100 overflow-hidden">
+      {/* User card */}
+      <div className="p-3 border-b border-gray-100">
+        <div className="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3 py-2.5">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-medium shrink-0">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-800 truncate">{user?.name || "User"}</p>
+            <p className="text-xs text-gray-400">Student</p>
+          </div>
+        </div>
       </div>
 
-      {/* Nav Links */}
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto py-2">
-        <SidebarLink href="/" icon={<Home size={18} />} label="Home" />
-        <SidebarLink href="/user/profile" icon={<User size={18} />} label="My Profile" />
-        <SidebarLink href="/user/shortlisted" icon={<Heart size={18} />} label="Shortlisted" />
-        <SidebarLink href="/user/auth/changePassword" icon={<User size={18} />} label="Change Password" />
+      {/* Nav */}
+      <nav className="flex-1 p-2 space-y-0.5">
+        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider px-2 py-1.5">
+          Navigation
+        </p>
+        {links.map(({ href, icon, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition ${
+              pathname === href
+                ? "bg-indigo-50 text-indigo-700 font-medium"
+                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+          >
+            <span className={pathname === href ? "text-indigo-600" : "text-gray-400"}>
+              {icon}
+            </span>
+            {label}
+          </Link>
+        ))}
       </nav>
 
       {/* Logout */}
-      <div className="border-t px-3 py-4">
+      <div className="p-2 border-t border-gray-100">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-red-500 hover:text-red-600 transition hover:bg-red-50 w-full"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 transition w-full"
         >
-          <LogOut size={18} />
-          <span className="text-sm font-medium">Logout</span>
+          <LogOut size={15} />
+          Logout
         </button>
       </div>
     </aside>
-  )
-}
-
-function SidebarLink({
-  href,
-  icon,
-  label,
-}: {
-  href: string
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition"
-    >
-      <div className="flex-shrink-0">{icon}</div>
-      <span className="text-sm font-medium">{label}</span>
-    </Link>
-  )
+  );
 }

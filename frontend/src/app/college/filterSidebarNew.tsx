@@ -691,7 +691,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SlidersHorizontal, X, ChevronDown, ChevronUp, Search } from "lucide-react";
+import {
+  SlidersHorizontal,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Search,
+} from "lucide-react";
 
 interface FilterItem {
   name: string;
@@ -715,18 +721,19 @@ interface CombinedFilterResponse {
   programModes?: FilterItem[];
   fees?: CourseFeesItem[];
 }
-const FILTER_SECTIONS: { key: keyof CombinedFilterResponse; label: string }[] = [
-  { key: "states", label: "State" },
-  { key: "cities", label: "City" },
-  { key: "streams", label: "Stream" },
-  { key: "ownerships", label: "Ownership" },
-  { key: "exams", label: "Exams Accepted" },
-  { key: "approvals", label: "Approvals" },
-  { key: "affiliatedBy", label: "Affiliated By" },
-  { key: "categories", label: "Course Category" },
-  { key: "specializations", label: "Specialization" },
-  { key: "programModes", label: "Program Mode" },
-];
+const FILTER_SECTIONS: { key: keyof CombinedFilterResponse; label: string }[] =
+  [
+    { key: "states", label: "State" },
+    { key: "cities", label: "City" },
+    { key: "streams", label: "Stream" },
+    { key: "ownerships", label: "Ownership" },
+    { key: "exams", label: "Exams Accepted" },
+    { key: "approvals", label: "Approvals" },
+    { key: "affiliatedBy", label: "Affiliated By" },
+    { key: "categories", label: "Course Category" },
+    { key: "specializations", label: "Specialization" },
+    { key: "programModes", label: "Program Mode" },
+  ];
 
 // ── Helpers ──────────────────────────────────────────────────────
 /** Sort FilterItem[] alphabetically by name */
@@ -765,7 +772,7 @@ function DesktopFilterSkeleton() {
                   <div className="h-4 w-4 rounded bg-gray-200 shrink-0" />
                   <div
                     className="h-3 rounded-full bg-gray-100"
-                    style={{ width: `${55 + (i * 13) % 35}%` }}
+                    style={{ width: `${55 + ((i * 13) % 35)}%` }}
                   />
                 </div>
               ))}
@@ -791,7 +798,9 @@ function FilterContent({
   hasActiveFilters: boolean;
 }) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-  const [sectionSearch, setSectionSearch] = useState<Record<string, string>>({});
+  const [sectionSearch, setSectionSearch] = useState<Record<string, string>>(
+    {},
+  );
 
   const toggleSection = (key: string) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -811,7 +820,9 @@ function FilterContent({
     // ── Filter by search query ──
     const query = (sectionSearch[key] || "").toLowerCase();
     const visible = query
-      ? sorted.filter((item: any) => getValue(item).toLowerCase().includes(query))
+      ? sorted.filter((item: any) =>
+          getValue(item).toLowerCase().includes(query),
+        )
       : sorted;
 
     const isOpen = openSections[key] !== false;
@@ -848,7 +859,10 @@ function FilterContent({
                 type="text"
                 value={sectionSearch[key] || ""}
                 onChange={(e) =>
-                  setSectionSearch((prev) => ({ ...prev, [key]: e.target.value }))
+                  setSectionSearch((prev) => ({
+                    ...prev,
+                    [key]: e.target.value,
+                  }))
                 }
                 onClick={(e) => e.stopPropagation()}
                 placeholder={`Search...`}
@@ -872,7 +886,9 @@ function FilterContent({
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {visible.length === 0 ? (
-                <li className="px-3 py-2 text-xs text-gray-400 italic">No results found</li>
+                <li className="px-3 py-2 text-xs text-gray-400 italic">
+                  No results found
+                </li>
               ) : (
                 visible.map((item: any, index: number) => {
                   const val = getValue(item);
@@ -881,10 +897,11 @@ function FilterContent({
                     <li
                       key={`${key}-${val}-${index}`}
                       onClick={() => toggleSelect(key, val, getState?.(item))}
-                      className={`flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm transition
-                        ${isSelected
-                          ? "bg-[#f0edff] border border-[#7a6be7] text-[#2f2479] font-semibold"
-                          : "bg-gray-50 border border-transparent text-gray-600 hover:bg-gray-100"
+                      className={`flex cursor-pointer items-start gap-2 rounded-xl px-3 py-2 text-sm transition 
+                        ${
+                          isSelected
+                            ? "bg-[#f0edff] border border-[#7a6be7] text-[#2f2479] font-semibold"
+                            : "bg-gray-50 border border-transparent text-gray-600 hover:bg-gray-100"
                         }`}
                     >
                       <input
@@ -896,11 +913,15 @@ function FilterContent({
                           toggleSelect(key, val, getState?.(item));
                         }}
                         suppressHydrationWarning
-                        className="h-4 w-4 rounded border-gray-300 accent-[#635dc1] shrink-0"
+                        className="h-4 w-4 rounded-full border-gray-300 accent-[#635dc1] shrink-0 cursor-pointer"
                       />
                       <span className="flex-1 truncate">
                         {val}{" "}
-                        <span className={isSelected ? "text-[#7a6be7]" : "text-gray-400"}>
+                        <span
+                          className={
+                            isSelected ? "text-[#7a6be7]" : "text-gray-400"
+                          }
+                        >
                           ({item.count})
                         </span>
                       </span>
@@ -927,7 +948,8 @@ function FilterContent({
             )
           : null,
       )}
-      {filters.fees && filters.fees.length > 0 &&
+      {filters.fees &&
+        filters.fees.length > 0 &&
         renderItems("fees", filters.fees, (item) => item.range)}
     </div>
   );
@@ -943,7 +965,9 @@ function DesktopFilterSections({
   selected: { [key: string]: Set<string> };
   toggleSelect: (section: string, value: string, parentState?: string) => void;
 }) {
-  const [sectionSearch, setSectionSearch] = useState<Record<string, string>>({});
+  const [sectionSearch, setSectionSearch] = useState<Record<string, string>>(
+    {},
+  );
 
   const renderSection = (
     key: string,
@@ -959,7 +983,9 @@ function DesktopFilterSections({
 
     const query = (sectionSearch[key] || "").toLowerCase();
     const visible = query
-      ? sorted.filter((item: any) => getValue(item).toLowerCase().includes(query))
+      ? sorted.filter((item: any) =>
+          getValue(item).toLowerCase().includes(query),
+        )
       : sorted;
 
     return (
@@ -992,7 +1018,9 @@ function DesktopFilterSections({
 
         <ul className="space-y-1 max-h-44 overflow-y-auto border-t border-gray-100 pt-2 scrollbar-thin scrollbar-thumb-gray-300 pl-0">
           {visible.length === 0 ? (
-            <li className="px-3 py-2 text-xs text-gray-400 italic">No results found</li>
+            <li className="px-3 py-2 text-xs text-gray-400 italic">
+              No results found
+            </li>
           ) : (
             visible.map((item: any, index: number) => {
               const val = getValue(item);
@@ -1016,10 +1044,11 @@ function DesktopFilterSections({
                         e.stopPropagation();
                         toggleSelect(key, val, getState?.(item));
                       }}
-                      className="h-4 w-4 rounded border-gray-300 accent-[#635dc1] focus:ring-[#635dc1]"
+                      className="h-4 w-4 mt-0.5 rounded-full border-gray-300 accent-[#635dc1] shrink-0 cursor-pointer"
                     />
                     <span>
-                      {val} <span className="text-gray-500">({item.count})</span>
+                      {val}{" "}
+                      <span className="text-gray-500">({item.count})</span>
                     </span>
                   </label>
                 </li>
@@ -1044,7 +1073,8 @@ function DesktopFilterSections({
             )
           : null,
       )}
-      {filters.fees && filters.fees.length > 0 &&
+      {filters.fees &&
+        filters.fees.length > 0 &&
         renderSection("fees", "Fees", filters.fees, (item) => item.range)}
     </div>
   );
@@ -1082,13 +1112,23 @@ export default function FilterSidebarNew({
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [drawerOpen]);
 
-  const toggleSelect = (section: string, value: string, parentState?: string) => {
+  const toggleSelect = (
+    section: string,
+    value: string,
+    parentState?: string,
+  ) => {
     setSelected((prev) => {
       const newSet = new Set(prev[section] || []);
-      if (newSet.has(value)) { newSet.delete(value); } else { newSet.add(value); }
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
       const updated = { ...prev, [section]: newSet };
       const filterObj: { [key: string]: string[] } = {};
       Object.entries(updated).forEach(([key, set]) => {
@@ -1107,11 +1147,11 @@ export default function FilterSidebarNew({
 
   const NON_FILTER_KEYS = new Set(["page", "search", "limit", "sort"]);
   const hasActiveFilters = Object.entries(selected).some(
-    ([key, set]) => !NON_FILTER_KEYS.has(key) && set.size > 0
+    ([key, set]) => !NON_FILTER_KEYS.has(key) && set.size > 0,
   );
   const totalActive = Object.entries(selected).reduce(
     (acc, [key, s]) => acc + (NON_FILTER_KEYS.has(key) ? 0 : s.size),
-    0
+    0,
   );
 
   if (isLoading) {
@@ -1144,7 +1184,11 @@ export default function FilterSidebarNew({
             )}
           </button>
           {hasActiveFilters && (
-            <button onClick={clearFilters} suppressHydrationWarning className="text-xs text-blue-600 hover:underline">
+            <button
+              onClick={clearFilters}
+              suppressHydrationWarning
+              className="text-xs text-blue-600 hover:underline"
+            >
               Clear All
             </button>
           )}
@@ -1157,7 +1201,12 @@ export default function FilterSidebarNew({
           >
             {Object.entries(selected).flatMap(([key, set]) =>
               Array.from(set)
-                .filter((val) => typeof val === "string" && val.trim().length > 0 && isNaN(Number(val.trim())))
+                .filter(
+                  (val) =>
+                    typeof val === "string" &&
+                    val.trim().length > 0 &&
+                    isNaN(Number(val.trim())),
+                )
                 .map((val) => (
                   <span
                     key={`${key}-${val}`}
@@ -1171,7 +1220,7 @@ export default function FilterSidebarNew({
                       <X className="w-3 h-3" />
                     </button>
                   </span>
-                ))
+                )),
             )}
           </div>
         )}
@@ -1183,9 +1232,11 @@ export default function FilterSidebarNew({
           />
         )}
 
-        <div className={`fixed top-0 left-0 h-full w-[82vw] max-w-[320px] bg-white z-[999] shadow-2xl flex flex-col transition-transform duration-300 ease-in-out
+        <div
+          className={`fixed top-0 left-0 h-full w-[82vw] max-w-[320px] bg-white z-[999] shadow-2xl flex flex-col transition-transform duration-300 ease-in-out
           ${drawerOpen ? "translate-x-0" : "-translate-x-full"}
-        `}>
+        `}
+        >
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4 text-[#635dc1]" />
@@ -1221,7 +1272,10 @@ export default function FilterSidebarNew({
           <div className="px-4 py-4 border-t border-gray-100 flex gap-3 shrink-0">
             {hasActiveFilters && (
               <button
-                onClick={() => { clearFilters(); setDrawerOpen(false); }}
+                onClick={() => {
+                  clearFilters();
+                  setDrawerOpen(false);
+                }}
                 suppressHydrationWarning
                 className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
               >
@@ -1246,7 +1300,10 @@ export default function FilterSidebarNew({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Filters</h2>
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="text-sm text-blue-600 hover:underline">
+            <button
+              onClick={clearFilters}
+              className="text-sm text-blue-600 hover:underline"
+            >
               Clear All
             </button>
           )}

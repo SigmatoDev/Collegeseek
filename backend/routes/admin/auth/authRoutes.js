@@ -1,6 +1,6 @@
 const express = require('express');
 const { signup, login, getAdmins, getAdminById, deleteAdmin, updateAdmin, } = require('../../../controllers/admin/auth/authcontroller');
-const {  changeAdminPassword } = require('../../../controllers/admin/auth/changePasswordController');
+const {  changeAdminPassword, changePassword } = require('../../../controllers/admin/auth/changePasswordController');
 const protect = require('../../../middlewares/admin/authMiddleware'); // FIXED import
 
 const router = express.Router();
@@ -15,7 +15,7 @@ router.get("/admin", protect, getAdmins);
 router.get("/admin/:id", protect, getAdminById); // ✅ Added this route
 router.delete("/admin/:id", protect, deleteAdmin);
 router.put("/admin/:id", protect, updateAdmin);
-router.post("/change-password", changeAdminPassword);
+router.post("/change-password", changePassword);
 
 
 // Protected route (Admin dashboard)

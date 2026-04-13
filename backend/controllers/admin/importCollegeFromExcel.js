@@ -740,7 +740,9 @@ const normalizeWebsite = (rawUrl) => {
     site = `https://${site}`;
   }
 
-  return site;
+  // ✅ basic validation
+  const isValid = /^(https?:\/\/)[\w.-]+\.[a-z]{2,}/i.test(site);
+  return isValid ? site : undefined;
 };
 
 // ------------------- CONTROLLER -------------------
@@ -855,6 +857,9 @@ const importCollegeFromExcel = async (req, res) => {
         const imagePath =
           imageMap.get(row.rowNumber) || safe(row["Image"], "");
 
+        // ✅ CLEAN WEBSITE
+        const websiteValue = normalizeWebsite(row["Website"]);
+
         const collegeData = {
           name: safe(row["Name"]),
           description: stripHtml(safe(row["Description"], "")),
@@ -862,7 +867,10 @@ const importCollegeFromExcel = async (req, res) => {
           city: safe(row["City"]),
           image: imagePath,
           imageGallery: await uploadGalleryImages(row["Image Gallery"]),
-          website: normalizeWebsite(row["Website"]),
+
+          // ✅ OPTIONAL WEBSITE
+          ...(websiteValue && { website: websiteValue }),
+
           affiliatedby: affiliatedById,
           ownership: ownershipId,
           stream: streamIds,

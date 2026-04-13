@@ -1,4 +1,5 @@
 // Replace these imports/setup at the top:
+const slugify = require("slugify");
 
 const mongoose = require("mongoose");
 const College = require("../../models/admin/collegemodel");
@@ -113,11 +114,6 @@ const createCollege = async (req, res) => {
       featured,
     } = req.body;
 
-    console.log("Files:", req.files);
-    console.log("Original stream:", stream);
-    console.log("Original approvel:", approvel);
-    console.log("Original examExpected:", examExpected);
-
     // ---------- REQUIRED FIELDS CHECK ----------
     const requiredFields = {
       name,
@@ -137,7 +133,7 @@ const createCollege = async (req, res) => {
     const missingFields = Object.entries(requiredFields)
       .filter(
         ([key, value]) =>
-          !value || (Array.isArray(value) && value.length === 0),
+          !value || (Array.isArray(value) && value.length === 0)
       )
       .map(([key]) => key);
 
@@ -156,7 +152,7 @@ const createCollege = async (req, res) => {
     const parsedFees = fees ? Number(fees) : null;
     const parsedAvgPackage = avgPackage ? Number(avgPackage) : null;
 
-    // ---------- Default College Tabs ----------
+    // ---------- Default Tabs ----------
     const defaultTabs = [
       { title: "College Info", description: "" },
       { title: "Courses & Fees", description: "" },
@@ -209,20 +205,21 @@ const createCollege = async (req, res) => {
           ? JSON.parse(contactNumbers)
           : contactNumbers;
 
-      if (!Array.isArray(parsedContacts))
+      if (!Array.isArray(parsedContacts)) {
         throw new Error("contactNumbers must be an array.");
+      }
     } catch (err) {
       return res.status(400).json({
         error: "Invalid contactNumbers format.",
       });
     }
 
-    // ---------- STREAM, APPROVAL, EXAM PARSING ----------
+    // ---------- STREAM / APPROVAL / EXAM ----------
     const parsedStream = parseArray(stream)
       .map((id) =>
         mongoose.Types.ObjectId.isValid(id)
           ? new mongoose.Types.ObjectId(id)
-          : null,
+          : null
       )
       .filter(Boolean);
 
@@ -230,7 +227,7 @@ const createCollege = async (req, res) => {
       .map((id) =>
         mongoose.Types.ObjectId.isValid(id)
           ? new mongoose.Types.ObjectId(id)
-          : null,
+          : null
       )
       .filter(Boolean);
 
@@ -238,7 +235,7 @@ const createCollege = async (req, res) => {
       .map((id) =>
         mongoose.Types.ObjectId.isValid(id)
           ? new mongoose.Types.ObjectId(id)
-          : null,
+          : null
       )
       .filter(Boolean);
 
@@ -248,6 +245,10 @@ const createCollege = async (req, res) => {
     const imageGallery = req.files?.["imageGallery"]
       ? req.files["imageGallery"].map((file) => file.location)
       : [];
+
+    // ---------- CLEAN WEBSITE (OPTIONAL) ----------
+    const cleanWebsite =
+      website && website.trim() ? website.trim() : undefined;
 
     // ---------- SAVE COLLEGE ----------
     const newCollege = new College({
@@ -263,7 +264,7 @@ const createCollege = async (req, res) => {
       avgPackage: parsedAvgPackage,
       tabs: parsedTabs,
       about,
-      website,
+      website: cleanWebsite, // ✅ FIXED
       contactNumbers: parsedContacts,
       contactEmail,
       coursesList: parsedCourses,
@@ -762,34 +763,42 @@ const imageGallery = req.files?.["imageGallery"]
   : undefined;
 
     // ✅ Build update data
-    const updateData = {
-      ...(name && { name }),
-      ...(description && { description }),
-      ...(address && { address }),
-      ...(location && { location }),
-      ...(website && { website }),
-      ...(parsedContacts.length && { contactNumbers: parsedContacts }),
-      ...(contactEmail && { contactEmail }),
-      ...(accreditation && { accreditation }),
-      ...(university_type && { university_type }),
-      ...(slug && { slug }),
-      ...(about && { about }),
-      ...(state && { state }),
-      ...(city && { city }),
-      ...(parsedRank !== undefined && { rank: parsedRank }),
-      ...(parsedFees !== undefined && { fees: parsedFees }),
-      ...(parsedAvgPackage !== undefined && { avgPackage: parsedAvgPackage }),
-      ...(parsedTabs.length && { tabs: parsedTabs }),
-      ...(parsedCourses.length && { coursesList: parsedCourses }),
-      ...(image && { image }),
-      ...(imageGallery && { imageGallery }),
-      ...(parsedStream.length && { stream: parsedStream }),
-      ...(parsedApprovel.length && { approvel: parsedApprovel }),
-      ...(affiliatedby && { affiliatedby }),
-      ...(parsedExamExpected.length && { examExpected: parsedExamExpected }),
-      ...(ownership && { ownership }),
-      ...(featured !== undefined && { featured }),
-    };
+  const cleanWebsite =
+  website === "" || website === null
+    ? undefined
+    : website?.trim();
+
+const updateData = {
+  ...(name && { name }),
+  ...(description && { description }),
+  ...(address && { address }),
+  ...(location && { location }),
+
+  // ✅ FIXED WEBSITE
+  ...(website !== undefined && { website: cleanWebsite }),
+
+  ...(parsedContacts.length && { contactNumbers: parsedContacts }),
+  ...(contactEmail && { contactEmail }),
+  ...(accreditation && { accreditation }),
+  ...(university_type && { university_type }),
+  ...(slug && { slug }),
+  ...(about && { about }),
+  ...(state && { state }),
+  ...(city && { city }),
+  ...(parsedRank !== undefined && { rank: parsedRank }),
+  ...(parsedFees !== undefined && { fees: parsedFees }),
+  ...(parsedAvgPackage !== undefined && { avgPackage: parsedAvgPackage }),
+  ...(parsedTabs.length && { tabs: parsedTabs }),
+  ...(parsedCourses.length && { coursesList: parsedCourses }),
+  ...(image && { image }),
+  ...(imageGallery && { imageGallery }),
+  ...(parsedStream.length && { stream: parsedStream }),
+  ...(parsedApprovel.length && { approvel: parsedApprovel }),
+  ...(affiliatedby && { affiliatedby }),
+  ...(parsedExamExpected.length && { examExpected: parsedExamExpected }),
+  ...(ownership && { ownership }),
+  ...(featured !== undefined && { featured }),
+};
 
     // ✅ Update college
     const updatedCollege = await College.findByIdAndUpdate(

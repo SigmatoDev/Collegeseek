@@ -1,15 +1,12 @@
 const Admin = require('../../../models/admin/auth/adminModel');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-// Forgot Password - Sends Reset Link
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
-
   if (!email) return res.status(400).json({ message: 'Email is required.' });
 
   try {
@@ -38,52 +35,47 @@ const forgotPassword = async (req, res) => {
       `,
     });
 
-    res.status(200).json({ message: 'Reset link sent to your email.' });
+    return res.status(200).json({ message: 'Reset link sent to your email.' });
   } catch (error) {
     console.error('Error sending reset link:', error);
-    res.status(500).json({ message: 'Error sending reset link.' });
+    return res.status(500).json({ message: 'Error sending reset link.' });
   }
 };
 
-// Reset Password - Updates Password in DB
 const resetPassword = async (req, res) => {
-  const { token, password, confirmPassword } = req.body;
+  // ✅ FIX 1: get token from req.params, not req.body
+  const { token } = req.params;
+  const { password, confirmPassword } = req.body;
 
-  // Check if passwords match
+  if (!password || !confirmPassword) {
+    return res.status(400).json({ success: false, message: 'All fields are required.' });
+  }
+
   if (password !== confirmPassword) {
-    return res.status(400).json({ success: false, message: 'Passwords do not match' });
+    return res.status(400).json({ success: false, message: 'Passwords do not match.' });
   }
 
   try {
-    // Decode the token
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Find the admin based on the decoded ID from token
     const admin = await Admin.findById(decoded.id);
-
-    // If admin not found
     if (!admin) {
-      return res.status(404).json({ success: false, message: 'Admin not found' });
+      return res.status(404).json({ success: false, message: 'Admin not found.' });
     }
 
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Update the admin's password
-    admin.password = hashedPassword;
+    // ✅ FIX 2: assign plain password — pre-save hook in model handles hashing
+    // Do NOT use bcrypt.hash here, the model does it automatically
+    admin.password = password;
     await admin.save();
 
-    res.status(200).json({ success: true, message: 'Password reset successfully' });
+    return res.status(200).json({ success: true, message: 'Password reset successfully.' });
   } catch (error) {
     console.error('Error resetting password:', error);
     if (error.name === 'TokenExpiredError') {
-      return res.status(400).json({ success: false, message: 'Token has expired' });
+      return res.status(400).json({ success: false, message: 'Reset link has expired. Please request a new one.' });
     }
-    res.status(500).json({ success: false, message: 'Error resetting password' });
+    return res.status(500).json({ success: false, message: 'Error resetting password.' });
   }
 };
 
-module.exports = {
-  forgotPassword,
-  resetPassword,
-};
+module.exports = { forgotPassword, resetPassword };

@@ -90,116 +90,142 @@
 // }
 'use client'
 
-import { Bell, UserCircle } from 'lucide-react'
-import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { useUserStore } from '@/Store/userStore'
-import { useRouter } from 'next/navigation'
+import { Bars3Icon, BellIcon } from '@heroicons/react/24/outline'
 
-export default function UserHeader() {
+type Props = {
+  onOpenSidebar?: () => void
+}
+
+export default function UserHeader({ onOpenSidebar }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+
   const user = useUserStore((state) => state.user)
   const hasNotification = useUserStore((state) => state.hasNotification)
   const clearNotification = useUserStore((state) => state.clearNotification)
-  const router = useRouter()
+
+  // ✅ initials fallback
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    : 'U'
+
+  // ✅ direct S3 image (clean)
+  const profileImageUrl =
+    user?.profileImage && user.profileImage.trim() !== ''
+      ? user.profileImage
+      : null
 
   const handleBellClick = () => {
     clearNotification()
     router.push('/user/shortlisted')
   }
 
+  const tabs = [
+    { label: 'Overview', href: '/user/profile' },
+    { label: 'Shortlisted', href: '/user/shortlisted' },
+    { label: 'Password', href: '/user/auth/changePassword' },
+  ]
+
   return (
-    <header className="w-full bg-gradient-to-r from-[#d1664d] to-[#ef9f00] text-white shadow-md rounded-2xl overflow-hidden">
+    <>
+      {/* ── Top Bar ── */}
+      <div className="bg-indigo-700 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center justify-between">
 
-      {/* Top section */}
-      <div className="max-w-7xl mx-auto flex items-center justify-between
-        px-4 py-3
-        md:flex-row md:px-6 md:py-5 md:gap-4
-      ">
-        {/* Left: greeting */}
-        <div className="min-w-0">
-          <h1 className="text-xs font-semibold uppercase tracking-wide text-gray-200
-            md:text-lg
-          ">
-            Dashboard
-          </h1>
-          <h2 className="font-bold leading-tight truncate
-            text-base md:text-2xl
-          ">
-            Hi {user?.name || 'User'} 👋
-          </h2>
-        </div>
-
-        {/* Right: bell + profile */}
-        <div className="flex items-center shrink-0
-          gap-2 md:gap-4
-        ">
-          {/* Bell */}
-          <div className="relative">
+          {/* Left */}
+          <div className="flex items-center gap-3">
             <button
-              onClick={handleBellClick}
-              className="bg-white/20 hover:bg-white/30 text-white rounded-full transition relative
-                p-1.5 md:p-2
-              "
+              onClick={onOpenSidebar}
+              className="lg:hidden p-1.5 rounded-lg hover:bg-white/10 transition"
             >
-              <Bell className="h-4 w-4 md:h-5 md:w-5" />
-              {hasNotification && (
-                <>
-                  <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
-                  <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-600 rounded-full" />
-                </>
-              )}
+              <Bars3Icon className="h-5 w-5 text-white" />
             </button>
+            <span className="text-sm font-medium text-white/90">
+              Dashboard
+            </span>
           </div>
 
-          {/* Profile pill */}
-          <div className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 rounded-full transition
-            px-2.5 py-1.5 md:px-3 md:py-2
-          ">
-            <UserCircle className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
-            <span className="font-medium truncate max-w-[80px]
-              text-xs md:text-sm md:max-w-none
-            ">
-              {user?.name || 'Profile'}
-            </span>
+          {/* Right */}
+          <div className="flex items-center gap-3">
+
+            {/* 🔔 Notification */}
+            <button
+              onClick={handleBellClick}
+              className="relative p-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition"
+            >
+              <BellIcon className="h-4 w-4 text-white" />
+              {hasNotification && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-400 rounded-full border-[1.5px] border-indigo-700" />
+              )}
+            </button>
+
+            {/* 👤 Profile */}
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 bg-white/20 flex items-center justify-center">
+              {profileImageUrl ? (
+                <img
+                  src={profileImageUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // 🔥 fallback if image fails
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <span className="text-white text-xs font-medium">
+                  {initials}
+                </span>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
 
-      {/* Navigation tabs — horizontal scroll on mobile */}
-      <nav
-        className="flex pb-3 px-3 gap-2 overflow-x-auto
-          md:justify-center md:gap-3 md:pb-4 md:px-0
-        "
-        style={{ scrollbarWidth: 'none' }}
-      >
-        <Link
-          href="/user/profile"
-          className="shrink-0 bg-white/20 hover:bg-white/40 rounded-full font-medium transition
-            px-3 py-1.5 text-xs
-            md:px-4 md:py-2 md:text-sm
-          "
-        >
-          Overview
-        </Link>
-        <Link
-          href="/user/shortlisted"
-          onClick={() => clearNotification()}
-          className="shrink-0 bg-white/20 hover:bg-white/40 rounded-full font-medium transition
-            px-3 py-1.5 text-xs
-            md:px-4 md:py-2 md:text-sm
-          "
-        >
-          Shortlisted
-        </Link>
-        <Link
-          href="/user/auth/changePassword"
-          className="shrink-0 bg-white text-blue-700 rounded-full font-semibold transition
-            px-3 py-1.5 text-xs
-            md:px-4 md:py-2 md:text-sm
-          "
-        >
-          Change Password
-        </Link>
-      </nav>
-    </header>
+      {/* ── Hero Section ── */}
+      <div className="bg-indigo-700 border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+
+          <div>
+            <p className="text-indigo-300 text-xs uppercase tracking-wide">
+              Welcome back
+            </p>
+            <h1 className="text-white text-xl font-medium">
+              Hi {user?.name || 'User'} 👋
+            </h1>
+          </div>
+
+          {/* Tabs */}
+          <nav className="flex gap-1 overflow-x-auto">
+            {tabs.map(({ label, href }) => {
+              const isActive = pathname === href
+
+              return (
+                <button
+                  key={href}
+                  onClick={() => router.push(href)}
+                  className={`shrink-0 px-4 py-2 rounded-t-lg text-xs font-medium transition border border-b-0 ${
+                    isActive
+                      ? 'bg-white text-indigo-700 border-white/20'
+                      : 'bg-transparent text-white/65 border-transparent hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </nav>
+
+        </div>
+      </div>
+    </>
   )
 }

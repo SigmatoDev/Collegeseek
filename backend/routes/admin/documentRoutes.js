@@ -13,7 +13,7 @@ router.get("/brochure", getUploadFiles);
 router.get("/id/brochure/:id", getUploadFileById);
 router.post("/brochure-post/", createUploadFile);
 router.put("/brochure-update/:id", updateUploadFile);   // ✅ FIXED
-router.delete("/brochure/:id", deleteUploadFile);
+router.delete("/brochure-delete/:id", deleteUploadFile);
 router.get("/brochure/college/:collegeId", getUploadFileByCollegeId);
 
 module.exports = router;

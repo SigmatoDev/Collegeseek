@@ -14,8 +14,11 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   // Hide layout on login or signup pages
-  const isAuthPage =
-    pathname === "/cs-admin" || pathname === "/admin/auth/signUp";
+ const isAuthPage =
+  pathname === "/cs-admin" ||
+  pathname === "/admin/auth/signUp" ||
+  pathname.startsWith("/admin/auth/resetPassword") ||
+  pathname.startsWith("/admin/auth/forgotPassword");
 
   if (isAuthPage) {
     return <>{children}</>;

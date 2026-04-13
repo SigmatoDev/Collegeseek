@@ -9,22 +9,24 @@ const {
   updateUser,
 } = require("../../../controllers/users/auth/authcontroller"); // Updated import
 const protect = require("../../../middlewares/users/authMiddleware"); // Updated middleware path
+const { changePassword } = require("../../../controllers/users/auth/changePasswordController");
 
 
 const router = express.Router();
 
 // POST route for user signup
+// authRoutes.js
 router.post("/user/signup", signup);
-
-// POST route for user login
 router.post("/user/login", login);
 router.post("/user/login/google", loginWithGoogle);
 
-// Protected routes (Require authentication)
 router.get("/get/users", getUsers);
-router.get("/id/user/:id",  getUserById);
-router.delete("/user/:id",  deleteUser);
-router.put("/user/:id", protect, updateUser);
+router.get("/id/user/:id", getUserById);
+router.delete("/user/:id", deleteUser);
+
+// ✅ Specific route BEFORE dynamic :id route
+router.put("/user/change-password", protect, changePassword);
+router.put("/user/:id", protect, updateUser);  // ✅ Dynamic route AFTER
 
 
 

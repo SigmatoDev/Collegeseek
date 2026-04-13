@@ -647,9 +647,9 @@ export default function ApplyForm() {
   }, []);
 
   useEffect(() => {
-  const slug = searchParams.get("college") || "";
-  if (slug) setFormData((prev) => ({ ...prev, collegeSlug: slug }));
-}, [searchParams]);
+    const slug = searchParams.get("college") || "";
+    if (slug) setFormData((prev) => ({ ...prev, collegeSlug: slug }));
+  }, [searchParams]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3117,16 +3117,21 @@ export default function ApplyForm() {
               <button
                 type="button"
                 onClick={goNext}
+                data-lpignore="true"
+                suppressHydrationWarning
                 className="rounded-lg bg-[#441A6B] px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#3a1559]"
               >
                 Next
               </button>
             )}
+
             {currentStep === 5 && (
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
+                data-lpignore="true"
+                suppressHydrationWarning
                 className="rounded-lg bg-[#D35B42] px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#b84b35] disabled:opacity-60"
               >
                 {submitting ? "Submitting..." : "Submit Application"}

@@ -5,10 +5,8 @@ import ChangePassword from "./changePassword";
 
 const ChangePasswordPage = () => {
   return (
-    <UserLayout>
-      <div>
+    <UserLayout >
         <ChangePassword /> {/* This should render your ChangePassword form */}
-      </div>
     </UserLayout>
   );
 };

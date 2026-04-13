@@ -319,26 +319,39 @@ interface ShortlistedCollege {
 
 const ShortListColleges: React.FC = () => {
   const { user, token, isHydrated } = useUserStore();
-  const [shortlistedColleges, setShortlistedColleges] = useState<ShortlistedCollege[]>([]);
+  const [shortlistedColleges, setShortlistedColleges] = useState<
+    ShortlistedCollege[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (!isHydrated) return;
-    if (!user || !token) { setLoading(false); return; }
+    if (!user || !token) {
+      setLoading(false);
+      return;
+    }
     fetchShortlistedColleges(user._id, token);
   }, [user, token, isHydrated]);
 
   const fetchShortlistedColleges = async (userId: string, token: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${api_url}get/user/shortlistedClg/by/${userId}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${api_url}get/user/shortlistedClg/by/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       const data = await res.json();
       if (!res.ok && data?.message !== "No shortlisted colleges found.") {
-        throw new Error(data?.message || "Failed to fetch shortlisted colleges.");
+        throw new Error(
+          data?.message || "Failed to fetch shortlisted colleges.",
+        );
       }
       setShortlistedColleges(data?.data || []);
     } catch (err: any) {
@@ -351,12 +364,20 @@ const ShortListColleges: React.FC = () => {
   const removeCollege = async (shortlistId: string) => {
     if (!user || !token) return;
     try {
-      const res = await fetch(`${api_url}delete/user/shortlistedClg/${user._id}/${shortlistId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${api_url}delete/user/shortlistedClg/${user._id}/${shortlistId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
       if (!res.ok) throw new Error(await res.text());
-      setShortlistedColleges((prev) => prev.filter((c) => c._id !== shortlistId));
+      setShortlistedColleges((prev) =>
+        prev.filter((c) => c._id !== shortlistId),
+      );
     } catch (err: any) {
       setError(err.message || "Error removing the college.");
     }
@@ -365,11 +386,17 @@ const ShortListColleges: React.FC = () => {
   const normalizeCourses = (rawCourses: any[]) =>
     rawCourses.map((c: any) => {
       const categoryName = c?.category?.name || c?.category?.code || null;
-      const specializationName = c?.specialization?.name || c?.specialization?.description || null;
-      const finalName = categoryName && specializationName
-        ? `${categoryName} (${specializationName})`
-        : categoryName || specializationName || "Unknown Course";
-      return { name: finalName, category: categoryName, specialization: specializationName };
+      const specializationName =
+        c?.specialization?.name || c?.specialization?.description || null;
+      const finalName =
+        categoryName && specializationName
+          ? `${categoryName} (${specializationName})`
+          : categoryName || specializationName || "Unknown Course";
+      return {
+        name: finalName,
+        category: categoryName,
+        specialization: specializationName,
+      };
     });
 
   const getUniqueCourses = (courses: any[]) => {
@@ -384,7 +411,6 @@ const ShortListColleges: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
-
       <h1 className="font-extrabold text-gray-900 tracking-tight mb-6 sm:mb-10 text-2xl sm:text-4xl">
         Your Shortlisted Colleges
         <span className="block h-1 w-16 sm:w-24 bg-blue-600 mt-2 rounded-full" />
@@ -393,7 +419,10 @@ const ShortListColleges: React.FC = () => {
       {loading && (
         <div className="grid gap-5 sm:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden animate-pulse">
+            <div
+              key={i}
+              className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden animate-pulse"
+            >
               <div className="h-40 sm:h-48 w-full bg-gray-200" />
               <div className="p-4 sm:p-6 space-y-3">
                 <div className="h-5 w-3/4 bg-gray-200 rounded-full" />
@@ -414,12 +443,17 @@ const ShortListColleges: React.FC = () => {
         <div className="grid gap-5 sm:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {shortlistedColleges.map((college) => {
             const rawCourses = college.courses || [];
-            const uniqueCourses = getUniqueCourses(normalizeCourses(rawCourses));
+            const uniqueCourses = getUniqueCourses(
+              normalizeCourses(rawCourses),
+            );
             const topCourses = uniqueCourses.slice(0, 3);
 
-            const cleanedImage = (college.collegeId?.image || "").replace(/^\/?uploads\//, "");
-            const imageUrl = cleanedImage
-              ? `${img_url.replace(/\/$/, "")}/uploads/${cleanedImage}`
+            const image = college.collegeId?.image;
+
+            const imageUrl = image
+              ? image.startsWith("http")
+                ? image // already S3 or full URL
+                : `${img_url.replace(/\/$/, "")}/uploads/${image.replace(/^\/?uploads\//, "")}`
               : "/image/fallback-image.webp";
 
             return (
@@ -427,7 +461,6 @@ const ShortListColleges: React.FC = () => {
               // Delete is a sibling of Link, NOT nested inside it.
               // This ensures touch events on the button never bubble to Link.
               <div key={college._id} className="relative group">
-
                 {/* Delete button — absolute, z-20, fully outside <Link> */}
                 <button
                   type="button"
@@ -454,7 +487,9 @@ const ShortListColleges: React.FC = () => {
                       src={imageUrl}
                       alt={college.collegeId?.name}
                       className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
-                      onError={(e) => { e.currentTarget.src = "/image/fallback-image.webp"; }}
+                      onError={(e) => {
+                        e.currentTarget.src = "/image/fallback-image.webp";
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0" />
                   </div>
@@ -469,7 +504,9 @@ const ShortListColleges: React.FC = () => {
                       <span className="text-blue-600">📍</span>
                       {college.collegeId?.state && college.collegeId?.city
                         ? `${college.collegeId.state}, ${college.collegeId.city}`
-                        : college.collegeId?.state || college.collegeId?.city || "Location not available"}
+                        : college.collegeId?.state ||
+                          college.collegeId?.city ||
+                          "Location not available"}
                     </p>
 
                     {uniqueCourses.length > 0 && (
@@ -479,7 +516,10 @@ const ShortListColleges: React.FC = () => {
                         </p>
                         <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           {topCourses.map((course, index) => (
-                            <span key={index} className="font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200 shadow-sm px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-xs">
+                            <span
+                              key={index}
+                              className="font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200 shadow-sm px-2 py-0.5 text-[11px] sm:px-3 sm:py-1 sm:text-xs"
+                            >
                               {course.name}
                             </span>
                           ))}

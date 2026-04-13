@@ -6,7 +6,7 @@ const { getUserProfile, getUserProfileById, updateProfile } = require('../../con
 // Secure route to get the user profile
 router.get('user/profile', authMiddleware, getUserProfile);
 router.get('/get/profiles/by/:userId', getUserProfileById);
-router.put('/update/profile/:id', authMiddleware, updateProfile);
+router.put('/update/profile/:id', authMiddleware, updateProfile); // ✅ no multer here
 
 
 module.exports = router;

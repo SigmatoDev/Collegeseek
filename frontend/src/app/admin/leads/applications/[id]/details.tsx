@@ -72,7 +72,24 @@ const ApplicationDetails = () => {
   const fullName =
     `${data?.applicant?.firstName || ""} ${data?.applicant?.lastName || ""}`.trim();
 
-  const FileLink = ({ label, file }: { label: string; file?: any }) => (
+const FileLink = ({ label, file }: { label: string; file?: any }) => {
+  const getFileUrl = () => {
+    if (!file?.path) return null;
+
+    // ✅ If already full URL (S3)
+    if (file.path.startsWith("http")) {
+      return file.path;
+    }
+
+    // ✅ fallback for local uploads
+    return `${baseUrl.replace(/\/$/, "")}${
+      file.path.startsWith("/") ? file.path : "/" + file.path
+    }`;
+  };
+
+  const fileUrl = getFileUrl();
+
+  return (
     <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-100 p-3 text-sm">
       <div>
         <div className="font-semibold text-gray-700">{label}</div>
@@ -80,9 +97,10 @@ const ApplicationDetails = () => {
           {file?.originalName || "Not uploaded"}
         </div>
       </div>
-      {file?.path && (
+
+      {fileUrl && (
         <a
-          href={`${baseUrl.replace(/\/$/, "")}${file.path.startsWith("/") ? file.path : "/" + file.path}`}
+          href={fileUrl}
           target="_blank"
           rel="noreferrer"
           className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-100"
@@ -92,7 +110,7 @@ const ApplicationDetails = () => {
       )}
     </div>
   );
-
+};
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

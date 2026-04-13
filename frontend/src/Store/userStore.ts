@@ -118,6 +118,8 @@ interface User {
   name: string;
   email: string;
   phone: string;
+    profileImage?: string   // ✅ FIX ADDED
+
   token?: string; // ✅ token lives on user too for convenience
 }
 

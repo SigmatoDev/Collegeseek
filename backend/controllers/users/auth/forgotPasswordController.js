@@ -1,6 +1,8 @@
 const User = require("../../../models/users/auth/usersModel");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const bcrypt = require('bcryptjs'); // ✅ Add this import at the top
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
@@ -68,7 +70,8 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    user.password = newPassword; // Password hashing is handled in the User model pre-save hook
+    const hashedPassword = await bcrypt.hash(newPassword, 12); // ✅ Hash it
+    user.password = hashedPassword;                             // ✅ Save the hash
     await user.save();
 
     return res.status(200).json({ message: "Password reset successfully." });

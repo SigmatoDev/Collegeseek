@@ -66,7 +66,7 @@ const AdminUploads = () => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
 
     try {
-      await axios.delete(`${api_url}/brochure/${uploadId}`);
+await axios.delete(`${api_url}/brochure-delete/${uploadId}`);
 
       setUploads((prev) => prev.filter((upload) => upload._id !== uploadId));
       toast.success("File deleted successfully!");
@@ -130,13 +130,13 @@ const AdminUploads = () => {
                           <PencilSquareIcon className="h-5 w-5" />
                           <span>Edit</span>
                         </button>
-                        {/* <button
+                        <button
                           onClick={() => handleDelete(upload._id)}
                           className="bg-red-500 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-600 transition"
                         >
                           <TrashIcon className="h-5 w-5" />
                           <span>Delete</span>
-                        </button> */}
+                        </button>
                       </td>
                     </tr>
                   ))

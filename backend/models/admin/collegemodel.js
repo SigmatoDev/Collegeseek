@@ -45,15 +45,18 @@ const collegeSchema = new mongoose.Schema(
     },
 
     website: {
-      type: String,
-      required: true,
-      trim: true,
-      validate: {
-        validator: (v) =>
-          /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./]*)?$/.test(v),
-        message: (props) => `${props.value} is not a valid URL.`,
-      },
+  type: String,
+  trim: true,
+  validate: {
+    validator: function (v) {
+      // allow empty or undefined
+      if (!v) return true;
+
+      return /^(https?:\/\/|www\.)[\w.-]+(\.[a-z]{2,})(\/[\w./]*)?$/.test(v);
     },
+    message: (props) => `${props.value} is not a valid URL.`,
+  },
+},
         // ✅ Multiple Contact Numbers
     contactNumbers: [
       {
