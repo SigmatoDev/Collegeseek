@@ -2,7 +2,12 @@ const fs = require("fs");
 const path = require("path");
 const Page = require("../../models/admin/Page");
 const slugify = require("slugify");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
+const s3 = require("../../utils/s3");
+
+const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 
 
 // exports.createPages = async (req, res) => {
@@ -87,6 +92,7 @@ const slugify = require("slugify");
 // };
 exports.createPages = async (req, res) => {
   console.log("hit me new page creation");
+
   try {
     const { title, description, content } = req.body;
 
@@ -107,7 +113,6 @@ exports.createPages = async (req, res) => {
       count++;
     }
 
-    // TinyMCE sends HTML content, DO NOT JSON.parse()
     let processedContent = content;
 
     // Find base64 images inside TinyMCE HTML
@@ -122,18 +127,25 @@ exports.createPages = async (req, res) => {
       const ext = mimeType.split("/")[1];
       const buffer = Buffer.from(base64Data, "base64");
 
-      const fileName = `${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
-      const filePath = path.join(__dirname, "../../uploads", fileName);
+      const fileName = `pages/${Date.now()}-${Math.floor(Math.random() * 1000)}.${ext}`;
 
-      fs.writeFileSync(filePath, buffer);
+      // ✅ Upload to S3 using utils client
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: fileName,
+          Body: buffer,
+          ContentType: mimeType,
+          ACL: "public-read",
+        })
+      );
 
-      // Replace base64 with image URL
+      const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+
+      // Replace base64 with S3 URL
       processedContent = processedContent.replace(
         match[0],
-        match[0].replace(
-          /src="[^"]+"/,
-          `src="/uploads/${fileName}"`
-        )
+        match[0].replace(/src="[^"]+"/, `src="${fileUrl}"`)
       );
     }
 
@@ -142,7 +154,7 @@ exports.createPages = async (req, res) => {
       title,
       description,
       slug,
-      content: processedContent, // Save cleaned HTML
+      content: processedContent,
     });
 
     await newPage.save();
@@ -226,22 +238,35 @@ exports.deletePageById = async (req, res) => {
       return res.status(404).json({ message: "Page not found" });
     }
 
-    // NEW: Safe check for page.content
     let imageMatches = [];
 
+    // ✅ Extract S3 image URLs from content
     if (page.content && typeof page.content === "string") {
-      imageMatches = [...page.content.matchAll(/src="\/uploads\/([^"]+)"/g)];
+      imageMatches = [...page.content.matchAll(/src="(https:\/\/[^"]+)"/g)];
     }
 
-    // Delete matched images
-    imageMatches.forEach(([_, filename]) => {
-      const filePath = path.join(__dirname, "../../uploads", filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    });
+    // ✅ Delete images from S3
+    for (const match of imageMatches) {
+      const imageUrl = match[1];
 
-    // Delete the page
+      // Extract key after .amazonaws.com/
+      const key = imageUrl.split(".amazonaws.com/")[1];
+
+      if (key) {
+        try {
+          await s3.send(
+            new DeleteObjectCommand({
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key: key,
+            })
+          );
+        } catch (err) {
+          console.error("S3 delete error:", err.message);
+        }
+      }
+    }
+
+    // ✅ Delete the page from DB
     await Page.findByIdAndDelete(pageId);
 
     res.status(200).json({ message: "Page deleted successfully" });
