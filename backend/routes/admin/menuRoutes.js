@@ -21,7 +21,7 @@ const express = require('express');
 const router = express.Router();
 
 // Importing the controller functions
-const { getMenus, updateColumnTitle, updateLink, createLink, reorderMenu, removeLink } = require("../../controllers/admin/menuController");
+const { getMenus, updateColumnTitle, updateLink, createLink, reorderMenu, removeLink, createColumn, deleteColumn } = require("../../controllers/admin/menuController");
 
 // Route to GET all menus
 router.get('/menus', getMenus);
@@ -37,6 +37,9 @@ router.post('/menus/:menuId/columns/:columnId/links', createLink);
 router.put('/menus/:menuId/reorder', reorderMenu);
 
 router.delete('/menu/:menuId/column/:columnId/link/:linkId', removeLink);
+
+router.post('/menus/:menuId/columns', createColumn);
+router.delete('/menus/:menuId/column/:columnId', deleteColumn);
 
 
 

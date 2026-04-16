@@ -4,7 +4,8 @@ const {
   createCategory,
   deleteCategory,
   getAllCategories,
-  updateCategoryOrder, // newly added
+  updateCategoryOrder,
+  getCategoryById, // newly added
 } = require("../../controllers/admin/categoryFilterController");
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.get("/getCategoriesFilter", getCategories);       // fetch all categories
 router.post("/addCategoriesFilter", createCategory);     // create new category
 router.delete("/deleteCategoriesFilter/:id", deleteCategory);
 router.post("/updateCategoriesOrder", updateCategoryOrder);
+router.get("/getCategoryById/:id", getCategoryById);
 
 
 // =========================

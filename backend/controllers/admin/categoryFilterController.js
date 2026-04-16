@@ -3,221 +3,181 @@ const Stream = require("../../models/admin/streams");
 const ExamsAccepted = require("../../models/admin/examExpected");
 const CoursesList = require("../../models/admin/coursesList");
 const College = require("../../models/admin/collegemodel");
-const Course = require("../../models/admin/courseModel"); // your Course model
+const Course = require("../../models/admin/courseModel");
 
+/* ================================================================
+   IN-MEMORY CACHE
+   Invalidated on any write (add / delete / reorder).
+   Change CACHE_TTL if you want time-based expiry as a safety net.
+================================================================ */
+let _cache = null;
+let _cacheTime = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function invalidateCache() {
+  _cache = null;
+  _cacheTime = 0;
+}
+
+/* ================================================================
+   SHARED AGGREGATION HELPER
+   Called by both getAllCategories (legacy) and the merged endpoint.
+================================================================ */
+async function buildAggregatedData() {
+  const now = Date.now();
+  if (_cache && now - _cacheTime < CACHE_TTL) {
+    return _cache;
+  }
+
+  const [
+    streams,
+    exams,
+    coursesList,
+    collegeCount,
+    streamCountsAgg,
+    examCountsAgg,
+    courseCategoryAggregation,
+  ] = await Promise.all([
+    Stream.find({}, "name").lean(),
+    ExamsAccepted.find({}, "code").lean(),
+    CoursesList.find({}, "name").lean(),
+
+    College.countDocuments(),
+
+    // Stream counts — no lookup
+    College.aggregate([
+      { $unwind: "$stream" },
+      { $group: { _id: "$stream", count: { $sum: 1 } } },
+    ]),
+
+    // Exam counts — no lookup
+    College.aggregate([
+      { $unwind: "$examExpected" },
+      { $group: { _id: "$examExpected", count: { $sum: 1 } } },
+    ]),
+
+    // Course counts — unique colleges per category
+    Course.aggregate([
+      { $group: { _id: "$category", colleges: { $addToSet: "$college_id" } } },
+    ]),
+  ]);
+
+  // ID → name/code maps
+  const streamMap = {};
+  streams.forEach((s) => (streamMap[s._id.toString()] = s.name));
+
+  const examMap = {};
+  exams.forEach((e) => (examMap[e._id.toString()] = e.code));
+
+  // Build count objects
+  const streamCounts = {};
+  streamCountsAgg.forEach((item) => {
+    const name = streamMap[item._id?.toString()];
+    if (name) streamCounts[name] = item.count;
+  });
+
+  const examCounts = {};
+  examCountsAgg.forEach((item) => {
+    const code = examMap[item._id?.toString()];
+    if (code) examCounts[code] = item.count;
+  });
+
+  const rawCourseCounts = {};
+  courseCategoryAggregation.forEach((entry) => {
+    if (entry._id && entry.colleges.length > 0) {
+      rawCourseCounts[entry._id.toString()] = entry.colleges.length;
+    }
+  });
+
+  const courseCounts = {};
+  coursesList.forEach((c) => {
+    const count = rawCourseCounts[c._id.toString()] || 0;
+    if (count > 0) courseCounts[c.name] = count;
+  });
+
+  const result = {
+    streams: streams.map((s) => s.name),
+    exams: exams.map((e) => e.code),
+    courses: coursesList.map((c) => c.name),
+    collegeCount,
+    streamCounts,
+    examCounts,
+    courseCounts,
+  };
+
+  _cache = result;
+  _cacheTime = now;
+  return result;
+}
+
+/* ================================================================
+   GET /allCategoriesFilter
+   Returns aggregated counts + selected filters in ONE request.
+   Replaces the old two-call pattern on the frontend.
+================================================================ */
 const getAllCategories = async (req, res) => {
   try {
-    // Fetch all items from master collections
-    const streams = await Stream.find({}, "name").lean();
-    const exams = await ExamsAccepted.find({}, "code").lean(); // <-- fetch code
-    const coursesList = await CoursesList.find({}, "name").lean();
+    const start = Date.now();
 
-    const collegeCount = await College.countDocuments();
-
-    // Initialize count maps
-    const streamCounts = {};
-    const examCounts = {};
-    const courseCounts = {};
-
-    // Fetch colleges with populated streams and exams
-    const allColleges = await College.find({})
-      .populate("stream", "name")
-      .populate("examExpected", "code") // <-- use code here
-      .lean();
-
-    allColleges.forEach((college) => {
-      // Count streams
-      (college.stream || []).forEach((s) => {
-        if (s?.name) streamCounts[s.name] = (streamCounts[s.name] || 0) + 1;
-      });
-
-      // Count exams by code
-      (college.examExpected || []).forEach((e) => {
-        if (e?.code) examCounts[e.code] = (examCounts[e.code] || 0) + 1; // <-- code
-      });
-    });
-
-    // Count courses per category (distinct colleges offering that category)
-    const courseCategoryAggregation = await Course.aggregate([
-      {
-        $group: {
-          _id: "$category",
-          colleges: { $addToSet: "$college_id" },
-        },
-      },
+    const [aggregated, selected] = await Promise.all([
+      buildAggregatedData(),
+      // No populate — just the raw Category docs (type, name, _id, sortOrder)
+      Category.find({}).sort({ sortOrder: 1 }).lean(),
     ]);
 
-    courseCategoryAggregation.forEach((entry) => {
-      if (entry._id && entry.colleges.length > 0) {
-        courseCounts[entry._id.toString()] = entry.colleges.length;
-      }
-    });
-
-    // Map courseCounts _id to name
-    const courseCountsByName = {};
-    coursesList.forEach((c) => {
-      const count = courseCounts[c._id.toString()] || 0;
-      if (count > 0) courseCountsByName[c.name] = count;
-    });
+    console.log(`⚡ getAllCategories: ${Date.now() - start} ms`);
 
     res.status(200).json({
-      streams: streams.map((s) => s.name),
-      exams: exams.map((e) => e.code), // <-- return exam code
-      courses: coursesList.map((c) => c.name),
-      collegeCount,
-      streamCounts,
-      examCounts,
-      courseCounts: courseCountsByName,
+      ...aggregated,
+      selected, // replaces the separate getCategoriesFilter call
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error in getAllCategories:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
 
-// =========================
-// CRUD for older Category model
-// =========================
-
-// GET all categories
-
+/* ================================================================
+   GET /getCategoriesFilter
+   Kept for backwards compatibility. No populate — just a direct
+   Category.find(). Fast. If you migrate the frontend to use
+   getAllCategories.selected, you can delete this entirely.
+================================================================ */
 const getCategories = async (req, res) => {
   try {
     const { type } = req.query;
     const filter = type ? { type } : {};
-
-    /* ---------------- PARALLEL FETCH ---------------- */
-    const [categories, colleges, courses] = await Promise.all([
-      Category.find(filter).sort({ sortOrder: 1 }).lean(),
-
-      // Fetch colleges only if needed
-      !type || type === "streams" || type === "exams"
-        ? College.find({})
-            .select("stream examExpected")
-            .populate("stream", "name")
-            .populate("examExpected", "name code")
-            .lean()
-        : Promise.resolve([]),
-
-      // Fetch courses only if needed
-      !type || type === "courses"
-        ? Course.find({})
-            .select("college_id category")
-            .populate("college_id", "_id")
-            .populate("category", "name code")
-            .lean()
-        : Promise.resolve([]),
-    ]);
-
-    /* ---------------- COUNT MAPS ---------------- */
-    const countsById = {};
-    const countsByName = {};
-    const countsByCode = {};
-
-    /* ---------------- STREAM COUNTS ---------------- */
-    if (!type || type === "streams") {
-      colleges.forEach(col => {
-        (col.stream || []).forEach(s => {
-          if (!s) return;
-          const id = s._id.toString();
-          countsById[id] = (countsById[id] || 0) + 1;
-          countsByName[s.name] = (countsByName[s.name] || 0) + 1;
-        });
-      });
-    }
-
-    /* ---------------- EXAM COUNTS ---------------- */
-    if (!type || type === "exams") {
-      colleges.forEach(col => {
-        (col.examExpected || []).forEach(e => {
-          if (!e) return;
-          const id = e._id.toString();
-          countsById[id] = (countsById[id] || 0) + 1;
-          countsByName[e.name] = (countsByName[e.name] || 0) + 1;
-          if (e.code) {
-            countsByCode[e.code] = (countsByCode[e.code] || 0) + 1;
-          }
-        });
-      });
-    }
-
-    /* ---------------- COURSE COUNTS ---------------- */
-    if (!type || type === "courses") {
-      const categoryCollegeMap = {};
-
-      courses.forEach(course => {
-        if (!course.category || !course.college_id) return;
-
-        const categoryId = course.category._id.toString();
-        const collegeId = course.college_id._id.toString();
-
-        if (!categoryCollegeMap[categoryId]) {
-          categoryCollegeMap[categoryId] = new Set();
-        }
-
-        categoryCollegeMap[categoryId].add(collegeId);
-
-        // fallback
-        countsByName[course.category.name] =
-          (countsByName[course.category.name] || 0) + 1;
-
-        if (course.category.code) {
-          countsByCode[course.category.code] =
-            (countsByCode[course.category.code] || 0) + 1;
-        }
-      });
-
-      Object.entries(categoryCollegeMap).forEach(([catId, collegeSet]) => {
-        countsById[catId] = collegeSet.size;
-      });
-    }
-
-    /* ---------------- FINAL MAPPING ---------------- */
-    const finalData = categories.map(cat => {
-      const id = cat._id?.toString();
-      return {
-        ...cat,
-        type: cat.type || "courses",
-        count:
-          countsById[id] ??
-          countsByName[cat.name] ??
-          countsByCode[cat.code] ??
-          0,
-      };
-    });
-
-    res.status(200).json(finalData);
+    const categories = await Category.find(filter).sort({ sortOrder: 1 }).lean();
+    res.status(200).json(categories);
   } catch (error) {
     console.error("Error in getCategories:", error);
     res.status(500).json({ message: "Server Error", error });
   }
 };
 
-
-
-// CREATE a new category
+/* ================================================================
+   CREATE  POST /addCategoriesFilter
+================================================================ */
 const createCategory = async (req, res) => {
   try {
-    const { type, name, collegeId } = req.body; // optional collegeId
+    const { type, name, collegeId } = req.body;
 
     if (!type || !name) {
       return res.status(400).json({ message: "Type and Name are required" });
     }
 
-    // Check if category exists
     let category = await Category.findOne({ type, name });
 
     if (category) {
-      // If category exists and a collegeId is provided, add it to collegeIds
       if (collegeId && !category.collegeIds.includes(collegeId)) {
         category.collegeIds.push(collegeId);
-        category.collegeCount = category.collegeIds.length; // update count
+        category.collegeCount = category.collegeIds.length;
         await category.save();
       }
+      invalidateCache();
       return res.status(200).json(category);
     }
 
-    // Create new category
     category = await Category.create({
       type,
       name,
@@ -225,6 +185,7 @@ const createCategory = async (req, res) => {
       collegeCount: collegeId ? 1 : 0,
     });
 
+    invalidateCache();
     res.status(201).json(category);
   } catch (error) {
     console.error(error);
@@ -232,30 +193,52 @@ const createCategory = async (req, res) => {
   }
 };
 
-// DELETE category by ID
-const deleteCategory = async (req, res) => {
+/* ================================================================
+   GET /getCategoriesFilter/:id
+================================================================ */
+const getCategoryById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const category = await Category.findByIdAndDelete(id);
-
+    const category = await Category.findById(req.params.id).lean();
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
+    res.status(200).json(category);
+  } catch (error) {
+    console.error("Error in getCategoryById:", error);
+    res.status(500).json({ message: "Server Error", error });
+  }
+};
 
+/* ================================================================
+   DELETE /deleteCategoriesFilter/:id
+================================================================ */
+const deleteCategory = async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    invalidateCache();
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error });
   }
 };
 
+/* ================================================================
+   POST /updateCategoriesOrder
+================================================================ */
 const updateCategoryOrder = async (req, res) => {
   try {
-    const { type, orderedIds } = req.body; // type: streams/exams/courses, orderedIds: [_id1, _id2, ...]
+    const { type, orderedIds } = req.body;
 
-    for (let i = 0; i < orderedIds.length; i++) {
-      await Category.findByIdAndUpdate(orderedIds[i], { sortOrder: i });
-    }
+    await Promise.all(
+      orderedIds.map((id, i) =>
+        Category.findByIdAndUpdate(id, { sortOrder: i })
+      )
+    );
 
+    invalidateCache();
     res.status(200).json({ success: true });
   } catch (err) {
     console.error(err);
@@ -264,9 +247,10 @@ const updateCategoryOrder = async (req, res) => {
 };
 
 module.exports = {
-  getAllCategories, // fetch from Stream, Exams, Courses + college count
-  getCategories, // fetch from older Category model
+  getAllCategories,
+  getCategories,
   createCategory,
+  getCategoryById,
   deleteCategory,
   updateCategoryOrder,
 };

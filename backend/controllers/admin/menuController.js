@@ -174,3 +174,47 @@ exports.removeLink = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+// Add a new column to a menu
+exports.createColumn = async (req, res) => {
+  const { menuId } = req.params;
+  const { title } = req.body;
+
+  try {
+    const updatedMenu = await Menu.findByIdAndUpdate(
+      menuId,
+      { $push: { columns: { title, links: [] } } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedMenu) {
+      return res.status(404).json({ success: false, message: "Menu not found." });
+    }
+
+    res.status(200).json({ success: true, data: updatedMenu });
+  } catch (error) {
+    console.error("Error in createColumn:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete a column from a menu
+exports.deleteColumn = async (req, res) => {
+  const { menuId, columnId } = req.params;
+
+  try {
+    const updatedMenu = await Menu.findByIdAndUpdate(
+      menuId,
+      { $pull: { columns: { _id: columnId } } },
+      { new: true }
+    );
+
+    if (!updatedMenu) {
+      return res.status(404).json({ success: false, message: "Menu not found." });
+    }
+
+    res.status(200).json({ success: true, data: updatedMenu });
+  } catch (error) {
+    console.error("Error in deleteColumn:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
