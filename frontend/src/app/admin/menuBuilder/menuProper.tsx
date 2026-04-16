@@ -24,20 +24,10 @@ type Menu = {
 };
 
 function NativeDraggableItem({
-  link,
-  index,
-  onDragStart,
-  onDrop,
-  onDragOver,
-  editing,
-  editValue,
-  setEditValue,
-  onEditClick,
-  onSaveClick,
-  onDeleteClick, // ✅ Added delete click prop
+  link, index, onDragStart, onDrop, onDragOver,
+  editing, editValue, setEditValue, onEditClick, onSaveClick, onDeleteClick,
 }: any) {
   const dragId = link._id || link.tempId;
-
   return (
     <li
       draggable
@@ -55,12 +45,8 @@ function NativeDraggableItem({
         setEditValue={setEditValue}
         onEditClick={onEditClick}
         onSaveClick={onSaveClick}
-        
       />
-      <button
-        onClick={onDeleteClick}
-        className="text-red-600  hover:text-red-800 text-sm"
-      >
+      <button onClick={onDeleteClick} className="text-red-600 hover:text-red-800 text-sm">
         Delete
       </button>
     </li>
@@ -70,38 +56,29 @@ function NativeDraggableItem({
 export default function AdminMenuProper() {
   const [menu, setMenu] = useState<Menu[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState<{
-    columnId?: string;
-    linkId?: string;
-  } | null>(null);
-  const [editValue, setEditValue] = useState<{
-    title?: string;
-    label: string;
-    url: string;
-  }>({ label: "", url: "" });
-  const [newLinkInputs, setNewLinkInputs] = useState<
-    Record<string, { label: string; url: string }>
-  >({});
+  const [editing, setEditing] = useState<{ columnId?: string; linkId?: string } | null>(null);
+  const [editValue, setEditValue] = useState<{ title?: string; label: string; url: string }>({ label: "", url: "" });
+  const [newLinkInputs, setNewLinkInputs] = useState<Record<string, { label: string; url: string }>>({});
+  const [newColumnInputs, setNewColumnInputs] = useState<Record<string, string>>({}); // menuId -> title
+  const [showAddColumn, setShowAddColumn] = useState<Record<string, boolean>>({}); // menuId -> bool
   const tempIdCounter = useRef(0);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchMenu();
-  }, []);
+  useEffect(() => { fetchMenu(); }, []);
 
   const assignTempIdsToLinks = (menus: Menu[]): Menu[] => {
     return menus.map((menuItem) => ({
       ...menuItem,
-      columns: menuItem.columns.map((column) => {
-        const linksWithIds = (column.links || []).map((link) => {
+      columns: menuItem.columns.map((column) => ({
+        ...column,
+        links: (column.links || []).map((link) => {
           if (!link._id && !link.tempId) {
             tempIdCounter.current++;
             return { ...link, tempId: `temp-link-${tempIdCounter.current}` };
           }
           return link;
-        });
-        return { ...column, links: linksWithIds };
-      }),
+        }),
+      })),
     }));
   };
 
@@ -110,8 +87,7 @@ export default function AdminMenuProper() {
     try {
       const response = await axios.get(`${api_url}menus`);
       if (response.data.success && Array.isArray(response.data.data)) {
-        const menusWithTempIds = assignTempIdsToLinks(response.data.data);
-        setMenu(menusWithTempIds);
+        setMenu(assignTempIdsToLinks(response.data.data));
       }
     } catch (error) {
       console.error("Error fetching menu:", error);
@@ -133,9 +109,7 @@ export default function AdminMenuProper() {
   const handleSaveColumnEdit = async (menuItemId: string, columnId: string) => {
     if (!columnId || !editValue.title) return;
     try {
-      await axios.put(`${api_url}menus/${menuItemId}/column/${columnId}`, {
-        title: editValue.title,
-      });
+      await axios.put(`${api_url}menus/${menuItemId}/column/${columnId}`, { title: editValue.title });
       fetchMenu();
       setEditing(null);
       setEditValue({ label: "", url: "" });
@@ -144,20 +118,13 @@ export default function AdminMenuProper() {
     }
   };
 
-  const handleSaveLinkEdit = async (
-    menuItemId: string,
-    columnId: string,
-    linkId: string
-  ) => {
+  const handleSaveLinkEdit = async (menuItemId: string, columnId: string, linkId: string) => {
     if (!linkId || !editValue.label || !editValue.url) return;
     try {
-      await axios.put(
-        `${api_url}menus/${menuItemId}/column/${columnId}/link/${linkId}`,
-        {
-          label: editValue.label,
-          url: editValue.url,
-        }
-      );
+      await axios.put(`${api_url}menus/${menuItemId}/column/${columnId}/link/${linkId}`, {
+        label: editValue.label,
+        url: editValue.url,
+      });
       fetchMenu();
       setEditing(null);
       setEditValue({ label: "", url: "" });
@@ -166,15 +133,8 @@ export default function AdminMenuProper() {
     }
   };
 
-  const handleNewLinkChange = (
-    columnId: string,
-    field: "label" | "url",
-    value: string
-  ) => {
-    setNewLinkInputs((prev) => ({
-      ...prev,
-      [columnId]: { ...prev[columnId], [field]: value },
-    }));
+  const handleNewLinkChange = (columnId: string, field: "label" | "url", value: string) => {
+    setNewLinkInputs((prev) => ({ ...prev, [columnId]: { ...prev[columnId], [field]: value } }));
   };
 
   const handleAddLink = async (menuId: string, columnId: string) => {
@@ -184,36 +144,49 @@ export default function AdminMenuProper() {
       return;
     }
     try {
-      await axios.post(
-        `${api_url}menus/${menuId}/columns/${columnId}/links`,
-        inputs
-      );
-      setNewLinkInputs((prev) => ({
-        ...prev,
-        [columnId]: { label: "", url: "" },
-      }));
+      await axios.post(`${api_url}menus/${menuId}/columns/${columnId}/links`, inputs);
+      setNewLinkInputs((prev) => ({ ...prev, [columnId]: { label: "", url: "" } }));
       fetchMenu();
     } catch (error) {
       console.error("Error adding link:", error);
     }
   };
 
-  const handleDeleteLink = async (
-    menuId: string,
-    columnId: string,
-    linkId: string
-  ) => {
-    const confirmDelete = confirm("Are you sure you want to delete this link?");
-    if (!confirmDelete) return;
-
+  const handleDeleteLink = async (menuId: string, columnId: string, linkId: string) => {
+    if (!confirm("Are you sure you want to delete this link?")) return;
     try {
-      await axios.delete(
-        `${api_url}menu/${menuId}/column/${columnId}/link/${linkId}`
-      );
-
-      fetchMenu(); // Refresh the data after deletion
+      await axios.delete(`${api_url}menu/${menuId}/column/${columnId}/link/${linkId}`);
+      fetchMenu();
     } catch (error) {
       console.error("Error deleting link:", error);
+    }
+  };
+
+  // ✅ Add new column
+  const handleAddColumn = async (menuId: string) => {
+    const title = newColumnInputs[menuId]?.trim();
+    if (!title) {
+      alert("Please enter a column title.");
+      return;
+    }
+    try {
+      await axios.post(`${api_url}menus/${menuId}/columns`, { title });
+      setNewColumnInputs((prev) => ({ ...prev, [menuId]: "" }));
+      setShowAddColumn((prev) => ({ ...prev, [menuId]: false }));
+      fetchMenu();
+    } catch (error) {
+      console.error("Error adding column:", error);
+    }
+  };
+
+  // ✅ Delete a column
+  const handleDeleteColumn = async (menuId: string, columnId: string) => {
+    if (!confirm("Are you sure you want to delete this entire column and all its links?")) return;
+    try {
+      await axios.delete(`${api_url}menus/${menuId}/column/${columnId}`);
+      fetchMenu();
+    } catch (error) {
+      console.error("Error deleting column:", error);
     }
   };
 
@@ -225,36 +198,32 @@ export default function AdminMenuProper() {
       ) : (
         <div className="space-y-8">
           {menu.map((menuItem) => (
-            <div
-              key={menuItem._id}
-              className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"
-            >
+            <div key={menuItem._id} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
               <div className="grid gap-6 md:grid-cols-2">
                 {menuItem.columns.map((column, columnIndex) => {
                   const safeColumnId = column._id || `column-${columnIndex}`;
                   return (
-                    <div
-                      key={safeColumnId}
-                      className="bg-gray-50 rounded-lg p-5 border"
-                    >
+                    <div key={safeColumnId} className="bg-gray-50 rounded-lg p-5 border relative">
+
+                      {/* ✅ Delete Column Button */}
+                      <button
+                        onClick={() => handleDeleteColumn(menuItem._id, column._id!)}
+                        className="absolute top-3 right-3 text-xs text-red-500 hover:text-red-700 border border-red-300 hover:border-red-500 px-2 py-1 rounded"
+                      >
+                        Delete Column
+                      </button>
+
                       {editing?.columnId === column._id ? (
                         <div className="space-y-3">
                           <input
                             type="text"
                             value={editValue.title ?? column.title}
-                            onChange={(e) =>
-                              setEditValue({
-                                ...editValue,
-                                title: e.target.value,
-                              })
-                            }
+                            onChange={(e) => setEditValue({ ...editValue, title: e.target.value })}
                             placeholder="Column title"
                             className="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500"
                           />
                           <button
-                            onClick={() =>
-                              handleSaveColumnEdit(menuItem._id, column._id!)
-                            }
+                            onClick={() => handleSaveColumnEdit(menuItem._id, column._id!)}
                             className="bg-green-600 text-white px-4 py-2 rounded"
                           >
                             Save
@@ -262,10 +231,8 @@ export default function AdminMenuProper() {
                         </div>
                       ) : (
                         <h2
-                          className="text-xl font-semibold text-blue-700 hover:underline cursor-pointer mb-4"
-                          onClick={() =>
-                            handleEditColumn(column._id || "", column.title)
-                          }
+                          className="text-xl font-semibold text-blue-700 hover:underline cursor-pointer mb-4 pr-24"
+                          onClick={() => handleEditColumn(column._id || "", column.title)}
                         >
                           {column.title}
                         </h2>
@@ -281,66 +248,33 @@ export default function AdminMenuProper() {
                               link={link}
                               index={index}
                               onDragStart={(i: number) => setDraggingIndex(i)}
-                              onDragOver={(
-                                e: React.DragEvent,
-                                overIndex: number
-                              ) => e.preventDefault()}
+                              onDragOver={(e: React.DragEvent) => e.preventDefault()}
                               onDrop={(dropIndex: number) => {
-                                if (
-                                  draggingIndex === null ||
-                                  draggingIndex === dropIndex
-                                )
-                                  return;
-
+                                if (draggingIndex === null || draggingIndex === dropIndex) return;
                                 const updatedMenu = [...menu];
                                 const colLinks =
-                                  updatedMenu
-                                    .find((m) => m._id === menuItem._id)!
-                                    .columns.find((c) => c._id === column._id)!
-                                    .links || [];
-
+                                  updatedMenu.find((m) => m._id === menuItem._id)!
+                                    .columns.find((c) => c._id === column._id)!.links || [];
                                 const movedLink = colLinks[draggingIndex];
                                 colLinks.splice(draggingIndex, 1);
                                 colLinks.splice(dropIndex, 0, movedLink);
-
                                 setMenu(updatedMenu);
                                 setDraggingIndex(null);
-
                                 axios
-                                  .put(
-                                    `${api_url}menus/${menuItem._id}/reorder`,
-                                    {
-                                      updatedColumns: updatedMenu.find(
-                                        (m) => m._id === menuItem._id
-                                      )!.columns,
-                                    }
-                                  )
+                                  .put(`${api_url}menus/${menuItem._id}/reorder`, {
+                                    updatedColumns: updatedMenu.find((m) => m._id === menuItem._id)!.columns,
+                                  })
                                   .catch((err) => {
                                     console.error("Failed to reorder", err);
-                                    alert("Failed to reorder.");
                                     fetchMenu();
                                   });
                               }}
                               editing={editing}
                               editValue={editValue}
                               setEditValue={setEditValue}
-                              onEditClick={() =>
-                                handleEditLink(dragId, link.label, link.url)
-                              }
-                              onSaveClick={() =>
-                                handleSaveLinkEdit(
-                                  menuItem._id,
-                                  column._id!,
-                                  dragId
-                                )
-                              }
-                              onDeleteClick={() =>
-                                handleDeleteLink(
-                                  menuItem._id,
-                                  column._id!,
-                                  dragId
-                                )
-                              }
+                              onEditClick={() => handleEditLink(dragId, link.label, link.url)}
+                              onSaveClick={() => handleSaveLinkEdit(menuItem._id, column._id!, dragId)}
+                              onDeleteClick={() => handleDeleteLink(menuItem._id, column._id!, dragId)}
                             />
                           );
                         })}
@@ -352,32 +286,18 @@ export default function AdminMenuProper() {
                           type="text"
                           placeholder="Label"
                           value={newLinkInputs[column._id!]?.label || ""}
-                          onChange={(e) =>
-                            handleNewLinkChange(
-                              column._id!,
-                              "label",
-                              e.target.value
-                            )
-                          }
+                          onChange={(e) => handleNewLinkChange(column._id!, "label", e.target.value)}
                           className="border px-3 py-1 rounded mr-2 mb-2 md:mb-0"
                         />
                         <input
                           type="text"
                           placeholder="URL"
                           value={newLinkInputs[column._id!]?.url || ""}
-                          onChange={(e) =>
-                            handleNewLinkChange(
-                              column._id!,
-                              "url",
-                              e.target.value
-                            )
-                          }
+                          onChange={(e) => handleNewLinkChange(column._id!, "url", e.target.value)}
                           className="border px-3 py-1 rounded mr-2 mb-2 md:mb-0"
                         />
                         <button
-                          onClick={() =>
-                            handleAddLink(menuItem._id, column._id!)
-                          }
+                          onClick={() => handleAddLink(menuItem._id, column._id!)}
                           className="bg-blue-600 text-white px-4 py-1 mt-3 rounded"
                         >
                           Add Link
@@ -386,6 +306,42 @@ export default function AdminMenuProper() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* ✅ Add New Column Section */}
+              <div className="mt-6 border-t pt-4">
+                {showAddColumn[menuItem._id] ? (
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      placeholder="New column title"
+                      value={newColumnInputs[menuItem._id] || ""}
+                      onChange={(e) =>
+                        setNewColumnInputs((prev) => ({ ...prev, [menuItem._id]: e.target.value }))
+                      }
+                      className="border px-3 py-2 rounded w-64 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      onClick={() => handleAddColumn(menuItem._id)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded"
+                    >
+                      Save Column
+                    </button>
+                    <button
+                      onClick={() => setShowAddColumn((prev) => ({ ...prev, [menuItem._id]: false }))}
+                      className="text-gray-500 hover:text-gray-700 px-3 py-2"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAddColumn((prev) => ({ ...prev, [menuItem._id]: true }))}
+                    className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
+                  >
+                    + Add Column
+                  </button>
+                )}
               </div>
             </div>
           ))}
