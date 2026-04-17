@@ -583,6 +583,7 @@ const fs = require("fs");
 const slugify = require("slugify");
 const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
+const axios = require("axios");
 
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
@@ -605,6 +606,8 @@ const s3 = new S3Client({
 const uploadToS3 = async (buffer, fileName, mimeType) => {
   const key = `uploads/${fileName}`;
 
+  console.log("☁️ Uploading:", key);
+
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: key,
@@ -614,7 +617,11 @@ const uploadToS3 = async (buffer, fileName, mimeType) => {
 
   await s3.send(command);
 
-  return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  const url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+
+  console.log("✅ Uploaded:", url);
+
+  return url;
 };
 
 // ------------------- HELPERS -------------------
@@ -639,22 +646,18 @@ const uploadGalleryImages = async (imagesStr) => {
 
   for (const url of urls) {
     try {
-      const response = await fetch(url);
+      const response = await axios.get(url, {
+        responseType: "arraybuffer",
+      });
 
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
+      const buffer = Buffer.from(response.data);
       const filename = `${uuidv4()}.jpg`;
 
-      const s3Url = await uploadToS3(
-        buffer,
-        filename,
-        "image/jpeg"
-      );
+      const s3Url = await uploadToS3(buffer, filename, "image/jpeg");
 
       uploaded.push(s3Url);
     } catch (err) {
-      console.warn("Gallery image upload failed:", url);
+      console.warn("❌ Gallery image failed:", url);
     }
   }
 
@@ -687,15 +690,26 @@ const resolveMultipleFieldIds = async (Model, values, createIfNotFound = true) =
   let parts = [];
 
   try {
-    if (typeof values === "string" && values.trim().startsWith("[")) {
-      parts = JSON.parse(values);
-    } else if (typeof values === "string") {
-      parts = values.split("|");
-    } else if (Array.isArray(values)) {
-      parts = values;
+    // Convert Excel smart quotes → normal quotes
+    const cleaned = String(values)
+      .replace(/[“”]/g, '"')
+      .replace(/[‘’]/g, "'");
+
+    // Case 1: JSON array
+    if (cleaned.trim().startsWith("[")) {
+      parts = JSON.parse(cleaned);
+    } 
+    // Case 2: pipe separated
+    else {
+      parts = cleaned.split("|");
     }
-  } catch {
-    parts = values.split("|");
+  } catch (err) {
+    console.log("⚠️ JSON parse failed, using fallback split");
+
+    parts = String(values)
+      .replace(/[“”]/g, "")
+      .replace(/\[|\]/g, "")
+      .split("|");
   }
 
   const ids = [];
@@ -705,6 +719,8 @@ const resolveMultipleFieldIds = async (Model, values, createIfNotFound = true) =
     if (id) ids.push(id);
   }
 
+  console.log("✅ Final resolved IDs:", ids);
+
   return ids;
 };
 
@@ -713,42 +729,53 @@ const stripHtml = (html) => {
   return html.replace(/<[^>]*>/g, "").trim();
 };
 
-const extractWebsiteValue = (val) => {
-  if (val === undefined || val === null) return "";
-
-  if (typeof val === "string") return val.trim();
+const extractText = (val) => {
+  if (!val) return "";
+  if (typeof val === "string") return val;
   if (typeof val === "number") return String(val);
-
   if (typeof val === "object") {
-    if (typeof val.text === "string") return val.text.trim();
-    if (typeof val.result === "string") return val.result.trim();
-    if (Array.isArray(val.richText)) {
-      return val.richText.map((t) => t.text || "").join("").trim();
-    }
+    if (val.text) return val.text;
+    if (val.result) return val.result;
   }
-
   return "";
 };
 
-const normalizeWebsite = (rawUrl) => {
-  const url = extractWebsiteValue(rawUrl);
-  if (!url) return undefined;
+// ------------------- CONTACT PARSER -------------------
 
-  let site = url.trim();
+const parseContactNumbers = (val) => {
+  if (!val) return [];
 
-  if (!/^https?:\/\//i.test(site)) {
-    site = `https://${site}`;
+  const text = extractText(val);
+
+  if (text.includes(":")) {
+    const [type, number] = text.split(":").map((v) => v.trim());
+
+    return [
+      {
+        type: type || "Mobile",
+        number: number || "",
+      },
+    ];
   }
 
-  // ✅ basic validation
-  const isValid = /^(https?:\/\/)[\w.-]+\.[a-z]{2,}/i.test(site);
-  return isValid ? site : undefined;
+  return [
+    {
+      type: "Mobile",
+      number: text,
+    },
+  ];
+};
+
+const extractEmail = (val) => {
+  const text = extractText(val);
+  const match = text.match(/[^\s@]+@[^\s@]+\.[^\s@]+/);
+  return match ? match[0] : "";
 };
 
 // ------------------- CONTROLLER -------------------
 
 const importCollegeFromExcel = async (req, res) => {
-  console.log("▶️ Hit importCollegeFromExcel API");
+  console.log("▶️ HIT importCollegeFromExcel API");
 
   try {
     if (!req.file) {
@@ -759,21 +786,24 @@ const importCollegeFromExcel = async (req, res) => {
     await workbook.xlsx.readFile(req.file.path);
 
     const sheet = workbook.worksheets[0];
-    console.log(`📘 Loaded sheet: ${sheet.name}`);
+
+    console.log("📑 Sheet:", sheet.name);
+    console.log("📊 Rows:", sheet.rowCount);
+
+    const headerRow = sheet.getRow(1);
 
     const imageMap = new Map();
 
-    // Upload Excel images to S3
     const images = sheet.getImages();
 
     for (const img of images) {
       const image = workbook.model.media.find(
-        (media) => media.index === img.imageId
+        (m) => m.index === img.imageId
       );
 
       if (image && image.buffer) {
-        const extension = image.type?.split("/")[1] || "webp";
-        const filename = `${uuidv4()}.${extension}`;
+        const ext = image.type?.split("/")[1] || "jpg";
+        const filename = `${uuidv4()}.${ext}`;
 
         const s3Url = await uploadToS3(
           image.buffer,
@@ -786,7 +816,6 @@ const importCollegeFromExcel = async (req, res) => {
       }
     }
 
-    const headerRow = sheet.getRow(1);
     const rows = [];
 
     sheet.eachRow((row, rowNumber) => {
@@ -800,51 +829,24 @@ const importCollegeFromExcel = async (req, res) => {
         data[header] = value;
       });
 
-      if (data["Name"] && String(data["Name"]).trim() !== "") {
+      if (data["Name"]) {
         rows.push({ ...data, rowNumber });
       }
     });
 
-    console.log(`🧾 Found ${rows.length} rows`);
+    console.log("✅ Rows found:", rows.length);
 
     const imported = [];
     const failed = [];
 
     for (const row of rows) {
       try {
-        const safe = (val, fallback = "-") => {
-          if (typeof val === "string" && val.trim()) return val.trim();
-          if (typeof val === "number" && !isNaN(val)) return val;
-          return fallback;
-        };
+        const affiliatedById = await resolveFieldId(AffiliatedBy, row["Affiliated By"]);
+        const ownershipId = await resolveFieldId(Ownership, row["Ownership"]);
 
-        const affiliatedById = await resolveFieldId(
-          AffiliatedBy,
-          row["Affiliated By"]
-        );
-
-        const ownershipId = await resolveFieldId(
-          Ownership,
-          row["Ownership"]
-        );
-
-        const streamIds = await resolveMultipleFieldIds(
-          Stream,
-          row["Streams"],
-          false
-        );
-
-        const approvalIds = await resolveMultipleFieldIds(
-          Approval,
-          row["Approvals"],
-          false
-        );
-
-        const examIds = await resolveMultipleFieldIds(
-          ExamsAccepted,
-          row["Exam Expected"],
-          false
-        );
+        const streamIds = await resolveMultipleFieldIds(Stream, row["Streams"], false);
+        const approvalIds = await resolveMultipleFieldIds(Approval, row["Approvals"], false);
+        const examIds = await resolveMultipleFieldIds(ExamsAccepted, row["Exam Expected"], false);
 
         if (!affiliatedById || !ownershipId) {
           failed.push({
@@ -854,37 +856,53 @@ const importCollegeFromExcel = async (req, res) => {
           continue;
         }
 
-        const imagePath =
-          imageMap.get(row.rowNumber) || safe(row["Image"], "");
-
-        // ✅ CLEAN WEBSITE
-        const websiteValue = normalizeWebsite(row["Website"]);
+        const imagePath = imageMap.get(row.rowNumber) || extractText(row["Image"]);
 
         const collegeData = {
-          name: safe(row["Name"]),
-          description: stripHtml(safe(row["Description"], "")),
-          state: safe(row["State"]),
-          city: safe(row["City"]),
-          image: imagePath,
-          imageGallery: await uploadGalleryImages(row["Image Gallery"]),
+          collegeId: undefined,
 
-          // ✅ OPTIONAL WEBSITE
-          ...(websiteValue && { website: websiteValue }),
+          name: row["Name"],
+          slug: await generateUniqueSlug(row["Name"]),
 
-          affiliatedby: affiliatedById,
-          ownership: ownershipId,
+          description: stripHtml(row["Description"] || ""),
+          about: stripHtml(row["About"] || ""),
+
+          state: row["State"],
+          city: row["City"],
+
           stream: streamIds,
           approvel: approvalIds,
           examExpected: examIds,
-          slug: await generateUniqueSlug(row["Name"]),
+          affiliatedby: affiliatedById,
+          ownership: ownershipId,
+
+          address: row["Address"] || "",
+          location: row["Location"] || "",
+
+          rank: Number(row["Rank"] || 0),
+          fees: Number(row["Fees"] || 0),
+          avgPackage: Number(row["Avg Package"] || 0),
+
+          website: extractText(row["Website"]),
+
+          contactNumbers: parseContactNumbers(row["Contact Numbers"]),
+          contactEmail: extractEmail(row["Contact Email"]),
+
+          featured: String(row["Featured"]).toLowerCase() === "yes",
+
+          image: imagePath,
+          imageGallery: await uploadGalleryImages(row["Image Gallery"]),
         };
 
         const newCollege = new College(collegeData);
         await newCollege.save();
 
         imported.push(newCollege);
-        console.log(`✅ Created: ${newCollege.name}`);
+        console.log("✅ CREATED:", newCollege.name);
+
       } catch (err) {
+        console.log("❌ ERROR:", row["Name"], err.message);
+
         failed.push({
           college: row["Name"],
           error: err.message,
@@ -894,16 +912,17 @@ const importCollegeFromExcel = async (req, res) => {
 
     fs.unlinkSync(req.file.path);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Import completed",
       successCount: imported.length,
       failedCount: failed.length,
       failed,
     });
-  } catch (err) {
-    console.error("❌ Import Error:", err);
 
-    res.status(500).json({
+  } catch (err) {
+    console.error("❌ IMPORT FAILED:", err);
+
+    return res.status(500).json({
       error: "Failed to import colleges",
       details: err.message,
     });
