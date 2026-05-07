@@ -232,20 +232,30 @@ const updateCategoryOrder = async (req, res) => {
   try {
     const { type, orderedIds } = req.body;
 
+    if (!type || !Array.isArray(orderedIds)) {
+      return res.status(400).json({ message: "Invalid payload" });
+    }
+
     await Promise.all(
-      orderedIds.map((id, i) =>
-        Category.findByIdAndUpdate(id, { sortOrder: i })
+      orderedIds.map((id, index) =>
+        Category.findOneAndUpdate(
+          { _id: id, type }, // ✅ IMPORTANT FIX
+          { sortOrder: index }
+        )
       )
     );
 
     invalidateCache();
-    res.status(200).json({ success: true });
+
+    return res.status(200).json({
+      success: true,
+      message: "Order updated successfully",
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Order update error:", err);
     res.status(500).json({ message: "Server Error", error: err });
   }
 };
-
 module.exports = {
   getAllCategories,
   getCategories,

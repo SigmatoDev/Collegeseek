@@ -22,16 +22,41 @@ export default function Favicon() {
   const [favicon, setFavicon] = useState<string>("");
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const getSettingsUrl = () => {
+      const baseUrl = api_url?.trim();
+      if (!baseUrl) return null;
+
       try {
-        const { data } = await axios.get(`${api_url}settings`);
+        return new URL("settings", baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
+      } catch {
+        return null;
+      }
+    };
 
-        // FIX: favicon is already full URL from DB
+    const fetchSettings = async () => {
+      const settingsUrl = getSettingsUrl();
+      if (!settingsUrl) {
+        setFavicon("/favicon.ico");
+        return;
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        window.location.protocol === "https:" &&
+        settingsUrl.startsWith("http://")
+      ) {
+        console.warn("Skipping favicon settings request due to insecure API URL on an HTTPS page.");
+        setFavicon("/favicon.ico");
+        return;
+      }
+
+      try {
+        const { data } = await axios.get(settingsUrl);
+
         const faviconUrl = data?.favicon || "/favicon.ico";
-
         setFavicon(faviconUrl);
       } catch (error) {
-        console.error("Error fetching settings:", error);
+        console.warn("Using default favicon. Settings API is unreachable.", error);
         setFavicon("/favicon.ico");
       }
     };

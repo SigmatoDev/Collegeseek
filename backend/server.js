@@ -76,6 +76,7 @@ app.use("/api", require("./routes/admin/excelCollegeRoutes"));
 app.use("/api", require("./routes/filter/coursesRoutes"));
 app.use("/api", require("./routes/admin/metaRoutes"));
 app.use("/api", require("./routes/admin/categoryFilterRoutes"));
+app.use("/api", require("./routes/admin/disclaimersRoutes"));
 
 // Start the server
 app.listen(PORT, () => {

@@ -20,3 +20,4 @@ PrivacyPolicySchema.pre('save', function (next) {
 const PrivacyPolicy = mongoose.model('PrivacyPolicy', PrivacyPolicySchema);
 
 module.exports = PrivacyPolicy;
+// models/admin/privacyPolicyModel.js
