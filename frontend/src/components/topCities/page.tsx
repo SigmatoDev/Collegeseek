@@ -23,6 +23,16 @@ const CITIES: CityCard[] = [
 ];
 
 const normalizeName = (name: string) => name.toLowerCase().trim();
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const buildApiUrl = (path: string) => {
+  if (!API_BASE_URL) return null;
+  try {
+    return new URL(path, API_BASE_URL).toString();
+  } catch {
+    return null;
+  }
+};
 
 const formatCity = (name: string) => {
   return name
@@ -41,22 +51,32 @@ const TopStudyCities = () => {
 
   useEffect(() => {
     const fetchCounts = async () => {
+      const collegesUrl = buildApiUrl("get/colleges/filter");
+      const coursesUrl = buildApiUrl("get/courses/count/by-city");
+
+      if (!collegesUrl || !coursesUrl) {
+        console.error(
+          "TopStudyCities: NEXT_PUBLIC_API_URL is missing or invalid.",
+          API_BASE_URL
+        );
+        setCityStats({});
+        setCourseStats({});
+        return;
+      }
+
       try {
         const [collegeResults, courseRes] = await Promise.all([
           Promise.all(
             CITIES.map(async (city) => {
-              const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || ""}get/colleges/filter`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    cities: city.queryNames || [city.name],
-                    page: 1,
-                    limit: 1,
-                  }),
-                }
-              );
+              const res = await fetch(collegesUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  cities: city.queryNames || [city.name],
+                  page: 1,
+                  limit: 1,
+                }),
+              });
               if (!res.ok) return { name: city.name, count: undefined };
               const data = await res.json();
               const total =
@@ -71,7 +91,7 @@ const TopStudyCities = () => {
               return { name: city.name, count: Number.isFinite(total) ? Number(total) : undefined };
             })
           ),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}get/courses/count/by-city`, {
+          fetch(coursesUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ cities: CITIES.flatMap((c) => c.queryNames || [c.name]) }),

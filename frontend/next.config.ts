@@ -4,7 +4,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   images: {
-    domains: ["collegeseek.s3.amazonaws.com"], // use your S3 bucket domain
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "collegeseek.s3.amazonaws.com",
+      },
+    ],
     unoptimized: true, // optional, only if you want to skip optimization
   },
 

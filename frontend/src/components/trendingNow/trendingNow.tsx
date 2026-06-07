@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { api_url } from "@/utils/apiCall";
 import Link from "next/link";
 
 interface TrendingEntry {
@@ -70,6 +69,16 @@ function DesktopSkeleton() {
 }
 
 const accentDots = ["bg-[#F97316]", "bg-[#D946EF]", "bg-[#0EA5E9]", "bg-[#22C55E]"];
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const buildApiUrl = (path: string) => {
+  if (!API_BASE_URL) return null;
+  try {
+    return new URL(path, API_BASE_URL).toString();
+  } catch {
+    return null;
+  }
+};
 
 const TrendingNow = () => {
   const [exams, setExams] = useState<TrendingEntry[]>([]);
@@ -78,8 +87,19 @@ const TrendingNow = () => {
 
   useEffect(() => {
     const fetchTrendingExams = async () => {
+      const trendingNowUrl = buildApiUrl("get/trendingNow");
+      if (!trendingNowUrl) {
+        console.error(
+          "TrendingNow: NEXT_PUBLIC_API_URL is missing or invalid.",
+          API_BASE_URL
+        );
+        setError("Failed to fetch trending exams.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axios.get(`${api_url}get/trendingNow`);
+        const response = await axios.get(trendingNowUrl);
         if (Array.isArray(response.data)) {
           setExams(
             response.data.map((item: any) => ({

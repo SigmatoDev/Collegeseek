@@ -77,6 +77,7 @@ app.use("/api", require("./routes/filter/coursesRoutes"));
 app.use("/api", require("./routes/admin/metaRoutes"));
 app.use("/api", require("./routes/admin/categoryFilterRoutes"));
 app.use("/api", require("./routes/admin/disclaimersRoutes"));
+app.use("/api", require("./routes/admin/analyticsRoute"));
 
 // Start the server
 app.listen(PORT, () => {
