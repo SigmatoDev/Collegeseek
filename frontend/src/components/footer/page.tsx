@@ -29,10 +29,20 @@ const Footer = () => {
 
  useEffect(() => {
   setIsMounted(true);
+  const controller = new AbortController();
 
   const fetchLogo = async () => {
+    if (!api_url) {
+      setSiteLogo("/logo/logo.jpg");
+      setContactInfo(DEFAULT_CONTACT);
+      setSocialLinks(DEFAULT_SOCIAL_LINKS);
+      return;
+    }
+
     try {
-      const { data } = await axios.get(`${api_url}settings`);
+      const { data } = await axios.get(`${api_url}settings`, {
+        signal: controller.signal,
+      });
 
       // Use the full S3 URL directly
       setSiteLogo(data.siteLogo || "/default-logo.png");
@@ -47,8 +57,10 @@ const Footer = () => {
         ...DEFAULT_SOCIAL_LINKS,
         ...(data.socialLinks || {}),
       });
-    } catch (error) {
-      console.error("Error fetching settings:", error);
+    } catch (error: any) {
+      if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+        return;
+      }
 
       setSiteLogo("/logo/logo.jpg");
       setContactInfo(DEFAULT_CONTACT);
@@ -57,7 +69,9 @@ const Footer = () => {
   };
 
   fetchLogo();
-}, []);;
+
+  return () => controller.abort();
+}, []);
 
   if (!isMounted) return null;
 
@@ -149,7 +163,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/latestUpdate"
-                    className="text-sm text-gray-300 hover:text-white transition"
+                    className="text-sm text-white hover:text-white/80 transition"
                   >
                     Latest Update
                   </Link>
@@ -157,7 +171,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/courses"
-                    className="text-sm text-gray-300 hover:text-white transition"
+                    className="text-sm text-white hover:text-white/80 transition"
                   >
                     Courses
                   </Link>
@@ -165,7 +179,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/college"
-                    className="text-sm text-gray-300 hover:text-white transition"
+                    className="text-sm text-white hover:text-white/80 transition"
                   >
                     Colleges
                   </Link>
@@ -175,14 +189,14 @@ const Footer = () => {
 
             {/* Quick Links */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-gray-100">
                 Company
               </h3>
               <ul className="space-y-2.5">
                 <li>
                   <Link
                     href="/aboutUs"
-                    className="text-sm text-gray-300 hover:text-white transition"
+                    className="text-sm text-white hover:text-white/80 transition"
                   >
                     About Us
                   </Link>
@@ -190,7 +204,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/contactUs"
-                    className="text-sm text-gray-300 hover:text-white transition"
+                    className="text-sm text-white hover:text-white/80 transition"
                   >
                     Contact Us
                   </Link>
@@ -198,7 +212,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/contactUs"
-                    className="text-sm text-gray-300 hover:text-white transition"
+                    className="text-sm text-white hover:text-white/80 transition"
                   >
                     Join Us
                   </Link>
@@ -298,22 +312,22 @@ const Footer = () => {
             {/* Explore */}
             <div>
               <h3 className="text-lg font-semibold mb-4">More to Explore</h3>
-              <ul className="space-y-3 text-sm text-gray-400">
+              <ul className="space-y-3 text-sm text-white">
                 <li>
                   <Link
                     href="/latestUpdate"
-                    className="hover:text-white transition"
+                    className="text-amber-50 hover:text-white/80 transition"
                   >
                     Latest Update
                   </Link>
                 </li>
                 <li>
-                  <Link href="/courses" className="hover:text-white transition">
+                  <Link href="/courses" className="text-amber-50 hover:text-white/80 transition">
                     Courses
                   </Link>
                 </li>
                 <li>
-                  <Link href="/college" className="hover:text-white transition">
+                  <Link href="/college" className="text-amber-50 hover:text-white/80 transition">
                     Colleges
                   </Link>
                 </li>
@@ -323,16 +337,16 @@ const Footer = () => {
             {/* Quick Links */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-3 text-sm text-gray-400">
+              <ul className="space-y-3 text-sm text-white">
                 <li>
-                  <Link href="/aboutUs" className="hover:text-white transition">
+                  <Link href="/aboutUs" className="text-amber-50 hover:text-white/80 transition">
                     About Us
                   </Link>
                 </li>
                 <li>
                   <Link
                     href="/contactUs"
-                    className="hover:text-white transition"
+                    className="text-amber-50 hover:text-white/80 transition"
                   >
                     Contact Us
                   </Link>
@@ -340,7 +354,7 @@ const Footer = () => {
                 <li>
                   <Link
                     href="/contactUs"
-                    className="hover:text-white transition"
+                    className="text-amber-50 hover:text-white/80 transition"
                   >
                     Join Us
                   </Link>

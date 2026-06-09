@@ -4,7 +4,6 @@ import { useState, ChangeEvent } from "react";
 import { api_url } from "@/utils/apiCall";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 type FailedImport = {
   college: string;
@@ -23,7 +22,32 @@ const ImportColleges = () => {
   const [failed, setFailed] = useState<FailedImport[]>([]);
   const [responseInfo, setResponseInfo] = useState<ImportResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+
+  const safeText = (value: unknown, fallback = ""): string => {
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    if (value && typeof value === "object") {
+      const data = value as { text?: unknown; result?: unknown; message?: unknown; error?: unknown };
+      return safeText(data.text ?? data.result ?? data.message ?? data.error, fallback);
+    }
+    return fallback;
+  };
+
+  const getMessage = (data: any): string =>
+    safeText(data?.message ?? data?.error ?? data?.details, "Import failed.");
+
+  const getFailedColleges = (data: any): FailedImport[] => {
+    const failedItems = Array.isArray(data?.failedColleges)
+      ? data.failedColleges
+      : Array.isArray(data?.failed)
+        ? data.failed
+        : [];
+
+    return failedItems.map((item: any, index: number) => ({
+      college: safeText(item?.college, `Row ${index + 1}`),
+      error: safeText(item?.error ?? item?.message, "Unknown error"),
+    }));
+  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -43,19 +67,33 @@ const ImportColleges = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success(data.message);
-      setFailed(data.failedColleges || []);
+      const failedColleges = getFailedColleges(data);
+      const message = getMessage(data);
+
+      toast.success(message);
+      setFailed(failedColleges);
       setResponseInfo({
-        message: data.message,
-        successCount: data.successCount,
-        failedCount: data.failedCount,
-        failedColleges: data.failedColleges || [],
+        message,
+        successCount: Number(data.successCount) || 0,
+        failedCount: Number(data.failedCount ?? failedColleges.length) || 0,
+        failedColleges,
       });
 
       setFile(null); // Clear file input
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload failed", error);
-      toast.error("Failed to import colleges.");
+      const data = error.response?.data;
+      const failedColleges = getFailedColleges(data);
+      const message = getMessage(data);
+
+      toast.error(message);
+      setFailed(failedColleges);
+      setResponseInfo({
+        message,
+        successCount: Number(data?.successCount) || 0,
+        failedCount: Number(data?.failedCount ?? failedColleges.length) || 0,
+        failedColleges,
+      });
     } finally {
       setLoading(false);
     }

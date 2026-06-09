@@ -56,20 +56,31 @@ export default function MegaMenu() {
   
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchMenu = async () => {
+      if (!api_url) return;
+
       try {
-        const res = await fetch(`${api_url}menus`);
+        const res = await fetch(`${api_url}menus`, {
+          signal: controller.signal,
+        });
         if (!res.ok) throw new Error("Failed to load menus");
         const menus = await res.json();
         const courseMenu = menus.data?.[0];
         if (courseMenu?.columns && Array.isArray(courseMenu.columns)) {
           setMenuData(courseMenu.columns);
         }
-      } catch (error) {
-        console.error("Error fetching menu:", error);
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          console.warn("Menu is unavailable. Using empty course menu.");
+        }
       }
     };
+
     fetchMenu();
+
+    return () => controller.abort();
   }, []);
 
   // FIX 4 — Close on outside click (desktop only), also guard against bottomSheetRef

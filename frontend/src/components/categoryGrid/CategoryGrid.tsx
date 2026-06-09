@@ -28,7 +28,7 @@ const ICON_SWATCHES = [
 // ── Mobile skeleton ──────────────────────────────────────────────
 function MobileSkeleton() {
   return (
-    <div className="sm:hidden space-y-4 animate-pulse">
+    <div className="md:hidden space-y-4 animate-pulse">
       {/* Tab bar skeleton */}
       <div className="flex w-full rounded-full border border-orange-100 bg-white overflow-hidden h-10">
         {[0, 1, 2].map((i) => (
@@ -85,7 +85,7 @@ function MobileSkeleton() {
 // ── Desktop skeleton ─────────────────────────────────────────────
 function DesktopSkeleton() {
   return (
-    <div className="hidden sm:block animate-pulse">
+    <div className="hidden md:block animate-pulse">
       {/* Tab bar */}
       <div className="flex justify-center mb-14">
         <div className="flex w-full max-w-md rounded-full border border-orange-100 bg-white overflow-hidden h-12">
@@ -98,9 +98,9 @@ function DesktopSkeleton() {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[320px,1fr]">
+      <div className="mx-auto flex max-w-[1250px] items-start gap-8">
         {/* Left list skeleton */}
-        <div className="rounded-3xl border bg-white/90 p-4 shadow-sm space-y-3">
+        <div className="h-[480px] w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm space-y-3 overflow-hidden">
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
@@ -116,7 +116,7 @@ function DesktopSkeleton() {
         </div>
 
         {/* Right panel skeleton */}
-        <div className="rounded-[32px] border bg-white/90 p-8 shadow-lg space-y-6">
+        <div className="h-[480px] flex-1 rounded-[32px] border border-gray-200 bg-white/90 p-8 shadow-lg space-y-6">
           <div className="h-8 w-48 bg-gray-200 rounded-full" />
           <div className="flex gap-4">
             <div className="h-10 w-36 bg-orange-200 rounded-full" />
@@ -336,7 +336,7 @@ export default function CategoryGrid() {
             {/* ═══════════════════════════════════════
                 MOBILE layout
             ═══════════════════════════════════════ */}
-            <div className="sm:hidden space-y-4">
+            <div className="md:hidden space-y-4">
               {/* Tab switcher */}
               <div className="relative flex w-full bg-white border border-[#D35E45] rounded-full shadow-md overflow-hidden">
                 <div
@@ -468,8 +468,8 @@ export default function CategoryGrid() {
             {/* ═══════════════════════════════════════
                 DESKTOP layout — completely unchanged
             ═══════════════════════════════════════ */}
-            <div className="hidden sm:block">
-              <div className="flex justify-center mb-14">
+            <div className="hidden md:block">
+              <div className="flex justify-center mb-8">
                 <div className="relative flex w-full max-w-md bg-white border border-[#D35E45] rounded-full shadow-md overflow-hidden">
                   <div
                     className="absolute top-0 left-0 h-full bg-[#D35E45] rounded-full transition-transform duration-500 ease-in-out z-0"
@@ -495,8 +495,8 @@ export default function CategoryGrid() {
                 </div>
               </div>
 
-              <div className="grid gap-8 lg:grid-cols-[320px,1fr]">
-                <div className="rounded-3xl border bg-white/90 p-4 shadow-sm max-h-[480px] overflow-y-auto">
+              <div className="mx-auto flex max-w-[1250px] items-start gap-8">
+                <div className="h-[480px] w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm overflow-y-auto">
                   <div className="space-y-3">
                     {currentList.map((item, index) => {
                       const isSelected = selectedItem?.name === item.name;
@@ -506,14 +506,14 @@ export default function CategoryGrid() {
                         <button
                           key={item.name}
                           onClick={() => setSelectedItem(item)}
-                          className={`flex w-full items-center gap-4 rounded-2xl border px-4 py-3 ${
+                          className={`flex min-h-[74px] w-full items-center gap-4 rounded-2xl border px-4 py-3 transition ${
                             isSelected
                               ? "border-[#d35e45] bg-[#fff0e6]"
-                              : "border-orange-100"
+                              : "border-orange-100 bg-white hover:border-[#f0b4a4] hover:bg-[#fff8f5]"
                           }`}
                         >
                           <div
-                            className={`h-12 w-12 flex items-center justify-center rounded-xl bg-gradient-to-br ${swatch.bg}`}
+                            className={`h-12 w-12 shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br ${swatch.bg}`}
                           >
                             <span
                               className={`text-base font-bold ${swatch.text}`}
@@ -521,8 +521,8 @@ export default function CategoryGrid() {
                               {item.name.charAt(0)}
                             </span>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-left">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-left text-gray-950">
                               {item.name}
                             </p>
                             <p className="text-xs text-gray-500 flex justify-start">
@@ -535,7 +535,7 @@ export default function CategoryGrid() {
                   </div>
                 </div>
 
-                <div className="rounded-[32px] border bg-white/90 p-8 shadow-lg space-y-6">
+                <div className="h-[480px] min-w-0 flex-1 rounded-[32px] border border-gray-200 bg-white/95 p-8 shadow-[0_18px_40px_rgba(15,23,42,0.12)] space-y-6 overflow-hidden">
                   {selectedItem ? (
                     <>
                       <h3 className="text-3xl font-extrabold">
@@ -555,7 +555,7 @@ export default function CategoryGrid() {
                           Get Admission Help
                         </Link>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="max-h-[300px] overflow-y-auto pr-1 flex flex-wrap content-start gap-2">
                         {collegesLoading ? (
                           <div className="flex flex-wrap gap-2 animate-pulse">
                             {[100, 130, 90, 115, 80, 140, 95, 120].map(

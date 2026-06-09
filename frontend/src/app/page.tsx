@@ -10,6 +10,7 @@ import PopUp from "@/components/popup/popUp";
 import { api_url } from "@/utils/apiCall";
 import FeaturedColleges from "@/components/featuredColleges/featuredColleges.tsx";
 import TopStudyCities from "@/components/topCities/page";
+import { homeColours } from "./home/colours/homeColours";
 
 // ✅ FIX: Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export async function generateMetadata() {
 // ✅ Page component
 export default function HomePage() {
   return (
-    <div className="bg-[#fffdff]">
+    <div className={homeColours.page.background}>
       <Header />
       <HeroSection />
       <TrendingNow />

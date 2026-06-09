@@ -159,6 +159,8 @@ const FeaturedColleges = () => {
     return assignFallback(id);
   };
 
+  const shouldLoop = colleges.length > 4;
+
   return (
     <section className="relative pt-6 pb-8 bg-gradient-to-b from-[#fff7f1] via-[#fff0e7] to-[#ffe5d4]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(210,92,64,0.12),_transparent_60%)] pointer-events-none" />
@@ -206,8 +208,8 @@ const FeaturedColleges = () => {
               <Swiper
                 modules={[Navigation, Pagination, Autoplay]}
                 spaceBetween={12}
-                loop
-                autoplay={{ delay: 3000, disableOnInteraction: false }}
+                loop={shouldLoop}
+                autoplay={shouldLoop ? { delay: 3000, disableOnInteraction: false } : false}
                 onSwiper={(swiper) => (swiperRef.current = swiper)}
                 pagination={{ clickable: true, el: ".custom-swiper-pagination" }}
                 breakpoints={{
@@ -230,9 +232,10 @@ const FeaturedColleges = () => {
                           <Image
                             src={getImageUrl(college.image, college._id)}
                             alt={college.name}
-                            fill
+                            width={640}
+                            height={420}
                             sizes="(max-width: 768px) 90vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover"
+                            className="h-full w-full object-cover"
                             onError={() => assignFallback(college._id)}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />

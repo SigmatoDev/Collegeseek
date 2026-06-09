@@ -567,10 +567,20 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
 
   useEffect(() => {
     setIsMounted(true);
+    const controller = new AbortController();
 
     const fetchLogo = async () => {
+      if (!api_url) {
+        setSiteLogo("/default-logo.png");
+        setContactInfo(DEFAULT_CONTACT_INFO);
+        setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
+        return;
+      }
+
       try {
-        const { data } = await axios.get(`${api_url}settings`);
+        const { data } = await axios.get(`${api_url}settings`, {
+          signal: controller.signal,
+        });
         setSiteLogo(data.siteLogo || "/default-logo.png");
         setContactInfo({
           phone: data.contactPhone || DEFAULT_CONTACT_INFO.phone,
@@ -580,8 +590,11 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
           ...DEFAULT_SOCIAL_LINKS,
           ...(data.socialLinks || {}),
         });
-      } catch (error) {
-        console.error("Error fetching settings:", error);
+      } catch (error: any) {
+        if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+          return;
+        }
+
         setSiteLogo("/default-logo.png");
         setContactInfo(DEFAULT_CONTACT_INFO);
         setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
@@ -589,6 +602,8 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
     };
 
     fetchLogo();
+
+    return () => controller.abort();
   }, []);
 
   // ── NEW: mailto handler with fallback ──

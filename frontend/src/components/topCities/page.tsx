@@ -163,9 +163,10 @@ const TopStudyCities = () => {
                     <Image
                       src={city.image}
                       alt={`${city.name} icon`}
-                      fill
+                      width={40}
+                      height={40}
                       sizes="40px"
-                      className="object-contain p-1"
+                      className="h-full w-full object-contain p-1"
                     />
                   </div>
                   <p className="text-sm font-bold text-gray-900 leading-tight">{city.name}</p>
@@ -200,9 +201,10 @@ const TopStudyCities = () => {
                     <Image
                       src={city.image}
                       alt={`${city.name} icon`}
-                      fill
+                      width={64}
+                      height={64}
                       sizes="64px"
-                      className="object-contain p-2"
+                      className="h-full w-full object-contain p-2"
                     />
                   </div>
                   <div>

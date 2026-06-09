@@ -95,7 +95,7 @@ export default function CallbackForm() {
                   placeholder="Full Name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-orange-50/60 border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition placeholder:text-gray-400"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -127,7 +127,7 @@ export default function CallbackForm() {
                       e.preventDefault();
                     }
                   }}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-orange-50/60 border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition placeholder:text-gray-400"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -141,7 +141,7 @@ export default function CallbackForm() {
                   placeholder="Email Address"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-orange-50/60 border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition placeholder:text-gray-400"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -153,7 +153,7 @@ export default function CallbackForm() {
                   name="stream"
                   value={formData.stream}
                   onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-orange-50/60 border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition text-gray-600 appearance-none"
+                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-orange-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D25C40]/30 focus:border-[#D25C40] transition text-gray-600 appearance-none"
                   required
                 >
                   <option value="" disabled>
@@ -232,7 +232,7 @@ export default function CallbackForm() {
               placeholder="Full Name"
               value={formData.name}
               onChange={handleChange}
-              className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+              className="p-3 border border-gray-300 bg-white rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
               required
             />
           </div>
@@ -261,7 +261,7 @@ export default function CallbackForm() {
                   e.preventDefault();
                 }
               }}
-              className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+              className="p-3 border border-gray-300 bg-white rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
               required
             />
           </div>
@@ -273,7 +273,7 @@ export default function CallbackForm() {
               value={formData.email}
               onChange={handleChange}
               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-              className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+              className="p-3 border border-gray-300 bg-white rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
               required
             />
           </div>
@@ -282,7 +282,7 @@ export default function CallbackForm() {
               name="stream"
               value={formData.stream}
               onChange={handleChange}
-              className="p-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
+              className="p-3 border border-gray-300 bg-white rounded-lg w-full focus:ring-2 focus:ring-[#D25C41]"
               required
             >
               <option value="" disabled>

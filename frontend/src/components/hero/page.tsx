@@ -80,6 +80,9 @@ export default function HeroSection() {
         src="/image/2a.webp"
         alt="Hero Image"
         fill
+        priority
+        loading="eager"
+        sizes="100vw"
         className="object-cover opacity-80"
       />
 

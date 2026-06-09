@@ -476,7 +476,7 @@ export default function FilterCollegeCard({ collegeId, college }: Props) {
 
   return (
     <div
-      className="border rounded-lg shadow-md bg-white cursor-pointer hover:shadow-lg transition-shadow
+      className="border border-gray-300 rounded-lg shadow-md bg-white cursor-pointer hover:shadow-lg transition-shadow
         p-3 md:p-4
       "
       onClick={() => router.push(`/colleges/${collegeData.slug}`)}
@@ -733,7 +733,7 @@ export default function FilterCollegeCard({ collegeId, college }: Props) {
               )}
           </div>
         </div>
-        <div className="border-t mt-4 pt-3 flex flex-col md:flex-row justify-between gap-3 text-sm text-[#441A6B]">
+        <div className="border-t border-gray-400 mt-4 pt-3 flex flex-col md:flex-row justify-between gap-3 text-sm text-[#441A6B]">
           <div className="flex flex-col md:flex-row gap-3 w-full">
             <button
               onClick={(e) => {
