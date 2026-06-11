@@ -98,9 +98,9 @@ function DesktopSkeleton() {
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-[1250px] items-start gap-8">
+      <div className="mx-auto flex max-w-312.5 items-start gap-8">
         {/* Left list skeleton */}
-        <div className="h-[480px] w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm space-y-3 overflow-hidden">
+        <div className="h-120 w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm space-y-3 overflow-hidden">
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
@@ -116,7 +116,7 @@ function DesktopSkeleton() {
         </div>
 
         {/* Right panel skeleton */}
-        <div className="h-[480px] flex-1 rounded-[32px] border border-gray-200 bg-white/90 p-8 shadow-lg space-y-6">
+        <div className="h-120 flex-1 rounded-4xl border border-gray-200 bg-white/90 p-8 shadow-lg space-y-6">
           <div className="h-8 w-48 bg-gray-200 rounded-full" />
           <div className="flex gap-4">
             <div className="h-10 w-36 bg-orange-200 rounded-full" />
@@ -312,7 +312,7 @@ export default function CategoryGrid() {
   const currentList = data[tabKeyMap[activeTab]];
 
   return (
-    <section className="bg-gradient-to-b from-orange-50 to-orange-50 py-10 sm:py-16">
+    <section className="bg-linear-to-b from-orange-50 to-orange-50 py-10 sm:py-16">
       <div className="max-w-7xl mx-auto px-4">
         <h2
           className="font-extrabold text-center text-gray-900 mb-8 sm:mb-12
@@ -377,7 +377,7 @@ export default function CategoryGrid() {
                       `}
                     >
                       <span
-                        className={`h-6 w-6 shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${swatch.bg}`}
+                        className={`h-6 w-6 shrink-0 rounded-full flex items-center justify-center bg-linear-to-br ${swatch.bg}`}
                       >
                         <span
                           className={`text-[10px] font-bold ${swatch.text}`}
@@ -495,8 +495,8 @@ export default function CategoryGrid() {
                 </div>
               </div>
 
-              <div className="mx-auto flex max-w-[1250px] items-start gap-8">
-                <div className="h-[480px] w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm overflow-y-auto">
+              <div className="mx-auto flex max-w-312.5 items-start gap-8">
+                <div className="h-120 w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm overflow-y-auto">
                   <div className="space-y-3">
                     {currentList.map((item, index) => {
                       const isSelected = selectedItem?.name === item.name;
@@ -506,14 +506,14 @@ export default function CategoryGrid() {
                         <button
                           key={item.name}
                           onClick={() => setSelectedItem(item)}
-                          className={`flex min-h-[74px] w-full items-center gap-4 rounded-2xl border px-4 py-3 transition ${
+                          className={`flex min-h-18.5 w-full items-center gap-4 rounded-2xl border px-4 py-3 transition ${
                             isSelected
                               ? "border-[#d35e45] bg-[#fff0e6]"
                               : "border-orange-100 bg-white hover:border-[#f0b4a4] hover:bg-[#fff8f5]"
                           }`}
                         >
                           <div
-                            className={`h-12 w-12 shrink-0 flex items-center justify-center rounded-xl bg-gradient-to-br ${swatch.bg}`}
+                            className={`h-12 w-12 shrink-0 flex items-center justify-center rounded-xl bg-linear-to-br ${swatch.bg}`}
                           >
                             <span
                               className={`text-base font-bold ${swatch.text}`}
@@ -535,7 +535,7 @@ export default function CategoryGrid() {
                   </div>
                 </div>
 
-                <div className="h-[480px] min-w-0 flex-1 rounded-[32px] border border-gray-200 bg-white/95 p-8 shadow-[0_18px_40px_rgba(15,23,42,0.12)] space-y-6 overflow-hidden">
+                <div className="h-120 min-w-0 flex-1 rounded-4xl border border-gray-200 bg-white/95 p-8 shadow-[0_18px_40px_rgba(15,23,42,0.12)] space-y-6 overflow-hidden">
                   {selectedItem ? (
                     <>
                       <h3 className="text-3xl font-extrabold">
@@ -555,7 +555,7 @@ export default function CategoryGrid() {
                           Get Admission Help
                         </Link>
                       </div>
-                      <div className="max-h-[300px] overflow-y-auto pr-1 flex flex-wrap content-start gap-2">
+                      <div className="max-h-75 overflow-y-auto pr-1 flex flex-wrap content-start gap-2">
                         {collegesLoading ? (
                           <div className="flex flex-wrap gap-2 animate-pulse">
                             {[100, 130, 90, 115, 80, 140, 95, 120].map(
