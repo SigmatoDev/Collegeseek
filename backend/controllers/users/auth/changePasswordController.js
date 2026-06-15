@@ -6,6 +6,13 @@ const changePassword = async (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
   const userId = req.user.id;  // Get the user ID from the JWT token (stored in req.user)
 
+  if (req.authProvider === 'google') {
+    return res.status(403).json({
+      success: false,
+      message: 'Password changes are not available for accounts signed in with Google.',
+    });
+  }
+
   if (!currentPassword || !newPassword || !confirmPassword) {
     return res.status(400).json({ success: false, message: 'Please provide all required fields.' });
   }

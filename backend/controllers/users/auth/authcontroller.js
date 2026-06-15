@@ -6,9 +6,9 @@ const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 
 // JWT Token Generator
-const generateToken = (userId, userEmail) => {
+const generateToken = (userId, userEmail, authProvider = "local") => {
   return jwt.sign(
-    { id: userId, email: userEmail },
+    { id: userId, email: userEmail, authProvider },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }  // Extend to 7 days
   );
@@ -48,8 +48,8 @@ const signup = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      user: { id: newUser._id, name: newUser.name, email: newUser.email },
-      token: generateToken(newUser._id, newUser.email),
+      user: { id: newUser._id, name: newUser.name, email: newUser.email, authProvider: "local" },
+      token: generateToken(newUser._id, newUser.email, "local"),
     });
   } catch (error) {
     console.error("Signup Error:", error);
@@ -91,8 +91,8 @@ const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user: { id: user._id, name: user.name, email: user.email },
-      token: generateToken(user._id, user.email),
+      user: { id: user._id, name: user.name, email: user.email, authProvider: "local" },
+      token: generateToken(user._id, user.email, "local"),
     });
   } catch (error) {
     console.error("Login Error:", error);
@@ -156,8 +156,8 @@ const loginWithGoogle = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user: { id: user._id, name: user.name, email: user.email },
-      token: generateToken(user._id, user.email),
+      user: { id: user._id, name: user.name, email: user.email, authProvider: "google" },
+      token: generateToken(user._id, user.email, "google"),
     });
   } catch (error) {
     console.error("Google Login Error:", error);

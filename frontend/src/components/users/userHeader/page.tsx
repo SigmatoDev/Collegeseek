@@ -130,7 +130,9 @@ export default function UserHeader({ onOpenSidebar }: Props) {
   const tabs = [
     { label: 'Overview', href: '/user/profile' },
     { label: 'Shortlisted', href: '/user/shortlisted' },
-    { label: 'Password', href: '/user/auth/changePassword' },
+    ...(user?.authProvider === 'google'
+      ? []
+      : [{ label: 'Password', href: '/user/auth/changePassword' }]),
   ]
 
   return (

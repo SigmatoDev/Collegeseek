@@ -505,6 +505,7 @@ interface LoginUser {
   name: string;
   email: string;
   phone?: string;
+  authProvider: "local" | "google";
 }
 interface LoginResponse {
   token: string;
@@ -545,6 +546,7 @@ const LogIn = () => {
       name: data.user.name,
       email: data.user.email,
       phone: data.user.phone || "",
+      authProvider: data.user.authProvider,
     });
     store.setToken(data.token);
     sessionStorage.setItem("authToken", data.token);

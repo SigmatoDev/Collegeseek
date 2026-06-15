@@ -115,9 +115,11 @@ import { persist } from "zustand/middleware";
 
 interface User {
   _id: string;
+  id?: string;
   name: string;
   email: string;
   phone: string;
+  authProvider?: "local" | "google";
     profileImage?: string   // ✅ FIX ADDED
 
   token?: string; // ✅ token lives on user too for convenience
@@ -174,8 +176,11 @@ export const useUserStore = create<UserStore>()(
           return;
         }
         const { token: userToken, ...userWithoutToken } = user;
+        const userId = userWithoutToken._id || userWithoutToken.id;
+        const authProvider =
+          userWithoutToken.authProvider || get().user?.authProvider || "local";
         set({
-          user: userWithoutToken as User,
+          user: { ...userWithoutToken, _id: userId, authProvider } as User,
           isLoggedIn: true,
           // Only update token if a new one is provided
           ...(userToken ? { token: userToken } : {}),
@@ -246,6 +251,9 @@ export const useUserStore = create<UserStore>()(
         },
       },
       onRehydrateStorage: () => (state) => {
+        if (state?.user && !state.user._id && state.user.id) {
+          state.setUser(state.user);
+        }
         state?.setHydrated();
       },
     }

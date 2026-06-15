@@ -34,6 +34,7 @@ const authenticateUser = async (req, res, next) => {
     }
 
     req.user = user; // attach user to request
+    req.authProvider = decoded.authProvider || "local";
     next(); // move to the next middleware
 
   } catch (err) {

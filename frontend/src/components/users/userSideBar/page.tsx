@@ -181,7 +181,9 @@ export default function UserSidebar() {
     { href: "/", icon: <Home size={15} />, label: "Home" },
     { href: "/user/profile", icon: <User size={15} />, label: "My Profile" },
     { href: "/user/shortlisted", icon: <Heart size={15} />, label: "Shortlisted" },
-    { href: "/user/auth/changePassword", icon: <KeyRound size={15} />, label: "Change Password" },
+    ...(user?.authProvider === "google"
+      ? []
+      : [{ href: "/user/auth/changePassword", icon: <KeyRound size={15} />, label: "Change Password" }]),
   ];
 
   return (

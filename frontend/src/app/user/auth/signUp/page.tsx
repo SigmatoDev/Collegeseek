@@ -444,7 +444,14 @@ const Register = () => {
       const data = await res.json();
 
       if (res.ok && data.token && data.user) {
-        setUser({ ...data.user, token: data.token });
+        setUser({
+          _id: data.user.id || data.user._id,
+          name: data.user.name,
+          email: data.user.email,
+          phone: data.user.phone || phone.trim(),
+          authProvider: data.user.authProvider || "local",
+          token: data.token,
+        });
         setToken(data.token);
         setSuccess("Account created successfully!");
         setShowModal(true);
