@@ -134,7 +134,7 @@ const SearchBar = () => {
             search-dropdown absolute top-full left-0 mt-2 z-50
             w-full
             rounded-2xl border border-gray-100 bg-white/95 shadow-2xl backdrop-blur
-            max-h-[70vh] md:max-h-[420px] overflow-y-auto
+            max-h-[70vh] md:max-h-105 overflow-y-auto
           "
         >
           {isSearching ? (

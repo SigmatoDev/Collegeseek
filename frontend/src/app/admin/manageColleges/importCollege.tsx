@@ -6,6 +6,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 
 type FailedImport = {
+  rowNumber?: number;
   college: string;
   error: string;
 };
@@ -44,6 +45,7 @@ const ImportColleges = () => {
         : [];
 
     return failedItems.map((item: any, index: number) => ({
+      rowNumber: typeof item?.rowNumber === "number" ? item.rowNumber : undefined,
       college: safeText(item?.college, `Row ${index + 1}`),
       error: safeText(item?.error ?? item?.message, "Unknown error"),
     }));
@@ -57,6 +59,11 @@ const ImportColleges = () => {
 
   const handleUpload = async () => {
     if (!file) return toast.error("Please select a file first.");
+    const maxExcelFileSizeMb = 100;
+
+    if (file.size > maxExcelFileSizeMb * 1024 * 1024) {
+      return toast.error(`Excel file is too large. Maximum allowed size is ${maxExcelFileSizeMb}MB.`);
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -157,6 +164,7 @@ const ImportColleges = () => {
           <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
             {failed.map((item, idx) => (
               <li key={idx}>
+                {item.rowNumber ? `Row ${item.rowNumber} - ` : ""}
                 {item.college}: <span className="text-red-500">{item.error}</span>
               </li>
             ))}
