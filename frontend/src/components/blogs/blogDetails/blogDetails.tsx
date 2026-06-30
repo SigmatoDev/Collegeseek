@@ -446,7 +446,7 @@ const blogImage = blog.image
             <Breadcrumb
               items={[
                 { label: "Home", href: "/" },
-                { label: "Blog", href: "/blog" },
+                { label: "Blog", href: "/latestUpdate" },
                 { label: blog.title },
               ]}
             />
