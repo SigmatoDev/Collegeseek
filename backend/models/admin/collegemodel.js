@@ -103,6 +103,10 @@ collegeSchema.index({ approvel: 1 });
 collegeSchema.index({ affiliatedby: 1 });
 collegeSchema.index({ examExpected: 1 });
 
+collegeSchema.index({ createdAt: -1 });
+collegeSchema.index({ name: 1 });
+collegeSchema.index({ name: 1, _id: -1 });
+
 // Auto-increment logic for collegeId
 collegeSchema.pre("save", async function (next) {
   if (this.isNew) {
