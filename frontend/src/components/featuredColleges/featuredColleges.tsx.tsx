@@ -157,9 +157,17 @@ const FeaturedColleges = () => {
     return random;
   };
 
+  // ─── FIXED: handle both full S3 URLs and relative paths ───
   const getImageUrl = (image: string, id: string) => {
     if (fallbackMap[id]) return fallbackMap[id];
-    if (image) return `${img_url}uploads/${image.replace(/^\/?uploads\//, "")}`;
+    if (image) {
+      // If it's already a full URL (starts with http), return as-is
+      if (image.startsWith('http://') || image.startsWith('https://')) {
+        return image;
+      }
+      // Otherwise, construct using img_url
+      return `${img_url}uploads/${image.replace(/^\/?uploads\//, "")}`;
+    }
     return assignFallback(id);
   };
 
@@ -191,7 +199,7 @@ const FeaturedColleges = () => {
                 style={{ color: colors.accent.red }}>
                 SPOTLIGHT
               </span>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight" style={{ color: colors.black }}>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight" style={{ color: colors.primary.dark }}>
                 Featured Colleges
               </h2>
               <p className="text-xl max-w-5xl mx-auto font-light" style={{ color: colors.black }}>
@@ -241,7 +249,7 @@ const FeaturedColleges = () => {
                         href={`/colleges/${college.slug || college._id}`}
                         className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/70 bg-white transition hover:-translate-y-1 shadow-sm hover:shadow-lg"
                       >
-                        <div className="relative w-full h-[150px] sm:h-[200px] md:h-[210px]">
+                        <div className="relative w-full h-[180px] sm:h-[200px] md:h-[210px]">
                           <Image
                             src={getImageUrl(college.image, college._id)}
                             alt={college.name}

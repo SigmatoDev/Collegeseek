@@ -63,160 +63,156 @@ export default function CallbackForm() {
   return (
     <div className="w-full">
       {/* ══════════════════════════════════════════
-          MOBILE layout
+          MOBILE layout — matching desktop style
       ══════════════════════════════════════════ */}
-      <div className="sm:hidden py-12 px-4" style={{ backgroundColor: "#fdfeff" }}>
-        <div className="max-w-4xl mx-auto rounded-3xl bg-white shadow-xl border overflow-hidden" style={{ borderColor: colors.accent.orange + '30' }}>
-          {/* Decorative top gradient strip */}
-          <div className="h-1.5 w-full" style={{ background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})` }} />
+      <div className="sm:hidden text-white px-4 py-8 bg-cover bg-center" style={{ backgroundImage: "url('/image/cta-bg.png')" }}>
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-6">
+          
+          {/* Left Text Block */}
+          <div className="space-y-1 text-center max-w-sm">
+            <h3 className="text-lg font-bold tracking-tight">
+              Still Confused?
+            </h3>
+            <h2 className="text-xl font-extrabold tracking-tight">
+              We're Here to Help You.
+            </h2>
+            <p className="text-xs text-blue-100 opacity-90 leading-normal pt-1">
+              Get personalized guidance from our expert counsellors and take the right step towards your dream future.
+            </p>
+          </div>
 
-          <div className="px-5 pt-5 pb-6 space-y-5">
-            {/* Header */}
-            <div className="space-y-1 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.3em]" style={{ color: colors.accent.red }}>
-                Still Confused?
-              </p>
-              <h2 className="text-lg font-bold leading-snug" style={{ color: colors.primary.dark }}>
-                We're Here to Help You.
-              </h2>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Get personalized guidance from our expert counsellors and take the right step towards your dream future.
-              </p>
-            </div>
+          {/* Right Inputs Block */}
+          <div className="w-full">
+            <form onSubmit={handleSubmit} className="w-full space-y-3">
+              <div className="grid grid-cols-1 gap-3">
+                
+                {/* Full Name */}
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Full Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full pl-9 pr-3 py-3 text-sm bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition placeholder:text-gray-400 font-medium"
+                    required
+                  />
+                </div>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {/* Full Name */}
-              <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 transition placeholder:text-gray-400"
-                  style={{ borderColor: colors.accent.orange + '40' }}
-                  required
-                />
+                {/* Mobile Number */}
+                <div className="relative">
+                  <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="tel"
+                    name="mobile"
+                    placeholder="Mobile Number"
+                    value={formData.mobile}
+                    onChange={handleChange}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
+                    minLength={10}
+                    onKeyDown={(e) => {
+                      if (
+                        !/[0-9]/.test(e.key) &&
+                        ![
+                          "Backspace",
+                          "Tab",
+                          "ArrowLeft",
+                          "ArrowRight",
+                          "Delete",
+                        ].includes(e.key)
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="w-full pl-9 pr-3 py-3 text-sm bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition placeholder:text-gray-400 font-medium"
+                    required
+                  />
+                </div>
+
+                {/* Email ID */}
+                <div className="relative">
+                  <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email ID"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full pl-9 pr-3 py-3 text-sm bg-white text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition placeholder:text-gray-400 font-medium"
+                    required
+                  />
+                </div>
+
+                {/* Select Your Interest */}
+                <div className="relative">
+                  <select
+                    name="stream"
+                    value={formData.stream}
+                    onChange={handleChange}
+                    className="w-full pl-4 pr-10 py-3 text-sm bg-white text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition font-medium appearance-none"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select Your Interest
+                    </option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Business">Business</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Arts">Arts & Humanities</option>
+                    <option value="Science">Science</option>
+                  </select>
+                  <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
               </div>
 
-              {/* Mobile Number */}
-              <div className="relative">
-                <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="tel"
-                  name="mobile"
-                  placeholder="Mobile Number"
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={10}
-                  minLength={10}
-                  onKeyDown={(e) => {
-                    if (
-                      !/[0-9]/.test(e.key) &&
-                      ![
-                        "Backspace",
-                        "Tab",
-                        "ArrowLeft",
-                        "ArrowRight",
-                        "Delete",
-                      ].includes(e.key)
-                    ) {
-                      e.preventDefault();
-                    }
-                  }}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 transition placeholder:text-gray-400"
-                  style={{ borderColor: colors.accent.orange + '40' }}
-                  required
-                />
-              </div>
-
-              {/* Email ID */}
-              <div className="relative">
-                <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email ID"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 transition placeholder:text-gray-400"
-                  style={{ borderColor: colors.accent.orange + '40' }}
-                  required
-                />
-              </div>
-
-              {/* Select Your Interest */}
-              <div className="relative">
-                <select
-                  name="stream"
-                  value={formData.stream}
-                  onChange={handleChange}
-                  className="w-full pl-4 pr-9 py-2.5 text-sm bg-white border rounded-xl focus:outline-none focus:ring-2 transition text-gray-600 appearance-none"
-                  style={{ borderColor: colors.accent.orange + '40' }}
-                  required
+              {/* Lower Section */}
+              <div className="flex flex-col items-center gap-3 pt-1">
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full px-6 py-3 rounded-lg text-sm font-bold text-white bg-[#00c66d] hover:bg-[#00b060] active:scale-[0.99] transition-all disabled:opacity-60 shadow-md"
                 >
-                  <option value="" disabled>
-                    Select Your Interest
-                  </option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Business">Business</option>
-                  <option value="Medical">Medical</option>
-                  <option value="Arts">Arts & Humanities</option>
-                  <option value="Science">Science</option>
-                </select>
-                <ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-              </div>
+                  {isSubmitting ? "Submitting..." : "Get Free Counselling"}
+                </button>
 
-              {/* Get Free Counselling */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 rounded-2xl text-sm font-bold text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-60"
-                style={{
-                  background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`,
-                  boxShadow: `0 8px 25px ${colors.accent.red}40`
-                }}
-              >
-                {isSubmitting ? "Submitting..." : "Get Free Counselling"}
-              </button>
+                {/* Privacy/Terms Notice */}
+                <p className="text-xs text-blue-100 opacity-90 leading-normal text-center">
+                  By proceeding, you agree to our{" "}
+                  <a href="/terms&Conditions" className="underline hover:text-white transition-colors">
+                    Terms of Use
+                  </a>
+                  {" and "}
+                  <a href="/privacyPolicy" className="underline hover:text-white transition-colors">
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              </div>
             </form>
 
             {message && (
               <p
-                className={`text-xs text-center font-medium rounded-xl px-3 py-2 ${
+                className={`text-sm font-medium rounded-lg px-4 py-2 mt-3 ${
                   message.includes("success")
-                    ? "bg-green-50 text-green-700 border border-green-100"
-                    : "bg-red-50 text-red-600 border border-red-100"
+                    ? "bg-green-500/20 text-green-200 border border-green-500/30"
+                    : "bg-red-500/20 text-red-200 border border-red-500/30"
                 }`}
               >
                 {message}
               </p>
             )}
-
-            {/* Footer */}
-            <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-              By proceeding, you agree to our{" "}
-              <a href="/terms&Conditions" className="underline" style={{ color: colors.accent.red }}>
-                Terms of Use
-              </a>
-              {" and "}
-              <a href="/privacyPolicy" className="underline" style={{ color: colors.accent.red }}>
-                Privacy Policy
-              </a>
-              .
-            </p>
           </div>
+
         </div>
       </div>
 
       {/* ══════════════════════════════════════════
-          DESKTOP layout (Matching Image)
+          DESKTOP layout
       ══════════════════════════════════════════ */}
-      {/* Swap/Update the inline style background or replace class below when you map your public asset */}
       <div 
         className="hidden sm:block text-white px-8 py-10 md:py-12 bg-cover bg-center" 
         style={{ backgroundImage: "url('/image/cta-bg.png')" }}
@@ -367,7 +363,6 @@ export default function CallbackForm() {
     </div>
   );
 }
-
 
 // "use client";
 

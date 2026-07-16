@@ -1,3 +1,4 @@
+import { colors } from "@/theme/colors";
 import {
   AcademicCapIcon,
   UsersIcon,
@@ -36,29 +37,29 @@ const features = [
 
 export default function CollegeAdmissions() {
   return (
-    <section className="relative overflow-hidden min-h-[580px] flex items-center">
+    <section className="relative overflow-hidden min-h-[580px] flex items-center max-w-[1400px] mx-auto">
 
       {/* Background Image */}
       <div
-        className="absolute inset-0 bg-cover bg-right bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-no-repeat"
         style={{
           backgroundImage: "url('/image/admission-bg.png')",
+          backgroundPosition: "center center",
         }}
       />
 
       {/* White Gradient Overlay */}
       <div className="absolute inset-0">
-        <div className="absolute inset-y-0 left-0 w-full " />
-        {/* <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-white via-white/95 via-[45%] to-transparent" /> */}
+        <div className="absolute inset-y-0 left-0 w-full md:w-1/2 lg:w-2/3 bg-gradient-to-r from-white via-white/95 via-[45%] to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-2 lg:px-10 py-2">
+      <div className="relative z-10 w-full max-w-[1350px] mx-auto px-4 lg:px-10 py-8 md:py-2">
 
         <div className="max-w-3xl">
 
           {/* Heading */}
-          <h2 className="text-4xl font-extrabold leading-tight text-black">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight text-black" style={{ color: colors.primary.dark }}>
             Get Ready for Your
             <br />
             <span className="text-[#f25c05]">
@@ -68,25 +69,25 @@ export default function CollegeAdmissions() {
           </h2>
 
           {/* Description */}
-          <p className="mt-8 text-lg md:text-xl text-gray-700 leading-relaxed max-w-2xl">
+          <p className="mt-4 md:mt-8 text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed max-w-2xl">
             Personalized counselling, expert guidance,
             application tracking, and financial support
             to help you choose the right college.
           </p>
 
           {/* Features */}
-          <div className="grid sm:grid-cols-2 gap-x-2 gap-y-6 mt-10 max-w-[590px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-4 md:gap-y-6 mt-6 md:mt-10 max-w-[590px]">
 
             {features.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-5"
+                className="flex items-center gap-3 md:gap-5"
               >
-                <div className="w-10 h-10 rounded-xl border border-[#f3b396] bg-white flex items-center justify-center text-[#f25c05] shadow-sm">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl border border-[#f3b396] bg-white flex items-center justify-center text-[#f25c05] shadow-sm">
                   {item.icon}
                 </div>
 
-                <h4 className="font-semibold text-gray-900 text-sm">
+                <h4 className="font-semibold text-gray-900 text-xs sm:text-sm">
                   {item.title}
                 </h4>
               </div>
@@ -95,16 +96,16 @@ export default function CollegeAdmissions() {
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-wrap gap-5 mt-14">
+          <div className="flex flex-wrap gap-3 md:gap-5 mt-8 md:mt-14">
 
             <Link href="/college/apply?college">
-              <button className="bg-[#eb5b35] hover:bg-[#d84c28] text-white px-10 py-3 rounded-full text-md font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
+              <button className="bg-[#eb5b35] hover:bg-[#d84c28] text-white px-6 md:px-10 py-2.5 md:py-3 rounded-full text-sm md:text-md font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
                 Start Application
               </button>
             </Link>
 
             <Link href="/contactUs">
-              <button className="border-2 border-[#eb5b35] text-[#eb5b35] bg-white/80 backdrop-blur-sm hover:bg-[#fff5f2] px-6 py-3 rounded-full text-md font-semibold transition-all duration-300">
+              <button className="border-2 border-[#eb5b35] text-[#eb5b35] bg-white/80 backdrop-blur-sm hover:bg-[#fff5f2] px-4 md:px-6 py-2.5 md:py-3 rounded-full text-sm md:text-md font-semibold transition-all duration-300">
                 Contact Counselor
               </button>
             </Link>

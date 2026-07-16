@@ -274,9 +274,20 @@ const Footer = () => {
           </div>
 
           {/* Copyright */}
-          <div className="border-t border-white/10 pt-4">
+          <div className="border-t border-white/10 pt-4 space-y-2">
             <p className="text-xs text-gray-400 text-left">
               © {new Date().getFullYear()} collegeseek Pvt. Ltd.
+            </p>
+            <p className="text-xs text-gray-400 text-left">
+              Developed and designed by{" "}
+              <a 
+                href="https://austratech.in" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#e35235] transition-colors duration-300 font-medium"
+              >
+                Austratech
+              </a>
             </p>
           </div>
         </div>
@@ -393,7 +404,7 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2.5" style={{ listStyle: 'none', paddingLeft: 0 }}>
               <li>
-                <Link href="/blogs" className="text-sm text-white hover:text-gray-300 transition">
+                <Link href="/latestUpdate" className="text-sm text-white hover:text-gray-300 transition">
                   Blog
                 </Link>
               </li>
@@ -439,9 +450,22 @@ const Footer = () => {
 
         {/* Copyright - Desktop */}
         <div className="hidden sm:block border-t border-white/10 mt-10 pt-6">
-          <p className="text-sm text-gray-400 text-left">
-            © {new Date().getFullYear()} collegeseek Pvt. Ltd. All rights reserved.
-          </p>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-400 text-left">
+              © {new Date().getFullYear()} collegeseek Pvt. Ltd. All rights reserved.
+            </p>
+            <p className="text-sm text-gray-400 text-right">
+              Developed and designed by{" "}
+              <a 
+                href="https://austratech.com.au" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#e35235] transition-colors duration-300 font-medium"
+              >
+                Austratech
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

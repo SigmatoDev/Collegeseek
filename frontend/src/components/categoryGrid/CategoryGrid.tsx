@@ -306,7 +306,7 @@ export default function CategoryGrid() {
   return (
     <>
       <section className="py-10 sm:py-16" style={{ backgroundColor: "#f8f9fd" }}>
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-[1350px] mx-auto px-4">
           <h2
             className="font-extrabold text-center text-gray-900 mb-8 sm:mb-12
             text-xl leading-snug sm:text-3xl md:text-4xl
@@ -500,7 +500,7 @@ export default function CategoryGrid() {
                   </div>
                 </div>
 
-                <div className="mx-auto flex max-w-312.5 items-start gap-8">
+                <div className="mx-auto flex max-w-7xl items-start gap-8">
                   {/* Left side tab with custom scrollbar */}
                   <div className="h-120 w-[320px] shrink-0 rounded-[28px] border border-gray-200 bg-white/90 p-4 shadow-sm overflow-y-auto custom-scrollbar">
                     <div className="space-y-3 pr-1">

@@ -56,16 +56,15 @@ const XLogo = ({ className }: SocialIconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    strokeWidth={1.8}
-    stroke="currentColor"
     fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className={className}
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M4 4l16 16M20 4L8.5 15.5M4 20l7-7"
-    />
+    <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
+    <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
   </svg>
 );
 
@@ -225,57 +224,78 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
 
         {/* ── DESKTOP TOP BAR ── */}
         <div className="hidden md:block text-sm" style={{ backgroundColor: colors.primary.dark }}>
-          <div className="w-full mx-auto px-4 lg:px-10 py-2 flex items-center justify-end gap-4">
+          <div className="w-full mx-auto px-4 lg:px-10 py-2 flex items-center justify-between gap-4">
 
-            {/* Get Counselling button */}
-            <button
-              onClick={() => setIsCounsellingOpen(true)}
-              className="group relative inline-flex items-center gap-1.5 rounded-full shadow-lg shrink-0 px-4 py-1.5 text-xs font-semibold text-white"
-              style={{
-                background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
-              }}
-            >
-              {/* <span className="absolute -left-3 h-6 w-6 items-center justify-center rounded-full bg-white shadow animate-bounce hidden lg:flex" style={{ color: colors.accent.red }}>
-                📞
-              </span> */}
-              <span>Get Counselling</span>
-            </button>
+            {/* Left: Social Icons */}
+            <div className="flex items-center gap-2">
+              {SOCIAL_ORDER.map((network) => {
+                const url = socialLinks[network] || "#";
+                const Icon = SOCIAL_ICON_MAP[network];
+                return (
+                  <a
+                    key={network}
+                    href={url}
+                    target={url !== "#" ? "_blank" : undefined}
+                    rel="noopener noreferrer"
+                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center hover:bg-[#ffd4cc] transition"
+                    style={{ color: colors.accent.red }}
+                    aria-label={network}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </a>
+                );
+              })}
+            </div>
 
-            {/* Phone */}
-            <a
-              href={`tel:${contactInfo.phone.replace(/[^+\d]/g, "")}`}
-              className="flex items-center gap-2 text-xs font-medium text-white hover:text-[#ffd4cc] transition"
-            >
-              <span
-                className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"
-                style={{ color: colors.accent.red }}
+            {/* Right: Get Counselling + Phone + Email */}
+            <div className="flex items-center gap-4">
+              {/* Get Counselling button */}
+              <button
+                onClick={() => setIsCounsellingOpen(true)}
+                className="group relative inline-flex items-center gap-1.5 rounded-full shadow-lg shrink-0 px-4 py-1.5 text-xs font-semibold text-white"
+                style={{
+                  background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
+                }}
               >
-                <PhoneIcon className="h-3.5 w-3.5" />
-              </span>
-              {contactInfo.phone}
-            </a>
+                <span>Get Counselling</span>
+              </button>
 
-            {/* Email */}
-            <a
-              href={`mailto:${contactInfo.email}`}
-              onClick={handleMailClick}
-              className="flex items-center gap-2 text-xs font-medium text-white hover:text-[#ffd4cc] transition"
-            >
-              <span
-                className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"
-                style={{ color: colors.accent.red }}
+              {/* Phone */}
+              <a
+                href={`tel:${contactInfo.phone.replace(/[^+\d]/g, "")}`}
+                className="flex items-center gap-2 text-xs font-medium text-white hover:text-[#ffd4cc] transition"
               >
-                <EnvelopeIcon className="h-3.5 w-3.5" />
-              </span>
-              {contactInfo.email}
-            </a>
+                <span
+                  className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"
+                  style={{ color: colors.accent.red }}
+                >
+                  <PhoneIcon className="h-3.5 w-3.5" />
+                </span>
+                {contactInfo.phone}
+              </a>
+
+              {/* Email */}
+              <a
+                href={`mailto:${contactInfo.email}`}
+                onClick={handleMailClick}
+                className="flex items-center gap-2 text-xs font-medium text-white hover:text-[#ffd4cc] transition"
+              >
+                <span
+                  className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0"
+                  style={{ color: colors.accent.red }}
+                >
+                  <EnvelopeIcon className="h-3.5 w-3.5" />
+                </span>
+                {contactInfo.email}
+              </a>
+            </div>
           </div>
         </div>
 
         {/* ── MAIN NAV ── */}
         <nav className="bg-white shadow-lg text-gray-800 pt-2 relative w-full">
           <div className="w-full px-4 sm:px-6 lg:px-11">
-            <div className="flex justify-between h-16 items-center w-full">
+            <div className="flex justify-between h-16 md:h-24 items-center w-full">
 
               {/* Logo */}
               <div className="flex items-center space-x-2 shrink-0">
@@ -283,13 +303,13 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                   <img
                     src={siteLogo!}
                     alt="Site Logo"
-                    className="h-10 w-auto cursor-pointer"
+                    className="h-10 w-auto cursor-pointer md:h-14 lg:h-14 bg-white p-1 rounded-lg md:bg-transparent md:p-0"
                   />
                 </Link>
               </div>
 
               {/* Desktop Search Bar */}
-              <div className="hidden md:flex ml-3 lg:ml-6 flex-grow justify-center">
+              <div className="hidden md:flex ml-3 mr-2 lg:ml-6 flex-grow justify-center">
                 <SearchBar />
               </div>
 
@@ -363,7 +383,6 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 py-4" style={{ 
-          background: `linear-gradient(to right, ${colors.primary.dark}, ${colors.primary.light})`,
           borderBottom: `1px solid ${colors.primary.light}`
         }}>
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>

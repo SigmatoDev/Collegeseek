@@ -125,7 +125,7 @@ const TopStudyCities = () => {
 
   return (
     <section className="relative py-8 sm:py-12" style={{ backgroundColor: "#fdfeff" }}>
-      <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-8 space-y-6 sm:space-y-8">
+      <div className="relative w-full max-w-[1350px] mx-auto px-4 sm:px-8 space-y-6 sm:space-y-8">
 
         {/* Heading — left aligned */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-4">
@@ -155,7 +155,11 @@ const TopStudyCities = () => {
               <div className="sm:hidden flex flex-col p-3 gap-2.5">
                 {/* Icon + name row */}
                 <div className="flex items-center gap-2.5">
-                  <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-inner">
+                  <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-inner"
+                    style={{ 
+                        border: `1px solid ${colors.primary.dark}`,
+                      }}
+                    >
                     <Image
                       src={city.image}
                       alt={`${city.name} icon`}
@@ -170,13 +174,13 @@ const TopStudyCities = () => {
 
                 {/* Stats row */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-xl bg-white/80 px-2 py-2 shadow-sm border" style={{ borderColor: colors.accent.orange + '30' }}>
+                  <div className="rounded-xl bg-white/80 px-2 py-2 shadow-sm border border-gray-200">
                     <span className="text-[10px] font-semibold uppercase tracking-[0.15em] block truncate" style={{ color: colors.accent.red, fontFamily: "'Inter', sans-serif" }}>Colleges</span>
                     <span className="text-sm font-bold block truncate" style={{ color: colors.primary.dark }}>
                       {cityStats[normalizeName(city.name)] ?? "--"}
                     </span>
                   </div>
-                  <div className="rounded-xl bg-white/80 px-2 py-2 shadow-sm border" style={{ borderColor: colors.accent.orange + '30' }}>
+                  <div className="rounded-xl bg-white/80 px-2 py-2 shadow-sm border border-gray-200">
                     <span className="text-[10px] font-semibold uppercase tracking-[0.15em] block truncate" style={{ color: colors.accent.red, fontFamily: "'Inter', sans-serif" }}>Courses</span>
                     <span className="text-sm font-bold block truncate" style={{ color: colors.primary.dark }}>
                       {courseStats[normalizeName(city.name)] ?? "--"}
@@ -193,7 +197,11 @@ const TopStudyCities = () => {
               {/* ── DESKTOP card layout ── */}
               <div className="hidden sm:block">
                 <div className="flex items-center gap-4 px-5 pt-5">
-                  <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-inner">
+                  <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-inner"
+                    style={{ 
+                        border: `1px solid ${colors.primary.dark}`,
+                      }}
+                    >
                     <Image
                       src={city.image}
                       alt={`${city.name} icon`}
@@ -210,7 +218,7 @@ const TopStudyCities = () => {
 
                 <div className="flex flex-col gap-3 px-5 pb-5 pt-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between rounded-2xl bg-white/80 px-4 py-3 shadow-sm border" style={{ borderColor: colors.accent.orange + '30' }}>
+                    <div className="flex items-center justify-between rounded-2xl bg-white/80 px-4 py-3 shadow-sm border border-gray-100">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: colors.accent.red, fontFamily: "'Inter', sans-serif" }}>Colleges</span>
                         <span className="text-lg font-bold" style={{ color: colors.primary.dark }}>
@@ -218,7 +226,7 @@ const TopStudyCities = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-white/80 px-4 py-3 shadow-sm border" style={{ borderColor: colors.accent.orange + '30' }}>
+                    <div className="flex items-center justify-between rounded-2xl bg-white/80 px-4 py-3 shadow-sm border border-gray-100">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-semibold uppercase tracking-[0.15em]" style={{ color: colors.accent.red, fontFamily: "'Inter', sans-serif" }}>Courses</span>
                         <span className="text-lg font-bold" style={{ color: colors.primary.dark }}>

@@ -71,7 +71,7 @@ const getImage = (blog: any, index: number) => {
 
   return (
     <section className="py-10 sm:py-[60px]" style={{ backgroundColor: "#fdfeff" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="max-w-[1350px] mx-auto px-4 sm:px-6">
         {/* Heading with View All in same row */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 sm:mb-12">
           <div>
@@ -164,7 +164,7 @@ const getImage = (blog: any, index: number) => {
                   >
                     <article className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_18px_40px_rgba(62,44,92,0.15)] mx-0.5">
                       {/* Image */}
-                      <div className="relative w-full h-34">
+                      <div className="relative w-full h-40">
                         <Image
                           src={getImage(blog, index)}
                           alt={blog.title || "Blog image"}

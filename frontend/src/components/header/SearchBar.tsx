@@ -119,8 +119,8 @@ const SearchBar = () => {
         value={searchQuery}
         onChange={handleSearchChange}
         className="
-          bg-white px-4 py-2 rounded-full border border-gray-300
-          focus:outline-none focus:ring-2 focus:ring-gray-400
+          bg-white px-4 py-2 rounded-full border-2 border-gray-400
+          focus:outline-none focus:ring-2 focus:ring-gray-700
           placeholder:text-gray-400 placeholder:text-sm
           w-full pr-10 text-sm
         "
