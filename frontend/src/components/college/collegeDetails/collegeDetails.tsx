@@ -903,7 +903,7 @@ export default function CollegeDetailsPage() {
         <Courses college_id={collegeData.id || collegeData._id || ""} />
 
         {/* About */}
-        <div className="mt-5 mb-5 sm:mt-6 sm:mb-6">
+        {/* <div className="mt-5 mb-5 sm:mt-6 sm:mb-6">
           <h2 className="font-bold text-gray-900 mb-2 text-base sm:text-xl">
             About {collegeData.name}
           </h2>
@@ -913,7 +913,7 @@ export default function CollegeDetailsPage() {
               __html: DOMPurify.sanitize(collegeData.about),
             }}
           />
-        </div>
+        </div> */}
 
         {/* ✅ Gallery Modal — fixed conditions */}
         {isGalleryOpen && galleryImages.length > 0 && (
