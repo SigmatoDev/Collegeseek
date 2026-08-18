@@ -132,10 +132,10 @@ export default function BlogAll() {
 
       {/* Blog grid */}
       {!loading && blogs.length > 0 && (
-        <div className="grid max-w-6xl mx-auto
-          grid-cols-1 gap-4 mt-5
-          sm:grid-cols-2 sm:gap-6 sm:mt-7
-          lg:grid-cols-3
+        <div className="grid max-w-7xl mx-auto
+          grid-cols-1 gap-4 mt-4
+          sm:grid-cols-2 sm:gap-4 sm:mt-7
+          lg:grid-cols-4
         ">
           {blogs.map((blog, index) => (
             <BlogCard key={blog.id || index} {...blog} />
