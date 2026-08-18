@@ -50,9 +50,6 @@ const pageSchema = new mongoose.Schema(
   { timestamps: true } // Optional: add timestamps for createdAt and updatedAt
 );
 
-// Create a unique index for the slug field to ensure that slugs are unique
-pageSchema.index({ slug: 1 }, { unique: true });
-
 const Page = mongoose.model("Page", pageSchema);
 
 module.exports = Page;

@@ -820,7 +820,7 @@ export default function CollegeDetailsPage() {
                   onClick={() =>
                     handleDownload(collegeData.id || collegeData._id || "")
                   }
-                  className="flex-1 sm:flex-none border border-[#D35B42] text-[#D35B42] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition px-3 py-2 text-xs sm:px-5 sm:py-2 sm:text-sm"
+                  className="flex-1 sm:flex-none border border-[#fd4c00] text-[#fd4c00] rounded-lg font-medium hover:bg-[#D35B42] hover:text-white transition px-3 py-2 text-xs sm:px-5 sm:py-2 sm:text-sm"
                 >
                   Download Brochure
                 </button>
@@ -832,7 +832,7 @@ export default function CollegeDetailsPage() {
                   ${
                     isShortlisted || alreadyShortlisted
                       ? "bg-green-700 text-white cursor-not-allowed"
-                      : "bg-[#D35B42] text-white hover:bg-blue-800"
+                      : "bg-[#fd4c00] text-white hover:bg-blue-800"
                   }`}
               >
                 {isShortlisted || alreadyShortlisted ? (
@@ -903,7 +903,7 @@ export default function CollegeDetailsPage() {
         <Courses college_id={collegeData.id || collegeData._id || ""} />
 
         {/* About */}
-        <div className="mt-5 mb-5 sm:mt-6 sm:mb-6">
+        {/* <div className="mt-5 mb-5 sm:mt-6 sm:mb-6">
           <h2 className="font-bold text-gray-900 mb-2 text-base sm:text-xl">
             About {collegeData.name}
           </h2>
@@ -913,7 +913,7 @@ export default function CollegeDetailsPage() {
               __html: DOMPurify.sanitize(collegeData.about),
             }}
           />
-        </div>
+        </div> */}
 
         {/* ✅ Gallery Modal — fixed conditions */}
         {isGalleryOpen && galleryImages.length > 0 && (

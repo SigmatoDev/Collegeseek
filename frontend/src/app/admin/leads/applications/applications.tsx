@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { api_url } from "@/utils/apiCall";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-hot-toast";
+import CareerApplications from "./careerApplications";
 
 interface ApplicationRow {
   _id: string;
@@ -40,6 +41,7 @@ const ApplicationsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
+  const [activeTab, setActiveTab] = useState<"course" | "career">("course");
   const router = useRouter();
 
   const fetchApplications = async (currentPage: number) => {
@@ -175,6 +177,8 @@ const ApplicationsList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, statusFilter]);
 
+  if (activeTab === "career") return <CareerApplications onCourseApplications={() => setActiveTab("course")} />;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="mb-6 space-y-4 text-gray-800">
@@ -188,6 +192,7 @@ const ApplicationsList = () => {
             Export CSV
           </button>
         </div>
+        <div className="flex border-b border-gray-200"><button className="border-b-2 border-[#441A6B] px-4 py-2 text-sm font-semibold text-[#441A6B]">College Applications</button><button onClick={() => setActiveTab("career")} className="border-b-2 border-transparent px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800">Career</button></div>
         <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white/80 p-4 shadow-sm md:flex-row md:flex-wrap md:items-center md:justify-between">
           <div className="flex w-full items-center gap-3 md:max-w-sm">
             <label className="text-sm font-semibold text-gray-500">Search</label>

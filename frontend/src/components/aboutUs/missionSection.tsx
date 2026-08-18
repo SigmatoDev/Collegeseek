@@ -120,23 +120,23 @@ const MissionSection = () => {
 
           {/* Vision card */}
           <motion.div
-            className="relative overflow-hidden rounded-3xl bg-white border border-[#D3634C]/10 shadow-lg flex flex-col"
+            className="relative overflow-hidden rounded-3xl bg-white border border-[#fd4c00]/10 shadow-lg flex flex-col"
             whileHover={{ scale: 1.02, y: -4 }}
             transition={{ duration: 0.3, delay: 0.05 }}
           >
             {/* Top accent */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#D3634C] to-[#f97316]" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#fd4c00] to-[#f97316]" />
 
             <div className="p-5 sm:p-10 flex flex-col h-full">
               {/* Icon */}
               <div className="flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-[#FFF7ED] mb-4 sm:mb-5">
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="3" stroke="#D3634C" strokeWidth="1.8"/>
-                  <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M4.93 19.07l1.41-1.41" stroke="#D3634C" strokeWidth="1.8" strokeLinecap="round"/>
+                  <circle cx="12" cy="12" r="3" stroke="#fd4c00" strokeWidth="1.8"/>
+                  <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M4.93 19.07l1.41-1.41" stroke="#fd4c00" strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
               </div>
 
-              <h3 className="font-bold text-[#D3634C]
+              <h3 className="font-bold text-[#fd4c00]
                 text-xl sm:text-3xl
               ">
                 Our Vision
@@ -150,7 +150,7 @@ const MissionSection = () => {
               {/* Bottom tag */}
               <div className="mt-auto pt-5 sm:pt-8 flex flex-wrap gap-2">
                 {["Informed choices", "Career growth", "Long-term success"].map((tag) => (
-                  <span key={tag} className="inline-flex items-center rounded-full bg-[#FFF7ED] border border-[#D3634C]/15 px-3 py-1 text-[11px] font-semibold text-[#D3634C]">
+                  <span key={tag} className="inline-flex items-center rounded-full bg-[#FFF7ED] border border-[#fd4c00]/15 px-3 py-1 text-[11px] font-semibold text-[#fd4c00]">
                     {tag}
                   </span>
                 ))}

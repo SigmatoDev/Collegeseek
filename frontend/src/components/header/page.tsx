@@ -321,21 +321,21 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 ].map((item, index) => (
                   <Link key={index} href={item.href}>
                     <button
-                      className={`font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#D46047]
+                      className={`font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00]
                       text-xs px-2 py-1.5 lg:text-sm lg:px-3 lg:py-2
-                      ${item.name === "Online" ? "text-[#D46047] bg-[#fff1ec] border border-[#f0c3b8] rounded-[30px]" : ""}
+                      ${item.name === "Online" ? "text-[#fd4c00] bg-[#fff1ec] border border-[#f0c3b8] rounded-[30px]" : ""}
                     `}
                     >
                       {item.name}
-                      <span className="absolute left-0 bottom-0 h-[3px] bg-[#D46047] transition-all duration-300 group-hover:w-full w-0" />
+                      <span className="absolute left-0 bottom-0 h-[3px] bg-[#fd4c00] transition-all duration-300 group-hover:w-full w-0" />
                     </button>
                   </Link>
                 ))}
                 <MegaMenu />
                 <Link href="/latestUpdate">
-                  <button className="font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#D46047] text-xs px-2 py-1.5 lg:text-sm lg:px-3 lg:py-2">
+                  <button className="font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00] text-xs px-2 py-1.5 lg:text-sm lg:px-3 lg:py-2">
                     Latest Updates
-                    <span className="absolute left-0 bottom-0 w-0 h-[3px] bg-[#D46047] transition-all duration-300 group-hover:w-full" />
+                    <span className="absolute left-0 bottom-0 w-0 h-[3px] bg-[#fd4c00] transition-all duration-300 group-hover:w-full" />
                   </button>
                 </Link>
               </div>
@@ -416,7 +416,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 <span className="flex items-center gap-2.5">
                   {link.name}
                   {link.badge && (
-                    <span className="text-[9px] bg-[#D46047] text-white font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                    <span className="text-[9px] bg-[#fd4c00] text-white font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">
                       {link.badge}
                     </span>
                   )}

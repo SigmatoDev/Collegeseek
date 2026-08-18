@@ -222,7 +222,7 @@ export default function CollegeCard({ collegeId }: Props) {
         <div className="flex gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#D35B42] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
+            className="bg-[#fd4c00] text-white px-6 py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
           >
             Get Free Counselling
           </button>

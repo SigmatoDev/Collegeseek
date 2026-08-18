@@ -740,7 +740,7 @@ export default function FilterCollegeCard({ collegeId, college }: Props) {
                 e.stopPropagation();
                 setIsModalOpen(true);
               }}
-              className="w-full md:w-auto bg-[#D35B42] text-white px-4 md:px-6 py-2 md:py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
+              className="w-full md:w-auto bg-[#fd4c00] text-white px-4 md:px-6 py-2 md:py-3 rounded-lg shadow-md hover:bg-[#b84b35] transition duration-300"
             >
               Get Free Counselling
             </button>

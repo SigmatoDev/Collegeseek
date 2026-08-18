@@ -140,6 +140,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/careers" className="text-sm text-white hover:text-gray-300 transition">
+                  Careers
+                </Link>
+              </li>
+              <li>
                 <Link href="/exams" className="text-sm text-white hover:text-gray-300 transition">
                   Exams
                 </Link>
@@ -346,6 +351,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                {/* <Link href="/careers" className="text-sm text-white hover:text-gray-300 transition">
+                  Careers
+                </Link> */}
+              </li>
+              <li>
                 <Link href="/exams" className="text-sm text-white hover:text-gray-300 transition">
                   Exams
                 </Link>
@@ -355,11 +365,11 @@ const Footer = () => {
                   Update
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/college-predictor" className="text-sm text-white hover:text-gray-300 transition">
                   College Predictor
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -385,8 +395,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-sm text-white hover:text-gray-300 transition">
-                  FAQ
+                <Link href="/terms&Conditions" className="text-sm text-white hover:text-gray-300 transition">
+                  Terms & Conditions
                 </Link>
               </li>
               <li>
@@ -414,8 +424,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/career-guidance" className="text-sm text-white hover:text-gray-300 transition">
-                  Career Guidance
+                <Link href="/careers" className="text-sm text-white hover:text-gray-300 transition">
+                  We are Hiring
                 </Link>
               </li>
               <li>

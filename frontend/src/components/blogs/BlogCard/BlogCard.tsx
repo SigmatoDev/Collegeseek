@@ -105,7 +105,7 @@ export default function BlogCard({
         ) : (
           <button
             onClick={handleReadMore}
-            className="mt-4 inline-block text-[#D25C40] font-semibold text-sm hover:underline"
+            className="mt-4 inline-block text-[#fd4c00] font-semibold text-sm hover:underline"
           >
             Read More →
           </button>

@@ -32,7 +32,7 @@ export async function generateMetadata() {
         description: data.ogDescription,
         url: data.ogUrl,
         siteName: data.ogSiteName,
-        type: data.ogType,
+        type: data.ogType === "article" ? "article" : "website",
       },
       twitter: {
         title: data.xTitle,

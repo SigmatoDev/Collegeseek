@@ -24,15 +24,15 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@tinymce/tinymce-react": "^6.1.0",
-    "axios": "^1.17.0",
+    "axios": "^1.19.0",
     "country-state-city": "^3.2.1",
-    "dompurify": "^3.4.8",
+    "dompurify": "^3.4.13",
     "draft-js": "^0.11.7",
     "editorjs-html": "^4.0.5",
     "framer-motion": "^12.4.4",
     "install": "^0.13.0",
     "lucide-react": "^0.475.0",
-    "next": "^16.2.6",
+    "next": "^16.3.1",
     "react": "^19.2.6",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
@@ -42,6 +42,7 @@
     "react-simple-wysiwyg": "^3.2.2",
     "react-slick": "^0.30.3",
     "recharts": "^3.8.1",
+    "sharp": "^0.35.3",
     "slick-carousel": "^1.8.1",
     "swiper": "^12.2.0",
     "swr": "^2.3.2",
@@ -56,13 +57,13 @@
     "@types/react": "^19",
     "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^19",
-    "postcss": "8.5.15",
+    "postcss": "8.5.26",
     "tailwindcss": "^4.3.0",
     "typescript": "^5"
   },
   "overrides": {
-    "immutable": "3.8.3",
-    "postcss": "8.5.15",
+    "postcss": "8.5.26",
+    "immutable": "^4.3.9",
     "yaml": "2.9.0"
   }
 }

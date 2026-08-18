@@ -140,7 +140,7 @@ const ProfileDropdown = () => {
             <>
               <button
                 onClick={handleLoginRedirect}
-                className="w-full bg-[#D35C42] text-white py-2 rounded-md hover:bg-[#c14e36] transition-colors duration-200"
+                className="w-full bg-[#e35235] text-white py-2 rounded-md hover:bg-[#c14e36] transition-colors duration-200"
               >
                 Login to your account
               </button>
@@ -157,7 +157,7 @@ const ProfileDropdown = () => {
 
               <button
                 onClick={handleSignupRedirect}
-                className="w-full mt-3 border border-[#D35C42] text-[#D35C42] py-2 rounded-md hover:bg-[#F9E0D4] transition-all duration-200 ease-in"
+                className="w-full mt-3 border border-[#e35235] text-[#e35235] py-2 rounded-md hover:bg-[#F9E0D4] transition-all duration-200 ease-in"
               >
                 Create an account
               </button>

@@ -110,6 +110,12 @@ const Sidebar = () => {
           text: "Contact Us",
           isOpen,
         },
+        {
+          href: "/admin/leads/careers",
+          icon: <Briefcase size={18} />,
+          text: "Careers",
+          isOpen,
+        },
       ],
     },
     {

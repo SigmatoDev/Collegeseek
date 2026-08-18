@@ -141,7 +141,7 @@ export default function MegaMenu() {
         className="
           group relative flex items-center justify-between w-full
           px-5 py-4 text-[15px] font-medium text-gray-800
-          hover:bg-[#fff8f6] hover:text-[#D46047]
+          hover:bg-[#fff8f6] hover:text-[#fd4c00]
           active:bg-[#fff1ec] transition-all duration-200
           focus:outline-none
           md:w-auto md:px-3.5 md:py-2 md:rounded-lg
@@ -151,7 +151,7 @@ export default function MegaMenu() {
         <span className="relative hidden md:inline-block">
           Courses
           <span
-            className={`absolute -bottom-0.5 left-0 h-[1.5px] bg-[#D46047] rounded-full transition-all duration-300 ${
+            className={`absolute -bottom-0.5 left-0 h-[1.5px] bg-[#fd4c00] rounded-full transition-all duration-300 ${
               isMegaMenuOpen ? "w-full" : "w-0 group-hover:w-full"
             }`}
           />
@@ -159,13 +159,13 @@ export default function MegaMenu() {
         <span className="md:hidden">Courses</span>
 
         <ChevronRightIcon
-          className={`h-4 w-4 text-gray-300 group-hover:text-[#D46047] transition-all duration-300 md:hidden
+          className={`h-4 w-4 text-gray-300 group-hover:text-[#fd4c00] transition-all duration-300 md:hidden
             ${isMegaMenuOpen ? "rotate-90" : "rotate-0"}
           `}
         />
         <ChevronDownIcon
-          className={`h-3.5 w-3.5 hidden md:block text-gray-400 group-hover:text-[#D46047] transition-all duration-300
-            ${isMegaMenuOpen ? "rotate-180 text-[#D46047]" : "rotate-0"}
+          className={`h-3.5 w-3.5 hidden md:block text-gray-400 group-hover:text-[#fd4c00] transition-all duration-300
+            ${isMegaMenuOpen ? "rotate-180 text-[#fd4c00]" : "rotate-0"}
           `}
         />
       </button>
@@ -203,8 +203,8 @@ export default function MegaMenu() {
                     ${
                       hoveredCategory === index ||
                       (hoveredCategory === null && index === 0)
-                        ? "text-[#D46047] bg-[#fff5f2]"
-                        : "text-gray-600 hover:text-[#D46047] hover:bg-[#fff5f2]"
+                        ? "text-[#fd4c00] bg-[#fff5f2]"
+                        : "text-gray-600 hover:text-[#fd4c00] hover:bg-[#fff5f2]"
                     }`}
                 >
                   {/* ✅ ICON FIXED HERE */}
@@ -255,7 +255,7 @@ export default function MegaMenu() {
               </div>
               <Link
                 href="/courses"
-                className="text-[12px] font-semibold text-[#D46047] hover:text-[#B24C39] transition-colors"
+                className="text-[12px] font-semibold text-[#fd4c00] hover:text-[#e35235] transition-colors"
               >
                 Browse all →
               </Link>
@@ -273,11 +273,11 @@ export default function MegaMenu() {
                       className="
                         group/link flex items-center gap-2.5 py-2 px-2.5 rounded-lg
                         text-[13px] text-gray-600
-                        hover:text-[#D46047] hover:bg-[#fff5f2]
+                        hover:text-[#fd4c00] hover:bg-[#fff5f2]
                         transition-all duration-150
                       "
                     >
-                      <span className="w-1 h-1 rounded-full bg-gray-300 group-hover/link:bg-[#D46047] transition-colors shrink-0" />
+                      <span className="w-1 h-1 rounded-full bg-gray-300 group-hover/link:bg-[#fd4c00] transition-colors shrink-0" />
                       <span className="truncate">{link.label}</span>
                     </Link>
                   ))}
@@ -304,9 +304,9 @@ export default function MegaMenu() {
                 onClick={close}
                 className="
                   inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold
-                  bg-[#D46047] text-white
-                  hover:bg-[#B24C39] active:scale-[0.97]
-                  transition-all duration-150 shadow-sm shadow-[#D46047]/30
+                  bg-[#fd4c00] text-white
+                  hover:bg-[#e35235] active:scale-[0.97]
+                  transition-all duration-150 shadow-sm shadow-[#fd4c00]/30
                 "
               >
                 View All Courses
