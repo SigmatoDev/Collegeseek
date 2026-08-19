@@ -108,14 +108,13 @@ collegeSchema.index({ name: 1 });
 collegeSchema.index({ name: 1, _id: -1 });
 
 // Auto-increment logic for collegeId
-collegeSchema.pre("save", async function (next) {
+collegeSchema.pre("save", async function () {
   if (this.isNew) {
     const lastCollege = await mongoose
       .model("College")
       .findOne({}, {}, { sort: { collegeId: -1 } });
     this.collegeId = lastCollege?.collegeId ? lastCollege.collegeId + 1 : 1;
   }
-  next();
 });
 
 module.exports = mongoose.model("College", collegeSchema);
