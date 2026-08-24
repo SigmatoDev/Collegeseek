@@ -94,9 +94,27 @@ const SOCIAL_ICON_MAP: Record<
   x: (props) => <XLogo {...props} />,
 };
 
-const NAV_LINKS = [
-  // { name: "Online Courses", href: "/college?programModes=Online", badge: "New" }, // Commented out
+/*
+ * Navigation link type.
+ *
+ * badge is optional because most navigation links
+ * do not have a badge.
+ */
+type NavLink = {
+  name: string;
+  href: string;
+  badge?: string;
+};
+
+const NAV_LINKS: NavLink[] = [
+  // {
+  //   name: "Online Courses",
+  //   href: "/college?programModes=Online",
+  //   badge: "New",
+  // }, // Commented out
+
   // { name: "Exam", href: "/exam" }, // Removed Exam - using ExamMegaMenu instead
+
   { name: "Colleges", href: "/college" },
   { name: "Latest Updates", href: "/latestUpdate" },
   { name: "About Company", href: "/aboutUs" },
