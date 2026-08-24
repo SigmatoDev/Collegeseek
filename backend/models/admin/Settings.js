@@ -5,6 +5,7 @@ const SettingsSchema = new mongoose.Schema(
     siteName: { type: String, required: true },
     siteLogo: { type: String },
     favicon: { type: String },
+    footerLogo: { type: String },
     tinymceApiKey: { type: String },
     contactEmail: { type: String },
     contactPhone: { type: String },

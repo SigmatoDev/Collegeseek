@@ -24,6 +24,7 @@ const DEFAULT_SOCIAL_LINKS = {
 
 const Footer = () => {
   const [siteLogo, setSiteLogo] = useState<string>("/logo/logo.jpg");
+  const [footerLogo, setFooterLogo] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
   const [contactInfo, setContactInfo] = useState(DEFAULT_CONTACT);
   const [socialLinks, setSocialLinks] = useState(DEFAULT_SOCIAL_LINKS);
@@ -35,6 +36,7 @@ const Footer = () => {
     const fetchLogo = async () => {
       if (!api_url) {
         setSiteLogo("/logo/logo.jpg");
+        setFooterLogo("/logo/logo.jpg");
         setContactInfo(DEFAULT_CONTACT);
         setSocialLinks(DEFAULT_SOCIAL_LINKS);
         return;
@@ -45,7 +47,9 @@ const Footer = () => {
           signal: controller.signal,
         });
 
-        setSiteLogo(data.siteLogo || "/default-logo.png");
+        const headerLogoUrl = data.siteLogo || "/default-logo.png";
+        setSiteLogo(headerLogoUrl);
+        setFooterLogo(data.footerLogo || headerLogoUrl);
 
         setContactInfo({
           phone: data.contactPhone || DEFAULT_CONTACT.phone,
@@ -63,6 +67,7 @@ const Footer = () => {
         }
 
         setSiteLogo("/logo/logo.jpg");
+        setFooterLogo("/logo/logo.jpg");
         setContactInfo(DEFAULT_CONTACT);
         setSocialLinks(DEFAULT_SOCIAL_LINKS);
       }
@@ -110,8 +115,8 @@ const Footer = () => {
           <div className="space-y-2">
             <Link href="/">
               <img
-                src={siteLogo ?? "/logo/logo.jpg"}
-                alt="Site Logo"
+                src={footerLogo || siteLogo || "/logo/logo.jpg"}
+                alt="Footer Logo"
                 className="h-8 w-auto cursor-pointer"
               />
             </Link>
@@ -305,8 +310,8 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <Link href="/">
               <img
-                src={siteLogo ?? "/logo/logo.jpg"}
-                alt="Site Logo"
+                src={footerLogo || siteLogo || "/logo/logo.jpg"}
+                alt="Footer Logo"
                 className="h-10 w-auto cursor-pointer"
               />
             </Link>

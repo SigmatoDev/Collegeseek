@@ -35,6 +35,7 @@ const Settings = () => {
     siteName: string;
     siteLogo: File | string;
     favicon: File | string;
+    footerLogo: File | string;
     tinymceApiKey: string;
     contactPhone: string;
     contactEmail: string;
@@ -44,6 +45,7 @@ const Settings = () => {
     siteName: "",
     siteLogo: "",
     favicon: "",
+    footerLogo: "",
     tinymceApiKey: "",
     contactPhone: DEFAULT_CONTACT.phone,
     contactEmail: DEFAULT_CONTACT.email,
@@ -54,44 +56,47 @@ const Settings = () => {
   const [previews, setPreviews] = useState({
     siteLogo: "",
     favicon: "",
+    footerLogo: "",
   });
 
   const [loading, setLoading] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 
-useEffect(() => {
-  const fetchSettings = async () => {
-    try {
-      const { data } = await axios.get(`${api_url}settings`);
-      const mergedSocial: SocialLinksState = {
-        ...DEFAULT_SOCIAL_LINKS,
-        ...(data.socialLinks || {}),
-      };
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await axios.get(`${api_url}settings`);
+        const mergedSocial: SocialLinksState = {
+          ...DEFAULT_SOCIAL_LINKS,
+          ...(data.socialLinks || {}),
+        };
 
-      setSettings({
-        siteName: data.siteName || "",
-        siteLogo: data.siteLogo || "", // S3 URL is already full path
-        favicon: data.favicon || "",
-        tinymceApiKey: data.tinymceApiKey || "",
-        contactPhone: data.contactPhone || DEFAULT_CONTACT.phone,
-        contactEmail: data.contactEmail || DEFAULT_CONTACT.email,
-        contactAddress: data.contactAddress || DEFAULT_CONTACT.address,
-        socialLinks: mergedSocial,
-      });
+        setSettings({
+          siteName: data.siteName || "",
+          siteLogo: data.siteLogo || "", // S3 URL is already full path
+          favicon: data.favicon || "",
+          footerLogo: data.footerLogo || "",
+          tinymceApiKey: data.tinymceApiKey || "",
+          contactPhone: data.contactPhone || DEFAULT_CONTACT.phone,
+          contactEmail: data.contactEmail || DEFAULT_CONTACT.email,
+          contactAddress: data.contactAddress || DEFAULT_CONTACT.address,
+          socialLinks: mergedSocial,
+        });
 
-      setPreviews({
-        siteLogo: data.siteLogo || "",
-        favicon: data.favicon || "",
-      });
-    } catch (error) {
-      console.error("Error fetching settings:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setPreviews({
+          siteLogo: data.siteLogo || "",
+          favicon: data.favicon || "",
+          footerLogo: data.footerLogo || "",
+        });
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchSettings();
-}, []);
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -128,85 +133,92 @@ useEffect(() => {
     }));
   };
 
-const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault();
-  console.log("📤 Submitting settings form...");
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    console.log("📤 Submitting settings form...");
 
-  const phone = settings.contactPhone.trim();
-  const email = settings.contactEmail.trim();
-  const address = settings.contactAddress.trim();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phone = settings.contactPhone.trim();
+    const email = settings.contactEmail.trim();
+    const address = settings.contactAddress.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Validation
-  if (!phone || !email || !address) {
-    setFormError("Phone, email, and address are required fields.");
-    return;
-  }
+    // Validation
+    if (!phone || !email || !address) {
+      setFormError("Phone, email, and address are required fields.");
+      return;
+    }
 
-  if (!emailPattern.test(email)) {
-    setFormError("Please provide a valid email address.");
-    return;
-  }
+    if (!emailPattern.test(email)) {
+      setFormError("Please provide a valid email address.");
+      return;
+    }
 
-  setFormError(null);
+    setFormError(null);
 
-  const formData = new FormData();
-  formData.append("siteName", settings.siteName);
-  formData.append("tinymceApiKey", settings.tinymceApiKey);
-  formData.append("contactPhone", settings.contactPhone);
-  formData.append("contactEmail", settings.contactEmail);
-  formData.append("contactAddress", settings.contactAddress);
+    const formData = new FormData();
+    formData.append("siteName", settings.siteName);
+    formData.append("tinymceApiKey", settings.tinymceApiKey);
+    formData.append("contactPhone", settings.contactPhone);
+    formData.append("contactEmail", settings.contactEmail);
+    formData.append("contactAddress", settings.contactAddress);
 
-  Object.entries(settings.socialLinks).forEach(([key, value]) => {
-    formData.append(key, value || "");
-  });
-
-  // Only append if user uploaded a new file (File object)
-  if (settings.siteLogo && settings.siteLogo instanceof File) {
-    console.log("🖼 Appending new siteLogo file", settings.siteLogo);
-    formData.append("siteLogo", settings.siteLogo);
-  }
-
-  if (settings.favicon && settings.favicon instanceof File) {
-    console.log("🖼 Appending new favicon file", settings.favicon);
-    formData.append("favicon", settings.favicon);
-  }
-
-  try {
-    const { data } = await axios.put(`${api_url}setting`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+    Object.entries(settings.socialLinks).forEach(([key, value]) => {
+      formData.append(key, value || "");
     });
 
-    console.log("✅ API response received:", data);
+    // Only append if user uploaded a new file (File object)
+    if (settings.siteLogo && settings.siteLogo instanceof File) {
+      console.log("🖼 Appending new siteLogo file", settings.siteLogo);
+      formData.append("siteLogo", settings.siteLogo);
+    }
 
-    // Use returned S3 URLs directly
-    setSettings({
-      siteName: data.settings.siteName,
-      siteLogo: data.settings.siteLogo || "", // S3 URL
-      favicon: data.settings.favicon || "",   // S3 URL
-      tinymceApiKey: data.settings.tinymceApiKey,
-      contactPhone: data.settings.contactPhone || DEFAULT_CONTACT.phone,
-      contactEmail: data.settings.contactEmail || DEFAULT_CONTACT.email,
-      contactAddress: data.settings.contactAddress || DEFAULT_CONTACT.address,
-      socialLinks: {
-        ...DEFAULT_SOCIAL_LINKS,
-        ...(data.settings.socialLinks || {}),
-      },
-    });
+    if (settings.favicon && settings.favicon instanceof File) {
+      console.log("🖼 Appending new favicon file", settings.favicon);
+      formData.append("favicon", settings.favicon);
+    }
 
-    setPreviews({
-      siteLogo: data.settings.siteLogo || "",
-      favicon: data.settings.favicon || "",
-    });
+    if (settings.footerLogo && settings.footerLogo instanceof File) {
+      console.log("🖼 Appending new footerLogo file", settings.footerLogo);
+      formData.append("footerLogo", settings.footerLogo);
+    }
 
-    toast.success("Settings updated successfully!");
-  } catch (error) {
-    console.error("❌ Error updating settings:", error);
-    toast.error("Failed to update settings. Please try again.");
-  }
-};
+    try {
+      const { data } = await axios.put(`${api_url}setting`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-  const removeImage = (name: "siteLogo" | "favicon") => {
+      console.log("✅ API response received:", data);
+
+      // Use returned S3 URLs directly
+      setSettings({
+        siteName: data.settings.siteName,
+        siteLogo: data.settings.siteLogo || "", // S3 URL
+        favicon: data.settings.favicon || "",   // S3 URL
+        footerLogo: data.settings.footerLogo || "", // S3 URL
+        tinymceApiKey: data.settings.tinymceApiKey,
+        contactPhone: data.settings.contactPhone || DEFAULT_CONTACT.phone,
+        contactEmail: data.settings.contactEmail || DEFAULT_CONTACT.email,
+        contactAddress: data.settings.contactAddress || DEFAULT_CONTACT.address,
+        socialLinks: {
+          ...DEFAULT_SOCIAL_LINKS,
+          ...(data.settings.socialLinks || {}),
+        },
+      });
+
+      setPreviews({
+        siteLogo: data.settings.siteLogo || "",
+        favicon: data.settings.favicon || "",
+        footerLogo: data.settings.footerLogo || "",
+      });
+
+      toast.success("Settings updated successfully!");
+    } catch (error) {
+      console.error("❌ Error updating settings:", error);
+      toast.error("Failed to update settings. Please try again.");
+    }
+  };
+
+  const removeImage = (name: "siteLogo" | "favicon" | "footerLogo") => {
     setSettings((prev) => ({ ...prev, [name]: "" }));
     setPreviews((prev) => ({ ...prev, [name]: "" }));
   };
@@ -238,11 +250,11 @@ const handleSubmit = async (e: FormEvent) => {
           </div>
 
           {/* Contact Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 pb-4">
-          <div className="space-y-1">
-            <label
-              htmlFor="contactPhone"
-              className="text-sm font-semibold text-gray-700"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 pb-4">
+            <div className="space-y-1">
+              <label
+                htmlFor="contactPhone"
+                className="text-sm font-semibold text-gray-700"
               >
                 Primary Phone Number
               </label>
@@ -275,12 +287,12 @@ const handleSubmit = async (e: FormEvent) => {
             </div>
           </div>
 
-          {/* Logo and Favicon */}
+          {/* Logo, Footer Logo and Favicon */}
           <div className="pt-4 flex flex-col md:flex-row md:space-x-6 gap-4">
             {/* Site Logo */}
             <div className="flex-1 space-y-2">
               <label className="text-sm font-semibold text-gray-700">
-                Site Logo
+                Header Logo
               </label>
               <div className="relative w-full">
                 <input
@@ -307,7 +319,7 @@ const handleSubmit = async (e: FormEvent) => {
                   <div className="relative w-60 group mt-4">
                     <img
                       src={previews.siteLogo}
-                      alt="Site Logo"
+                      alt="Header Logo"
                       className="rounded-2xl shadow-xl object-contain w-full h-auto transition-transform duration-300 group-hover:scale-105"
                     />
 
@@ -319,7 +331,58 @@ const handleSubmit = async (e: FormEvent) => {
                       type="button"
                       onClick={() => removeImage("siteLogo")}
                       className="absolute -top-3 -right-3 bg-white p-2 rounded-full shadow-md hover:bg-red-100 transition-colors duration-200"
-                      aria-label="Remove Logo"
+                      aria-label="Remove Header Logo"
+                    >
+                      <XCircle className="w-6 h-6 text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Logo */}
+            <div className="flex-1 space-y-2">
+              <label className="text-sm font-semibold text-gray-700">
+                Footer Logo
+              </label>
+              <div className="relative w-full">
+                <input
+                  type="file"
+                  id="footerLogo"
+                  name="footerLogo"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="footerLogo"
+                  className="flex items-center justify-between p-3 border rounded-lg cursor-pointer bg-white hover:bg-gray-100"
+                >
+                  <span className="text-sm text-gray-600">
+                    {typeof settings.footerLogo === "string"
+                      ? "Choose a file"
+                      : settings.footerLogo.name}
+                  </span>
+                  <CloudUpload className="w-5 h-5 text-gray-500" />
+                </label>
+              </div>
+              {previews.footerLogo && (
+                <div className="mt-6 flex justify-start">
+                  <div className="relative w-60 group mt-4">
+                    <img
+                      src={previews.footerLogo}
+                      alt="Footer Logo"
+                      className="rounded-2xl shadow-xl object-contain w-full h-auto transition-transform duration-300 group-hover:scale-105"
+                    />
+
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                    {/* Delete button */}
+                    <button
+                      type="button"
+                      onClick={() => removeImage("footerLogo")}
+                      className="absolute -top-3 -right-3 bg-white p-2 rounded-full shadow-md hover:bg-red-100 transition-colors duration-200"
+                      aria-label="Remove Footer Logo"
                     >
                       <XCircle className="w-6 h-6 text-red-500" />
                     </button>

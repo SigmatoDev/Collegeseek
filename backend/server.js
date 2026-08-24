@@ -42,6 +42,7 @@ app.use("/api", require("./routes/admin/documentRoutes"));
 app.use("/api", require("./routes/admin/courseListRoutes"));
 app.use("/api", require("./routes/admin/searchRoutes"));
 app.use("/api", require("./routes/admin/menuRoutes"));
+app.use("/api", require("./routes/admin/examMenuRoutes"));
 app.use("/api", require("./routes/Users/counsellingRoutes"));
 app.use("/api", require("./routes/admin/newsLetterRoutes"));
 app.use("/api", require("./routes/admin/filterRoutes"));

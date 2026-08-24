@@ -84,7 +84,7 @@ const ForgotPassword = () => {
           </div>
         </div>
 
-        <p className="text-[11px] text-white/20 mt-6">© 2025 Collegeseek. All rights reserved.</p>
+        <p className="text-[11px] text-white/20 mt-6">© 2026 Collegeseek. All rights reserved.</p>
       </div>
 
       {/* ── Right Panel ── */}

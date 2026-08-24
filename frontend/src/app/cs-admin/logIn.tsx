@@ -222,7 +222,7 @@ const AdminLogin = () => {
 
         {/* Footer */}
         <p className="text-[11px] text-white/20">
-          © 2025 Collegeseek. All rights reserved.
+          © 2026 Collegeseek. All rights reserved.
         </p>
       </div>
 

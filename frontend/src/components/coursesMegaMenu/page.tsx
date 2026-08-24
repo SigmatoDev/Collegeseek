@@ -15,6 +15,7 @@ import {
   CurrencyDollarIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import { colors } from "@/theme/colors";
 
 interface MenuColumn {
   title: string;
@@ -146,6 +147,7 @@ export default function MegaMenu() {
           focus:outline-none
           md:w-auto md:px-3.5 md:py-2 md:rounded-lg
           md:text-sm md:hover:bg-[#fff8f6] md:justify-start md:gap-1.5
+          md:text-xs lg:text-sm xl:text-md 2xl:text-lg
         "
       >
         <span className="relative hidden md:inline-block">
@@ -198,7 +200,7 @@ export default function MegaMenu() {
                 <button
                   key={index}
                   onMouseEnter={() => setHoveredCategory(index)}
-                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-left text-sm font-medium
+                  className={`w-full flex items-center gap-3 px-5 py-2.5 text-left text-md font-medium
                     transition-all duration-150 group/cat
                     ${
                       hoveredCategory === index ||
@@ -374,9 +376,16 @@ export default function MegaMenu() {
               }}
               className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all whitespace-nowrap ${
                 activeTab === index
-                  ? "bg-[#D46047] text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-[#fff1ec] hover:text-[#D46047]"
               }`}
+              style={
+                activeTab === index
+                  ? {
+                      background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
+                    }
+                  : {}
+              }
             >
               {column.title}
             </button>
@@ -414,7 +423,10 @@ export default function MegaMenu() {
           <Link
             href="/courses"
             onClick={close}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-[#D46047] to-[#B24C39] text-white text-sm font-semibold rounded-xl shadow-md hover:brightness-105 active:scale-[0.98] transition-all"
+            className="flex items-center justify-center gap-2 w-full py-3 text-white text-sm font-semibold rounded-xl shadow-md hover:brightness-105 active:scale-[0.98] transition-all"
+            style={{
+              background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
+            }}
           >
             View All Courses →
           </Link>

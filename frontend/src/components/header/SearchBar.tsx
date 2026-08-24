@@ -111,7 +111,7 @@ const SearchBar = () => {
   return (
     <div className="relative flex items-center
       w-full
-      lg:w-[500px] lg:flex-none
+      lg:w-[300px] xl:w-[400px] 2xl:w-[450px] lg:flex-none
     ">
       <input
         type="text"

@@ -31,6 +31,7 @@ const buildSettingsResponse = (settingsDoc) => {
     siteName: settingsDoc?.siteName || "",
     siteLogo: settingsDoc?.siteLogo || "",
     favicon: settingsDoc?.favicon || "",
+    footerLogo: settingsDoc?.footerLogo || "",
     tinymceApiKey: settingsDoc?.tinymceApiKey || "",
     contactEmail: settingsDoc?.contactEmail || DEFAULT_CONTACT.email,
     contactPhone: settingsDoc?.contactPhone || DEFAULT_CONTACT.phone,
@@ -90,6 +91,7 @@ const updateSettings = async (req, res) => {
 
     const siteLogo = req.files?.["siteLogo"]?.[0]?.location ?? null; // S3 URL
     const favicon = req.files?.["favicon"]?.[0]?.location ?? null; // S3 URL
+    const footerLogo = req.files?.["footerLogo"]?.[0]?.location ?? null; // S3 URL
 
     let settings = await Settings.findOne();
     if (!settings) {
@@ -123,6 +125,7 @@ const updateSettings = async (req, res) => {
 
     if (siteLogo) settings.siteLogo = siteLogo;
     if (favicon) settings.favicon = favicon;
+    if (footerLogo) settings.footerLogo = footerLogo;
 
     await settings.save();
 

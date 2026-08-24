@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { api_url } from "@/utils/apiCall";
-import EditableLinkItem from "./EditableLinkItem";
+import EditableLinkItem from "../menuBuilder/EditableLinkItem";
 
 type Link = {
   _id?: string;
@@ -53,7 +53,7 @@ function NativeDraggableItem({
   );
 }
 
-export default function AdminMenuProper() {
+export default function AdminExamMenuProper() {
   const [menu, setMenu] = useState<Menu[]>([]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<{ columnId?: string; linkId?: string } | null>(null);
@@ -85,12 +85,12 @@ export default function AdminMenuProper() {
   const fetchMenu = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${api_url}menus`);
+      const response = await axios.get(`${api_url}exam-menus`);
       if (response.data.success && Array.isArray(response.data.data)) {
         setMenu(assignTempIdsToLinks(response.data.data));
       }
     } catch (error) {
-      console.error("Error fetching menu:", error);
+      console.error("Error fetching exam menu:", error);
     } finally {
       setLoading(false);
     }
@@ -109,19 +109,19 @@ export default function AdminMenuProper() {
   const handleSaveColumnEdit = async (menuItemId: string, columnId: string) => {
     if (!columnId || !editValue.title) return;
     try {
-      await axios.put(`${api_url}menus/${menuItemId}/column/${columnId}`, { title: editValue.title });
+      await axios.put(`${api_url}exam-menus/${menuItemId}/column/${columnId}`, { title: editValue.title });
       fetchMenu();
       setEditing(null);
       setEditValue({ label: "", url: "" });
     } catch (error) {
-      console.error("Error saving column edit:", error);
+      console.error("Error saving exam column edit:", error);
     }
   };
 
   const handleSaveLinkEdit = async (menuItemId: string, columnId: string, linkId: string) => {
     if (!linkId || !editValue.label || !editValue.url) return;
     try {
-      await axios.put(`${api_url}menus/${menuItemId}/column/${columnId}/link/${linkId}`, {
+      await axios.put(`${api_url}exam-menus/${menuItemId}/column/${columnId}/link/${linkId}`, {
         label: editValue.label,
         url: editValue.url,
       });
@@ -129,7 +129,7 @@ export default function AdminMenuProper() {
       setEditing(null);
       setEditValue({ label: "", url: "" });
     } catch (error) {
-      console.error("Error saving link edit:", error);
+      console.error("Error saving exam link edit:", error);
     }
   };
 
@@ -144,21 +144,21 @@ export default function AdminMenuProper() {
       return;
     }
     try {
-      await axios.post(`${api_url}menus/${menuId}/columns/${columnId}/links`, inputs);
+      await axios.post(`${api_url}exam-menus/${menuId}/columns/${columnId}/links`, inputs);
       setNewLinkInputs((prev) => ({ ...prev, [columnId]: { label: "", url: "" } }));
       fetchMenu();
     } catch (error) {
-      console.error("Error adding link:", error);
+      console.error("Error adding exam link:", error);
     }
   };
 
   const handleDeleteLink = async (menuId: string, columnId: string, linkId: string) => {
     if (!confirm("Are you sure you want to delete this link?")) return;
     try {
-      await axios.delete(`${api_url}menu/${menuId}/column/${columnId}/link/${linkId}`);
+      await axios.delete(`${api_url}exam-menu/${menuId}/column/${columnId}/link/${linkId}`);
       fetchMenu();
     } catch (error) {
-      console.error("Error deleting link:", error);
+      console.error("Error deleting exam link:", error);
     }
   };
 
@@ -170,12 +170,12 @@ export default function AdminMenuProper() {
       return;
     }
     try {
-      await axios.post(`${api_url}menus/${menuId}/columns`, { title });
+      await axios.post(`${api_url}exam-menus/${menuId}/columns`, { title });
       setNewColumnInputs((prev) => ({ ...prev, [menuId]: "" }));
       setShowAddColumn((prev) => ({ ...prev, [menuId]: false }));
       fetchMenu();
     } catch (error) {
-      console.error("Error adding column:", error);
+      console.error("Error adding exam column:", error);
     }
   };
 
@@ -183,16 +183,16 @@ export default function AdminMenuProper() {
   const handleDeleteColumn = async (menuId: string, columnId: string) => {
     if (!confirm("Are you sure you want to delete this entire column and all its links?")) return;
     try {
-      await axios.delete(`${api_url}menus/${menuId}/column/${columnId}`);
+      await axios.delete(`${api_url}exam-menus/${menuId}/column/${columnId}`);
       fetchMenu();
     } catch (error) {
-      console.error("Error deleting column:", error);
+      console.error("Error deleting exam column:", error);
     }
   };
 
   return (
     <div className="p-6 max-w-[1500px] mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">🛠️ Course Menu Builder</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">🛠️ Exam Menu Builder</h1>
       {loading ? (
         <div className="text-center text-lg text-gray-500">Loading...</div>
       ) : (
@@ -261,11 +261,11 @@ export default function AdminMenuProper() {
                                 setMenu(updatedMenu);
                                 setDraggingIndex(null);
                                 axios
-                                  .put(`${api_url}menus/${menuItem._id}/reorder`, {
+                                  .put(`${api_url}exam-menus/${menuItem._id}/reorder`, {
                                     updatedColumns: updatedMenu.find((m) => m._id === menuItem._id)!.columns,
                                   })
                                   .catch((err) => {
-                                    console.error("Failed to reorder", err);
+                                    console.error("Failed to reorder exam menu", err);
                                     fetchMenu();
                                   });
                               }}
@@ -350,3 +350,4 @@ export default function AdminMenuProper() {
     </div>
   );
 }
+

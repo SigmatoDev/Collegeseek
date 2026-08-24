@@ -31,6 +31,7 @@ const upload = multer({
 }).fields([
   { name: "siteLogo", maxCount: 1 },
   { name: "favicon", maxCount: 1 },
+  { name: "footerLogo", maxCount: 1 },
 ]);
 
 // ✅ Error handling middleware

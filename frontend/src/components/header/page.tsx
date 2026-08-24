@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect, type ComponentType, Fragment } from "react";
+
 import axios from "axios";
+
 import { img_url, api_url } from "@/utils/apiCall";
+
 import {
   PhoneIcon,
   Bars3Icon,
@@ -10,14 +13,25 @@ import {
   EnvelopeIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
+
 import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+
 import Link from "next/link";
+
 import debounce from "lodash.debounce";
+
 import MegaMenu from "../coursesMegaMenu/page";
+
+import ExamMegaMenu from "../examsMegaMenu/page";
+
 import ProfileDropdown from "../users/ProfileDropdown/page";
+
 import SearchBar from "./SearchBar";
+
 import Modal from "../counselling/model/page";
+
 import CounsellingForm from "../counselling/counsellingForm/page";
+
 import { colors } from "@/theme/colors";
 
 interface HeaderProps {
@@ -38,6 +52,7 @@ const DEFAULT_SOCIAL_LINKS = {
 } as const;
 
 type SocialLinks = Record<keyof typeof DEFAULT_SOCIAL_LINKS, string>;
+
 type SocialNetwork = keyof SocialLinks;
 
 const SOCIAL_ORDER: SocialNetwork[] = [
@@ -68,7 +83,10 @@ const XLogo = ({ className }: SocialIconProps) => (
   </svg>
 );
 
-const SOCIAL_ICON_MAP: Record<SocialNetwork, ComponentType<SocialIconProps>> = {
+const SOCIAL_ICON_MAP: Record<
+  SocialNetwork,
+  ComponentType<SocialIconProps>
+> = {
   facebook: (props) => <Facebook {...props} />,
   instagram: (props) => <Instagram {...props} />,
   linkedin: (props) => <Linkedin {...props} />,
@@ -77,11 +95,8 @@ const SOCIAL_ICON_MAP: Record<SocialNetwork, ComponentType<SocialIconProps>> = {
 };
 
 const NAV_LINKS = [
-  {
-    name: "Online Courses",
-    href: "/college?programModes=Online",
-    badge: "New",
-  },
+  // { name: "Online Courses", href: "/college?programModes=Online", badge: "New" }, // Commented out
+  // { name: "Exam", href: "/exam" }, // Removed Exam - using ExamMegaMenu instead
   { name: "Colleges", href: "/college" },
   { name: "Latest Updates", href: "/latestUpdate" },
   { name: "About Company", href: "/aboutUs" },
@@ -90,20 +105,27 @@ const NAV_LINKS = [
 
 const Header = ({ title = "My Website" }: HeaderProps) => {
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
+
   const [isMounted, setIsMounted] = useState(false);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [contactInfo, setContactInfo] = useState(DEFAULT_CONTACT_INFO);
+
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     ...DEFAULT_SOCIAL_LINKS,
   });
+
   const [isCounsellingOpen, setIsCounsellingOpen] = useState(false);
 
   // ── NEW: email fallback modal state ──
   const [showEmailFallback, setShowEmailFallback] = useState(false);
+
   const [emailCopied, setEmailCopied] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+
     return () => {
       document.body.style.overflow = "";
     };
@@ -111,6 +133,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
 
   useEffect(() => {
     setIsMounted(true);
+
     const controller = new AbortController();
 
     const fetchLogo = async () => {
@@ -118,6 +141,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
         setSiteLogo("/default-logo.png");
         setContactInfo(DEFAULT_CONTACT_INFO);
         setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
+
         return;
       }
 
@@ -125,22 +149,30 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
         const { data } = await axios.get(`${api_url}settings`, {
           signal: controller.signal,
         });
+
         setSiteLogo(data.siteLogo || "/default-logo.png");
+
         setContactInfo({
           phone: data.contactPhone || DEFAULT_CONTACT_INFO.phone,
           email: data.contactEmail || DEFAULT_CONTACT_INFO.email,
         });
+
         setSocialLinks({
           ...DEFAULT_SOCIAL_LINKS,
           ...(data.socialLinks || {}),
         });
       } catch (error: any) {
-        if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+        if (
+          error?.code === "ERR_CANCELED" ||
+          error?.name === "CanceledError"
+        ) {
           return;
         }
 
         setSiteLogo("/default-logo.png");
+
         setContactInfo(DEFAULT_CONTACT_INFO);
+
         setSocialLinks({ ...DEFAULT_SOCIAL_LINKS });
       }
     };
@@ -153,9 +185,11 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
   // ── NEW: mailto handler with fallback ──
   const handleMailClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
+
     try {
       window.open(`mailto:${contactInfo.email}`, "_self");
     } catch (_) {}
+
     // Always show fallback after short delay — covers devices with no mail app
     setTimeout(() => setShowEmailFallback(true), 400);
   };
@@ -163,6 +197,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(contactInfo.email).then(() => {
       setEmailCopied(true);
+
       setTimeout(() => setEmailCopied(false), 2000);
     });
   };
@@ -172,16 +207,18 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
   return (
     <>
       <header className="bg-white text-gray-900 w-full relative shadow-sm">
-
         {/* ── MOBILE TOP BAR ── */}
-        <div className="md:hidden" style={{ backgroundColor: colors.primary.dark }}>
+        <div
+          className="md:hidden"
+          style={{ backgroundColor: colors.primary.dark }}
+        >
           <div className="flex items-center justify-end px-4 py-2 gap-2">
             {/* Get Counselling button */}
             <button
               onClick={() => setIsCounsellingOpen(true)}
               className="text-[10px] font-semibold text-white px-3 py-1 rounded-full"
               style={{
-                background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
+                background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`,
               }}
             >
               Get Counselling
@@ -200,7 +237,10 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
               >
                 <PhoneIcon className="h-3 w-3" />
               </span>
-              <span className="hidden xs:inline">{contactInfo.phone}</span>
+
+              <span className="hidden xs:inline">
+                {contactInfo.phone}
+              </span>
             </a>
 
             <span className="w-px h-3 bg-white/30" />
@@ -217,20 +257,27 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
               >
                 <EnvelopeIcon className="h-3 w-3" />
               </span>
-              <span className="hidden xs:inline">{contactInfo.email}</span>
+
+              <span className="hidden xs:inline">
+                {contactInfo.email}
+              </span>
             </a>
           </div>
         </div>
 
         {/* ── DESKTOP TOP BAR ── */}
-        <div className="hidden md:block text-sm" style={{ backgroundColor: colors.primary.dark }}>
+        <div
+          className="hidden md:block text-sm"
+          style={{ backgroundColor: colors.primary.dark }}
+        >
           <div className="w-full mx-auto px-4 lg:px-10 py-2 flex items-center justify-between gap-4">
-
             {/* Left: Social Icons */}
             <div className="flex items-center gap-2">
               {SOCIAL_ORDER.map((network) => {
                 const url = socialLinks[network] || "#";
+
                 const Icon = SOCIAL_ICON_MAP[network];
+
                 return (
                   <a
                     key={network}
@@ -254,7 +301,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 onClick={() => setIsCounsellingOpen(true)}
                 className="group relative inline-flex items-center gap-1.5 rounded-full shadow-lg shrink-0 px-4 py-1.5 text-xs font-semibold text-white"
                 style={{
-                  background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
+                  background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`,
                 }}
               >
                 <span>Get Counselling</span>
@@ -271,6 +318,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 >
                   <PhoneIcon className="h-3.5 w-3.5" />
                 </span>
+
                 {contactInfo.phone}
               </a>
 
@@ -286,6 +334,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 >
                   <EnvelopeIcon className="h-3.5 w-3.5" />
                 </span>
+
                 {contactInfo.email}
               </a>
             </div>
@@ -296,14 +345,13 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
         <nav className="bg-white shadow-lg text-gray-800 pt-2 relative w-full">
           <div className="w-full px-4 sm:px-6 lg:px-11">
             <div className="flex justify-between h-16 md:h-24 items-center w-full">
-
               {/* Logo */}
               <div className="flex items-center space-x-2 shrink-0">
                 <Link href="/">
                   <img
                     src={siteLogo!}
                     alt="Site Logo"
-                    className="h-10 w-auto cursor-pointer md:h-14 lg:h-14 bg-white p-1 rounded-lg md:bg-transparent md:p-0"
+                    className="h-10 w-auto cursor-pointer md:h-12 lg:h-12 xl:h-14 2xl:h-16 bg-white p-1 rounded-lg md:bg-transparent md:p-0"
                   />
                 </Link>
               </div>
@@ -316,25 +364,36 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
               {/* Desktop Nav Links */}
               <div className="hidden lg:flex items-center shrink-0 space-x-4">
                 {[
-                  { name: "Online", href: "/college?programModes=Online" },
+                  // { name: "Online", href: "/college?programModes=Online" }, // Commented out
+                  // { name: "Exam", href: "/exam" }, // Removed - using ExamMegaMenu instead
                   { name: "Colleges", href: "/college" },
                 ].map((item, index) => (
                   <Link key={index} href={item.href}>
                     <button
                       className={`font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00]
-                      text-xs px-2 py-1.5 lg:text-sm lg:px-3 lg:py-2
-                      ${item.name === "Online" ? "text-[#fd4c00] bg-[#fff1ec] border border-[#f0c3b8] rounded-[30px]" : ""}
-                    `}
+                        text-xs px-2 py-1.5 md:text-xs lg:text-sm xl:text-md 2xl:text-lg lg:px-3 lg:py-2
+                        ${
+                          item.name === "Online"
+                            ? "text-[#fd4c00] bg-[#fff1ec] border border-[#f0c3b8] rounded-[30px]"
+                            : ""
+                        }
+                      `}
                     >
                       {item.name}
+
                       <span className="absolute left-0 bottom-0 h-[3px] bg-[#fd4c00] transition-all duration-300 group-hover:w-full w-0" />
                     </button>
                   </Link>
                 ))}
+
                 <MegaMenu />
+
+                <ExamMegaMenu />
+
                 <Link href="/latestUpdate">
-                  <button className="font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00] text-xs px-2 py-1.5 lg:text-sm lg:px-3 lg:py-2">
+                  <button className="font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00] text-xs px-2 py-1.5 md:text-xs lg:text-sm xl:text-md 2xl:text-lg lg:px-3 lg:py-2">
                     Latest Updates
+
                     <span className="absolute left-0 bottom-0 w-0 h-[3px] bg-[#fd4c00] transition-all duration-300 group-hover:w-full" />
                   </button>
                 </Link>
@@ -343,6 +402,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
               {/* Profile + Hamburger */}
               <div className="flex items-center gap-2 ml-auto md:ml-6 pl-2 md:pl-0">
                 <ProfileDropdown />
+
                 {!mobileMenuOpen && (
                   <button
                     type="button"
@@ -382,12 +442,20 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
         ].join(" ")}
       >
         {/* Drawer header */}
-        <div className="flex items-center justify-between px-5 py-4" style={{ 
-          borderBottom: `1px solid ${colors.primary.light}`
-        }}>
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{
+            borderBottom: `1px solid ${colors.primary.light}`,
+          }}
+        >
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-            <img src={siteLogo!} alt="Site Logo" className="h-9 w-auto" />
+            <img
+              src={siteLogo!}
+              alt="Site Logo"
+              className="h-9 w-auto"
+            />
           </Link>
+
           <button
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close menu"
@@ -415,17 +483,22 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
               >
                 <span className="flex items-center gap-2.5">
                   {link.name}
+
                   {link.badge && (
                     <span className="text-[9px] bg-[#fd4c00] text-white font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">
                       {link.badge}
                     </span>
                   )}
                 </span>
+
                 <ChevronRightIcon className="h-4 w-4 text-gray-300 group-hover:text-[#D46047] group-hover:translate-x-0.5 transition-all" />
               </Link>
+
               {link.name === "Colleges" && (
                 <div className="border-b border-gray-50">
                   <MegaMenu />
+
+                  <ExamMegaMenu />
                 </div>
               )}
             </Fragment>
@@ -440,7 +513,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
           }}
           className="w-full py-4 text-white font-semibold text-sm tracking-wide flex items-center justify-center gap-2 hover:brightness-105 active:brightness-95 transition-all"
           style={{
-            background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
+            background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`,
           }}
         >
           <span>📞</span>
@@ -459,11 +532,17 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Icon */}
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: colors.primary.dark }}>
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+              style={{ backgroundColor: colors.primary.dark }}
+            >
               <EnvelopeIcon className="h-6 w-6 text-white" />
             </div>
 
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Send us an email</p>
+            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+              Send us an email
+            </p>
+
             <p className="text-base font-semibold text-gray-800 mb-4 break-all">
               {contactInfo.email}
             </p>

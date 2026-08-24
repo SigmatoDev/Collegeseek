@@ -102,7 +102,7 @@ const ProfileDropdown = () => {
         ) : (
           <button
             onClick={handleLoginRedirect}
-            className="text-gray-700 font-semibold text-[10px] md:text-[12px] tracking-tight"
+            className="text-gray-700 font-semibold text-[10px] md:text-[14px] tracking-tight"
           >
             Login / Signup
           </button>

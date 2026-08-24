@@ -157,6 +157,12 @@ const Sidebar = () => {
           isOpen,
         },
         {
+          href: "/admin/examMenuBuilder",
+          icon: <BookOpenIcon className="h-5 w-5" />,
+          text: "ExamMenu",
+          isOpen,
+        },
+        {
           href: "/admin/categoryFilter",
           icon: <Filter size={18} />,
           text: "CategoryFilter",
@@ -223,7 +229,7 @@ const Sidebar = () => {
           isOpen,
         },
         {
-          href: "/admin/changePassword", // ✅ Fixed: added leading slash
+          href: "/admin/changePassword",
           icon: <KeyRound size={18} />,
           text: "Change Password",
           isOpen,
@@ -376,12 +382,12 @@ const Sidebar = () => {
           }}
           className={`w-full flex items-center ${
             isOpen ? "justify-start space-x-3" : "justify-center"
-          } px-3 py-2 rounded-lg bg-white text-[#0a0536] font-semibold hover:bg-gray-100 transition`}
+          } px-3 py-2 rounded-lg bg-[#0a0536] text-white hover:bg-[#4f2780] transition`}
         >
           <LogOut size={18} />
           {isOpen && <span>Logout</span>}
         </button>
-        <p className="text-center text-gray-300 text-xs">© 2025 Collegeseek.in</p>
+        <p className="text-center text-gray-300 text-xs">© 2026 Collegeseek.in</p>
       </div>
     </div>
   );
