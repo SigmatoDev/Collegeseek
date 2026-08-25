@@ -106,6 +106,8 @@ type NavLink = {
   badge?: string;
 };
 
+type DesktopMegaMenu = "courses" | "exams" | null;
+
 const NAV_LINKS: NavLink[] = [
   // {
   //   name: "Online Courses",
@@ -135,6 +137,9 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
   });
 
   const [isCounsellingOpen, setIsCounsellingOpen] = useState(false);
+
+  const [activeDesktopMenu, setActiveDesktopMenu] =
+    useState<DesktopMegaMenu>(null);
 
   // ── NEW: email fallback modal state ──
   const [showEmailFallback, setShowEmailFallback] = useState(false);
@@ -388,6 +393,7 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                 ].map((item, index) => (
                   <Link key={index} href={item.href}>
                     <button
+                      onMouseEnter={() => setActiveDesktopMenu(null)}
                       className={`font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00]
                         text-xs px-2 py-1.5 md:text-xs lg:text-sm xl:text-md 2xl:text-lg lg:px-3 lg:py-2
                         ${
@@ -404,12 +410,21 @@ const Header = ({ title = "My Website" }: HeaderProps) => {
                   </Link>
                 ))}
 
-                <MegaMenu />
+                <MegaMenu
+                  activeDesktopMenu={activeDesktopMenu}
+                  onDesktopMenuChange={setActiveDesktopMenu}
+                />
 
-                <ExamMegaMenu />
+                <ExamMegaMenu
+                  activeDesktopMenu={activeDesktopMenu}
+                  onDesktopMenuChange={setActiveDesktopMenu}
+                />
 
                 <Link href="/latestUpdate">
-                  <button className="font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00] text-xs px-2 py-1.5 md:text-xs lg:text-sm xl:text-md 2xl:text-lg lg:px-3 lg:py-2">
+                  <button
+                    onMouseEnter={() => setActiveDesktopMenu(null)}
+                    className="font-medium rounded-md relative group overflow-hidden transition-colors duration-300 hover:text-[#fd4c00] text-xs px-2 py-1.5 md:text-xs lg:text-sm xl:text-md 2xl:text-lg lg:px-3 lg:py-2"
+                  >
                     Latest Updates
 
                     <span className="absolute left-0 bottom-0 w-0 h-[3px] bg-[#fd4c00] transition-all duration-300 group-hover:w-full" />

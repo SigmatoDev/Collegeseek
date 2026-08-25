@@ -1,6 +1,15 @@
 "use client";
-import { useState, useEffect, useRef, ComponentType, SVGProps } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  ComponentType,
+  SVGProps,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronDownIcon, XMarkIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { api_url } from "@/utils/apiCall";
 import {
@@ -20,6 +29,13 @@ import { colors } from "@/theme/colors";
 interface MenuColumn {
   title: string;
   links?: { label: string; url: string }[];
+}
+
+type DesktopMegaMenu = "courses" | "exams" | null;
+
+interface MegaMenuProps {
+  activeDesktopMenu?: DesktopMegaMenu;
+  onDesktopMenuChange?: Dispatch<SetStateAction<DesktopMegaMenu>>;
 }
 
 // Category icon map — extend as needed
@@ -46,7 +62,37 @@ function getCategoryIcon(title: string) {
   return CATEGORY_ICONS[key ?? "default"];
 }
 
-export default function MegaMenu() {
+function getMenuLinkHref(url: string) {
+  const trimmedUrl = url.trim();
+
+  if (!trimmedUrl) return "#";
+
+  if (
+    trimmedUrl.startsWith("/") ||
+    trimmedUrl.startsWith("#") ||
+    trimmedUrl.startsWith("mailto:") ||
+    trimmedUrl.startsWith("tel:")
+  ) {
+    return trimmedUrl;
+  }
+
+  try {
+    const parsedUrl = new URL(trimmedUrl);
+    if (parsedUrl.hostname.replace(/^www\./, "") === "collegeseek.in") {
+      return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+    }
+
+    return trimmedUrl;
+  } catch {
+    return `/${trimmedUrl}`;
+  }
+}
+
+export default function MegaMenu({
+  activeDesktopMenu,
+  onDesktopMenuChange,
+}: MegaMenuProps = {}) {
+  const router = useRouter();
   const [menuData, setMenuData] = useState<MenuColumn[]>([]);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -93,12 +139,18 @@ export default function MegaMenu() {
         !megaMenuRef.current.contains(event.target as Node) &&
         !bottomSheetRef.current?.contains(event.target as Node)
       ) {
-        setIsMegaMenuOpen(false);
+        if (onDesktopMenuChange) {
+          if (activeDesktopMenu === "courses") {
+            onDesktopMenuChange(null);
+          }
+        } else {
+          setIsMegaMenuOpen(false);
+        }
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [activeDesktopMenu, onDesktopMenuChange]);
 
   // FIX 2 — Lock body scroll on mobile when open (corrected cleanup)
   useEffect(() => {
@@ -113,15 +165,50 @@ export default function MegaMenu() {
     };
   }, [isMegaMenuOpen]);
 
-  const close = () => setIsMegaMenuOpen(false);
+  const isDesktopControlled = Boolean(onDesktopMenuChange);
+  const isOpen = isDesktopControlled
+    ? activeDesktopMenu === "courses"
+    : isMegaMenuOpen;
+
+  const close = () => {
+    if (isDesktopControlled) {
+      onDesktopMenuChange?.(null);
+    } else {
+      setIsMegaMenuOpen(false);
+    }
+  };
+
+  const closeAfterLinkClick = () => {
+    window.setTimeout(close, 0);
+  };
+
+  const handleViewAllCourses = () => {
+    if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+    router.push("/courses");
+    close();
+  };
+
+  const closeIfStillActive = () => {
+    if (isDesktopControlled) {
+      onDesktopMenuChange?.((current) =>
+        current === "courses" ? null : current
+      );
+    } else {
+      setIsMegaMenuOpen(false);
+    }
+  };
 
   const handleMenuMouseLeave = () => {
-    hoverTimeout.current = setTimeout(() => setIsMegaMenuOpen(false), 120);
+    hoverTimeout.current = setTimeout(closeIfStillActive, 120);
   };
 
   const handleMenuMouseEnter = () => {
     if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-    setIsMegaMenuOpen(true);
+    if (isDesktopControlled) {
+      onDesktopMenuChange?.("courses");
+    } else {
+      setIsMegaMenuOpen(true);
+    }
   };
 
   const activeLinks = menuData[hoveredCategory ?? 0]?.links ?? [];
@@ -129,16 +216,25 @@ export default function MegaMenu() {
 
  return (
   <>
-    <div className="relative" ref={megaMenuRef}>
+    <div
+      className={`relative ${isOpen ? "z-[30]" : "z-[40]"}`}
+      ref={megaMenuRef}
+      onMouseEnter={handleMenuMouseEnter}
+      onMouseLeave={handleMenuMouseLeave}
+    >
       {/* ── Trigger Button ── */}
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          setIsMegaMenuOpen((p) => !p);
+          if (isDesktopControlled) {
+            onDesktopMenuChange?.(isOpen ? null : "courses");
+          } else {
+            setIsMegaMenuOpen((p) => !p);
+          }
         }}
         onMouseEnter={handleMenuMouseEnter}
-        aria-expanded={isMegaMenuOpen}
+        aria-expanded={isOpen}
         className="
           group relative flex items-center justify-between w-full
           px-5 py-4 text-[15px] font-medium text-gray-800
@@ -154,7 +250,7 @@ export default function MegaMenu() {
           Courses
           <span
             className={`absolute -bottom-0.5 left-0 h-[1.5px] bg-[#fd4c00] rounded-full transition-all duration-300 ${
-              isMegaMenuOpen ? "w-full" : "w-0 group-hover:w-full"
+              isOpen ? "w-full" : "w-0 group-hover:w-full"
             }`}
           />
         </span>
@@ -162,12 +258,12 @@ export default function MegaMenu() {
 
         <ChevronRightIcon
           className={`h-4 w-4 text-gray-300 group-hover:text-[#fd4c00] transition-all duration-300 md:hidden
-            ${isMegaMenuOpen ? "rotate-90" : "rotate-0"}
+            ${isOpen ? "rotate-90" : "rotate-0"}
           `}
         />
         <ChevronDownIcon
           className={`h-3.5 w-3.5 hidden md:block text-gray-400 group-hover:text-[#fd4c00] transition-all duration-300
-            ${isMegaMenuOpen ? "rotate-180 text-[#fd4c00]" : "rotate-0"}
+            ${isOpen ? "rotate-180 text-[#fd4c00]" : "rotate-0"}
           `}
         />
       </button>
@@ -178,7 +274,7 @@ export default function MegaMenu() {
           border border-gray-100 rounded-2xl shadow-2xl shadow-gray-200/60
           z-50 overflow-hidden transition-all duration-200 ease-out origin-top-right
           ${
-            isMegaMenuOpen
+            isOpen
               ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
               : "opacity-0 scale-[0.97] -translate-y-2 pointer-events-none"
           }`}
@@ -198,8 +294,10 @@ export default function MegaMenu() {
 
               return (
                 <button
+                  type="button"
                   key={index}
                   onMouseEnter={() => setHoveredCategory(index)}
+                  onClick={() => setHoveredCategory(index)}
                   className={`w-full flex items-center gap-3 px-5 py-2.5 text-left text-md font-medium
                     transition-all duration-150 group/cat
                     ${
@@ -270,8 +368,8 @@ export default function MegaMenu() {
                   {activeLinks.map((link, i) => (
                     <Link
                       key={i}
-                      href={link.url}
-                      onClick={close}
+                      href={getMenuLinkHref(link.url)}
+                      onClick={closeAfterLinkClick}
                       className="
                         group/link flex items-center gap-2.5 py-2 px-2.5 rounded-lg
                         text-[13px] text-gray-600
@@ -301,9 +399,9 @@ export default function MegaMenu() {
               <p className="text-[12px] text-gray-400">
                 Explore our full course library
               </p>
-              <Link
-                href="/courses"
-                onClick={close}
+              <button
+                type="button"
+                onClick={handleViewAllCourses}
                 className="
                   inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold
                   bg-[#fd4c00] text-white
@@ -313,7 +411,7 @@ export default function MegaMenu() {
               >
                 View All Courses
                 <ChevronRightIcon className="h-3.5 w-3.5" />
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -402,8 +500,8 @@ export default function MegaMenu() {
               {(menuData[activeTab].links ?? []).map((link, i) => (
                 <Link
                   key={i}
-                  href={link.url}
-                  onClick={close}
+                  href={getMenuLinkHref(link.url)}
+                  onClick={closeAfterLinkClick}
                   className="flex items-center gap-2 py-2.5 text-[13px] text-gray-700 hover:text-[#D46047] border-b border-gray-50 transition-colors group"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-[#D46047]/25 group-hover:bg-[#D46047] transition-colors shrink-0" />
@@ -420,16 +518,16 @@ export default function MegaMenu() {
 
         {/* CTA footer */}
         <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/60 shrink-0">
-          <Link
-            href="/courses"
-            onClick={close}
+          <button
+            type="button"
+            onClick={handleViewAllCourses}
             className="flex items-center justify-center gap-2 w-full py-3 text-white text-sm font-semibold rounded-xl shadow-md hover:brightness-105 active:scale-[0.98] transition-all"
             style={{
               background: `linear-gradient(to right, ${colors.accent.orange}, ${colors.accent.red})`
             }}
           >
             View All Courses →
-          </Link>
+          </button>
         </div>
       </div>
     </>
