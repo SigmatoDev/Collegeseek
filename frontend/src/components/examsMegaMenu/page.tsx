@@ -263,7 +263,7 @@ export default function ExamMegaMenu({
         <div
           className={`hidden md:flex absolute top-full right-0 mt-2.5 w-[860px] bg-white
             border border-gray-100 rounded-2xl shadow-2xl shadow-gray-200/60
-            z-50 overflow-hidden transition-all duration-200 ease-out origin-top-right
+            z-20 overflow-hidden transition-all duration-200 ease-out origin-top-right
             ${
               isOpen
                 ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"

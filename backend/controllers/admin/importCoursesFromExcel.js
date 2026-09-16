@@ -253,8 +253,14 @@ const ProgramMode = require("../../models/admin/programMode");
 const Specialization = require("../../models/admin/specialization");
 const Stream = require("../../models/admin/streams");
 
-// Utility to safely parse number
-const parseNumber = (val) => (val ? Number(val) : undefined);
+// Utility to safely parse number (preserving 0)
+const parseNumber = (val) =>
+  val !== undefined && val !== null && val !== "" && !isNaN(Number(val))
+    ? Number(val)
+    : undefined;
+
+// Utility to escape regex special characters
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Generate unique slug
 const generateSlug = async (specializationName, college) => {
@@ -396,12 +402,43 @@ exports.importCoursesFromExcel = async (req, res) => {
           brochure_link,
         });
 
-        // CLEAN COLLEGE NAME
-        const cleanCollegeName = rawCollegeName?.replace(/\(.*?\)/g, "").trim();
+        // RESOLVE COLLEGE (Export format: "Name (State, City)" or plain "Name")
+        let college = null;
+        let cleanCollegeName = rawCollegeName ? String(rawCollegeName).trim() : "";
 
-      const college = await College.findOne({
-  name: new RegExp(`^${cleanCollegeName.trim()}$`, "i"),
-});
+        // Check if rawCollegeName ends with (State, City) pattern from Course Export
+        const exportMatch = cleanCollegeName.match(/^(.*?)\s*\(([^,]+),\s*([^)]+)\)$/);
+        if (exportMatch) {
+          const collegeNamePart = exportMatch[1].trim();
+          const statePart = exportMatch[2].trim();
+          const cityPart = exportMatch[3].trim();
+
+          college = await College.findOne({
+            name: new RegExp(`^${escapeRegex(collegeNamePart)}$`, "i"),
+            state: new RegExp(`^${escapeRegex(statePart)}$`, "i"),
+            city: new RegExp(`^${escapeRegex(cityPart)}$`, "i"),
+          });
+
+          if (!college) {
+            college = await College.findOne({
+              name: new RegExp(`^${escapeRegex(collegeNamePart)}$`, "i"),
+            });
+          }
+          cleanCollegeName = collegeNamePart;
+        }
+
+        // Fallback: match by name directly (handling potential internal parentheses safely)
+        if (!college && cleanCollegeName) {
+          const strippedName = cleanCollegeName.replace(/\(.*?\)/g, "").trim();
+          college =
+            (await College.findOne({
+              name: new RegExp(`^${escapeRegex(cleanCollegeName)}$`, "i"),
+            })) ||
+            (await College.findOne({
+              name: new RegExp(`^${escapeRegex(strippedName)}$`, "i"),
+            }));
+          if (college) cleanCollegeName = college.name;
+        }
 
         if (!college) {
           console.log(`❌ College not found:`, cleanCollegeName);
@@ -481,6 +518,8 @@ exports.importCoursesFromExcel = async (req, res) => {
               specialization: specialization?._id,
               description,
               college_id: college._id,
+              state: college.state,
+              city: college.city,
               category: category?._id,
               programMode: programMode?._id,
               duration,
@@ -513,6 +552,8 @@ exports.importCoursesFromExcel = async (req, res) => {
             specialization: specialization?._id,
             description,
             college_id: college._id,
+            state: college.state,
+            city: college.city,
             category: category?._id,
             programMode: programMode?._id,
             duration,

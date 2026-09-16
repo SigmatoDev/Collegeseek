@@ -38,6 +38,7 @@
     "validator": "^13.12.0"
   },
   "overrides": {
-    "uuid": "$uuid"
-  }
+    "uuid": "$uuid",
+    "qs": "6.16.0"
+  } 
 }
