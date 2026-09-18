@@ -332,7 +332,7 @@ const getCourseById = async (req, res) => {
 
     const course = await Course.findById(id).populate(
       "college_id",
-      "name location"
+      "name location state city"
     );
     if (!course) {
       return res.status(404).json({ message: "Course not found" });

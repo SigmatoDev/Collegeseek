@@ -215,8 +215,10 @@ export default function CategoryGrid() {
           );
 
         const counts = {
-          Streams: sumValues(countData?.streamCounts),
-          Exams: sumValues(countData?.examCounts),
+          Streams: Object.keys(countData?.streamCounts || {}).length,
+          Exams: Object.keys(countData?.examCounts || {}).length,
+// Streams: sumValues(countData?.streamCounts),
+          // Exams: sumValues(countData?.examCounts),
           Courses: sumValues(countData?.courseCounts),
         };
 

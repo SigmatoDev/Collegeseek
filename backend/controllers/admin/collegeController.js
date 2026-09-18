@@ -331,11 +331,31 @@ const getallColleges = async (req, res) => {
 };
 const getStateColleges = async (req, res) => {
   try {
-    const colleges = await College.find();
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(req.query.limit, 10) || 100)
+    );
+    const search =
+      typeof req.query.search === "string" ? req.query.search.trim() : "";
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const query = escapedSearch
+      ? {
+          $or: ["name", "city", "state"].map((field) => ({
+            [field]: { $regex: escapedSearch, $options: "i" },
+          })),
+        }
+      : {};
+    const colleges = await College.find(query)
+      .select("_id name city state")
+      .sort({ _id: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit + 1)
+      .lean();
 
     // Map to include string values for city and state
-    const formattedColleges = colleges.map((college) => ({
-      ...college.toObject(),
+    const formattedColleges = colleges.slice(0, limit).map((college) => ({
+      ...college,
       city: college.city || "N/A",
       state: college.state || "N/A",
     }));
@@ -343,7 +363,11 @@ const getStateColleges = async (req, res) => {
     // Log the formatted colleges
     // console.log("Formatted Colleges:", formattedColleges);
 
-    res.status(200).json({ success: true, data: formattedColleges });
+    res.status(200).json({
+      success: true,
+      data: formattedColleges,
+      hasMore: colleges.length > limit,
+    });
   } catch (error) {
     console.error("Error fetching colleges:", error);
     res.status(500).json({ success: false, error: "Failed to fetch colleges" });

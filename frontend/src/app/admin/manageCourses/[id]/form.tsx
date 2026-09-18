@@ -76,6 +76,11 @@ const ActualCourseForm = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [colleges, setColleges] = useState<College[]>([]);
+  const [collegesPage, setCollegesPage] = useState(1);
+  const [collegesLoading, setCollegesLoading] = useState(true);
+  const [collegesError, setCollegesError] = useState(false);
+  const [hasMoreColleges, setHasMoreColleges] = useState(true);
+  const [collegesRetry, setCollegesRetry] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchCollege, setSearchCollege] = useState("");
@@ -223,6 +228,14 @@ const ActualCourseForm = () => {
     );
   }, [colleges, searchCollege]);
 
+  const selectedStream = Array.isArray(course.streams)
+    ? course.streams[0]
+    : course.streams;
+  const selectedStreamId =
+    typeof selectedStream === "string"
+      ? selectedStream
+      : selectedStream?._id || "";
+
   const degreeNameMap = useMemo(() => {
     const map: Record<string, string> = {};
     courseList.forEach((item) => {
@@ -232,15 +245,32 @@ const ActualCourseForm = () => {
   }, [courseList]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    setCollegesLoading(true);
+    setCollegesError(false);
     axios
-      .get(`${api_url}State/colleges/`)
-      .then((res) => {
-        const data = res.data.data || [];
-        // console.log("Fetched Colleges:", data); // <-- log fetched colleges
-        setColleges(data);
+      .get(`${api_url}State/colleges/`, {
+        params: { page: collegesPage, limit: 100, search: searchCollege },
+        signal: controller.signal,
       })
-      .catch((err) => console.error("Error fetching colleges:", err));
-  }, []);
+      .then((res) => {
+        const data = Array.isArray(res.data?.data) ? res.data.data : [];
+        setColleges((current) =>
+          collegesPage === 1 ? data : [...current, ...data],
+        );
+        setHasMoreColleges(Boolean(res.data?.hasMore));
+      })
+      .catch((err) => {
+        if (!axios.isCancel(err)) {
+          console.error("Error fetching colleges:", err);
+          setCollegesError(true);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCollegesLoading(false);
+      });
+    return () => controller.abort();
+  }, [searchCollege, collegesPage, collegesRetry]);
 
   useEffect(() => {
     const fetchCourseList = async () => {
@@ -256,9 +286,10 @@ const ActualCourseForm = () => {
   }, []);
 
   useEffect(() => {
-    if (courseId && courseId !== "new" && colleges.length > 0) {
+    if (courseId && courseId !== "new") {
+      const controller = new AbortController();
       axios
-        .get(`${api_url}courses/${courseId}`)
+        .get(`${api_url}courses/${courseId}`, { signal: controller.signal })
         .then((res) => {
           const fetchedCourse = res.data || {};
 
@@ -270,15 +301,7 @@ const ActualCourseForm = () => {
             fetchedCourse.category = fetchedCourse.category._id;
           }
 
-          // Replace college_id with the full college object
-          if (fetchedCourse.college_id) {
-            const fullCollege = colleges.find(
-              (c) =>
-                c._id === fetchedCourse.college_id._id ||
-                c._id === fetchedCourse.college_id,
-            );
-            fetchedCourse.college = fullCollege || null;
-          }
+          fetchedCourse.college = fetchedCourse.college_id || null;
 
           fetchedCourse.focusAreas = fetchedCourse.focusAreas || [];
           fetchedCourse.examList = fetchedCourse.examList || [];
@@ -289,9 +312,12 @@ const ActualCourseForm = () => {
             examList: "",
           });
         })
-        .catch((err) => console.error(err));
+        .catch((err) => {
+          if (!axios.isCancel(err)) console.error(err);
+        });
+      return () => controller.abort();
     }
-  }, [courseId, colleges]); // <--- add 'colleges' here
+  }, [courseId]);
 
   const handleChange = useCallback(
     (
@@ -651,17 +677,56 @@ const ActualCourseForm = () => {
                   type="text"
                   placeholder="Search colleges..."
                   value={searchCollege}
-                  onChange={(e) => setSearchCollege(e.target.value)}
+                  onChange={(e) => {
+                    setSearchCollege(e.target.value);
+                    setCollegesPage(1);
+                    setColleges([]);
+                    setHasMoreColleges(true);
+                  }}
                   className="w-full border-b px-3 py-2 text-sm outline-none"
                   autoFocus
                 />
               </div>
-              <ul className="max-h-60 overflow-y-auto" role="listbox">
-                {filteredColleges.length === 0 && (
+              <ul
+                className="max-h-60 overflow-y-auto"
+                role="listbox"
+                onScroll={(e) => {
+                  const list = e.currentTarget;
+                  if (
+                    hasMoreColleges &&
+                    !collegesLoading &&
+                    !collegesError &&
+                    list.scrollTop + list.clientHeight >= list.scrollHeight - 32
+                  ) {
+                    setCollegesLoading(true);
+                    setCollegesPage((page) => page + 1);
+                  }
+                }}
+              >
+                {collegesLoading && collegesPage === 1 && (
+                  <li className="px-3 py-2 text-sm text-gray-500">
+                    Loading colleges...
+                  </li>
+                )}
+                {collegesError && (
+                  <li className="px-3 py-2 text-sm text-red-600">
+                    Failed to load colleges.{" "}
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => setCollegesRetry((count) => count + 1)}
+                    >
+                      Retry
+                    </button>
+                  </li>
+                )}
+                {!collegesLoading &&
+                  !collegesError &&
+                  filteredColleges.length === 0 && (
                   <li className="px-3 py-2 text-sm text-gray-500">
                     No colleges found.
                   </li>
-                )}
+                  )}
                 {filteredColleges.map((college) => (
                   <li
                     key={college._id}
@@ -677,6 +742,7 @@ const ActualCourseForm = () => {
 
                       setIsOpen(false);
                       setSearchCollege("");
+                      setCollegesPage(1);
                     }}
                   >
                     <p className="font-medium">{college.name}</p>
@@ -687,6 +753,11 @@ const ActualCourseForm = () => {
                     </p>
                   </li>
                 ))}
+                {collegesLoading && collegesPage > 1 && (
+                  <li className="px-3 py-2 text-sm text-gray-500">
+                    Loading more colleges...
+                  </li>
+                )}
               </ul>
             </div>
           )}
@@ -767,7 +838,7 @@ const ActualCourseForm = () => {
         <div>
           <StreamsDropdown
             name="Streams"
-            value={course.streams ?? ""}
+            value={selectedStreamId}
             onChange={handleStreamsChange}
             label="Streams"
           />
